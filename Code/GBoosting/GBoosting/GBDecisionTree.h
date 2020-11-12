@@ -21,4 +21,9 @@ private:
 	size_t* features = nullptr;
 	FVal_t* thresholds = nullptr;
 	Lab_t* leaves = nullptr;
+
+	// constants
+	static const size_t treeDepth = 4;
+	static const size_t innerNodes;
+	static const size_t leafCnt;
 };

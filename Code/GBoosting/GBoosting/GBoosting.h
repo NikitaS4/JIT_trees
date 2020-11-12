@@ -11,7 +11,8 @@ public:
 	virtual ~GradientBoosting();
 	// 1st dim - object number, 2nd dim - feature number
 	void fit(const std::vector<std::vector<FVal_t>>& xTest, 
-			 const std::vector<Lab_t>& yTest);
+			 const std::vector<Lab_t>& yTest, 
+			 const size_t treeCount);
 	Lab_t predict(const std::vector<FVal_t>& xTest);
 protected:
 	static void sortFeature(const std::vector<FVal_t>& xData, 
@@ -21,10 +22,14 @@ protected:
 	// fields
 	size_t featureCount;
 	size_t trainLen;
-	size_t treeCount;
+	size_t realTreeCount;
+	size_t binCount;
 	// xSwapped: 1st dim - feature number, 2nd dim - object number
 	std::vector<std::vector<FVal_t>> xSwapped;
 	std::vector<GBHist> hists; // histogram for each feature
 	std::vector<GBDecisionTree> trees;
 	Lab_t zeroPredictor; // constant model
+
+	// constants
+	static const size_t defaultBinCount = 4;
 };
