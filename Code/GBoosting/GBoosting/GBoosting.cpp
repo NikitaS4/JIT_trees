@@ -2,7 +2,9 @@
 #include "StatisticsHelper.h"
 
 
-GradientBoosting::GradientBoosting() {
+GradientBoosting::GradientBoosting(): featureCount(1), 
+	trainLen(0), realTreeCount(0), binCount(defaultBinCount), 
+	zeroPredictor(0) {
 	// ctor
 }
 
@@ -11,7 +13,7 @@ GradientBoosting::~GradientBoosting() {
 }
 
 void GradientBoosting::fit(const std::vector<std::vector<FVal_t>>& xTest,
-	const std::vector<Lab_t>& yTest) {
+	const std::vector<Lab_t>& yTest, const size_t treeCount) {
 
 	// Prepare data	
 	trainLen = xTest.size();
@@ -23,7 +25,6 @@ void GradientBoosting::fit(const std::vector<std::vector<FVal_t>>& xTest,
 	for (auto& featureSlice : xSwapped) {
 		std::vector<size_t> sortedIdxs;
 		sortFeature(featureSlice, sortedIdxs);
-		size_t binCount = 4;  // TODO: make static class constant or parameter or both
 		hists.push_back(GBHist(binCount, sortedIdxs, featureSlice));
 	}
 
@@ -33,7 +34,6 @@ void GradientBoosting::fit(const std::vector<std::vector<FVal_t>>& xTest,
 	zeroPredictor = StatisticsHelper::mean(yTest);
 
 	// fit another models
-	treeCount = 3;  // TODO: make a parameter
 	std::vector<Lab_t> residuals(yTest);  // deep copy - rewrite later
 	// residuals = yTest - trainPreds
 
@@ -50,6 +50,7 @@ void GradientBoosting::fit(const std::vector<std::vector<FVal_t>>& xTest,
 		for (size_t sample = 0; sample < trainLen; ++sample)
 			residuals[sample] -= curTree.predict(xTest[sample]);
 	}
+	realTreeCount = treeCount;  // without early stopping
 }
 
 Lab_t GradientBoosting::predict(const std::vector<FVal_t>& xTest) {
