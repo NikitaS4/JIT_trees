@@ -10,7 +10,7 @@ public:
 		const std::vector<FVal_t>& xFeature);
 
 	size_t getBinCount() const;
-	FVal_t getDataSplitIdx(const size_t splitPos) const;
+	size_t getDataSplitIdx(const size_t splitPos) const;
 	Lab_t findBestSplit(const std::vector<size_t>& subset, 
 		const std::vector<Lab_t>& labels, size_t& splitPos) const;
 	void performSplit(const std::vector<size_t>& subset, 
