@@ -1,6 +1,8 @@
 #include "GBoosting.h"
 #include "StatisticsHelper.h"
 
+#include <utility>
+
 
 GradientBoosting::GradientBoosting(): featureCount(1), 
 	trainLen(0), realTreeCount(0), binCount(defaultBinCount), 
@@ -20,7 +22,6 @@ void GradientBoosting::fit(const std::vector<std::vector<FVal_t>>& xTest,
 	featureCount = xTest[0].size();
 	swapAxes(xTest);  // x.shape = (featureCount, trainLen)
 	// Now it's easy to pass feature slices to build histogram
-
 	// Histogram building
 	for (auto& featureSlice : xSwapped) {
 		std::vector<size_t> sortedIdxs;
@@ -34,8 +35,10 @@ void GradientBoosting::fit(const std::vector<std::vector<FVal_t>>& xTest,
 	zeroPredictor = StatisticsHelper::mean(yTest);
 
 	// fit another models
-	std::vector<Lab_t> residuals(yTest);  // deep copy - rewrite later
+	std::vector<Lab_t> residuals;
 	// residuals = yTest - trainPreds
+	for (size_t i = 0; i < trainLen; ++i)
+		residuals.push_back(yTest[i] - zeroPredictor);
 
 	// default subset: all data
 	std::vector<size_t> subset;
@@ -45,10 +48,10 @@ void GradientBoosting::fit(const std::vector<std::vector<FVal_t>>& xTest,
 	for (size_t treeNum = 0; treeNum < treeCount; ++treeNum) {
 		// TODO: add early stopping
 		GBDecisionTree curTree(xSwapped, subset, residuals, hists);
-		trees.push_back(curTree);
 		// update residuals
 		for (size_t sample = 0; sample < trainLen; ++sample)
 			residuals[sample] -= curTree.predict(xTest[sample]);
+		trees.emplace_back(std::move(curTree));
 	}
 	realTreeCount = treeCount;  // without early stopping
 }
@@ -63,7 +66,7 @@ Lab_t GradientBoosting::predict(const std::vector<FVal_t>& xTest) {
 
 void GradientBoosting::swapAxes(const std::vector<std::vector<FVal_t>>& xTest) {
 	std::vector<FVal_t> featureVals;
-	for (size_t feature = 0; feature < featureCount; ++featureCount) {
+	for (size_t feature = 0; feature < featureCount; ++feature) {
 		featureVals.clear();
 		for (size_t dataNum = 0; dataNum < trainLen; ++dataNum) {
 			featureVals.push_back(xTest[dataNum][feature]);

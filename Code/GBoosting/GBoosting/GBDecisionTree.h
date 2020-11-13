@@ -9,8 +9,10 @@ public:
 	// CTOR == FIT
 	GBDecisionTree(const std::vector<std::vector<FVal_t>>& xSwapped,
 		const std::vector<size_t>& chosen, 
-		const std::vector<Lab_t>& yTest,
+		const std::vector<Lab_t>& yTrain,
 		const std::vector<GBHist>& hists);
+	GBDecisionTree(GBDecisionTree&& other) noexcept;  // move ctor
+	GBDecisionTree(const GBDecisionTree& other);  // copy ctor
 	virtual ~GBDecisionTree();
 
 	Lab_t predict(const std::vector<FVal_t>& sample);
@@ -23,7 +25,7 @@ private:
 	Lab_t* leaves = nullptr;
 
 	// constants
-	static const size_t treeDepth = 4;
+	static const size_t treeDepth = 2;
 	static const size_t innerNodes;
 	static const size_t leafCnt;
 };

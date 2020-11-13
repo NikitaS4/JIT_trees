@@ -18,3 +18,12 @@ Lab_t StatisticsHelper::mean(const std::vector<Lab_t>& vals,
 	}
 	return curSum / count;
 }
+
+Lab_t StatisticsHelper::maxAbs(const std::vector<Lab_t>& vals) {
+	Lab_t curMax = 0;
+	for (auto& curVal : vals) {
+		if (abs(curVal) > curMax)
+			curMax = abs(curVal);
+	}
+	return curMax;
+}

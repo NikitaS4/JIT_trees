@@ -1,5 +1,6 @@
 #include "GBDecisionTree.h"
 
+
 const size_t GBDecisionTree::innerNodes = (1 << treeDepth) - 1;
 const size_t GBDecisionTree::leafCnt = 1 << treeDepth;
 
@@ -22,17 +23,18 @@ GBDecisionTree::GBDecisionTree(const std::vector<std::vector<FVal_t>>& xSwapped,
 	Lab_t bestScore;
 	bool firstSplitFound = false;
 	Lab_t curScore;
-	std::vector<size_t> curSplitPos(1 << treeDepth, 0);
+	std::vector<size_t> curSplitPos(leafCnt, 0);
 	size_t atomicSplitPos;
 	size_t bestFeature = 0;
 	for (size_t h = 0; h < treeDepth; ++h) {
 		// find best split
+		size_t firstBroNum = (1 << h) - 1;
 		for (size_t feature = 0; feature < featureCount; ++feature) {
 			// for all nodes look for the best split of the feature
 			curScore = 0;
 			for (size_t node = 0; node < broCount; ++node) {
 				// find best score
-				curScore += hists[feature].findBestSplit(subset[(1 << h) + node - 1], 
+				curScore += hists[feature].findBestSplit(subset[firstBroNum + node], 
 					yTest, atomicSplitPos);
 				curSplitPos[node] = atomicSplitPos;
 			}
@@ -44,7 +46,6 @@ GBDecisionTree::GBDecisionTree(const std::vector<std::vector<FVal_t>>& xSwapped,
 		}
 		// the best score is found now
 		// need to perform the split
-		size_t firstBroNum = (1 << h) - 1;
 		for (size_t node = 0; node < broCount; ++node) {
 			std::vector<size_t> leftSubset;
 			std::vector<size_t> rightSubset;
@@ -56,13 +57,13 @@ GBDecisionTree::GBDecisionTree(const std::vector<std::vector<FVal_t>>& xSwapped,
 			thresholds[firstBroNum + node] = xSwapped[bestFeature][hists[bestFeature].getDataSplitIdx(bestSplitPos[node])];
 		}
 		features[h] = bestFeature;
-
 		broCount <<= 1;  // it equals *= 2
 	}
+
 	// all internal nodes created
 	Lab_t curSum;
 	size_t curCnt;
-	for (size_t leaf = 0; leaf < 1 << treeDepth; ++leaf) {
+	for (size_t leaf = 0; leaf < leafCnt; ++leaf) {
 		curSum = 0;
 		curCnt = 0;
 		for (auto& sample : subset[innerNodes + leaf]) {
@@ -70,6 +71,31 @@ GBDecisionTree::GBDecisionTree(const std::vector<std::vector<FVal_t>>& xSwapped,
 		}
 		curCnt = subset[innerNodes + leaf].size();
 		leaves[leaf] = curSum / curCnt;  // mean leaf residual
+	}
+}
+
+GBDecisionTree::GBDecisionTree(GBDecisionTree&& other) noexcept:
+	features(std::move(other.features)), 
+	thresholds(std::move(other.thresholds)), 
+	leaves(std::move(other.leaves)) {
+	other.features = nullptr;
+	other.thresholds = nullptr;
+	other.leaves = nullptr;
+}
+
+GBDecisionTree::GBDecisionTree(const GBDecisionTree& other) {
+	features = new size_t[treeDepth];
+	thresholds = new FVal_t[innerNodes];
+	leaves = new Lab_t[leafCnt];
+
+	for (size_t i = 0; i < treeDepth; ++i) {
+		features[i] = other.features[i];
+	}
+	for (size_t i = 0; i < innerNodes; ++i) {
+		thresholds[i] = other.thresholds[i];
+	}
+	for (size_t i = 0; i < leafCnt; ++i) {
+		leaves[i] = other.leaves[i];
 	}
 }
 
@@ -87,10 +113,16 @@ Lab_t GBDecisionTree::predict(const std::vector<FVal_t>& sample) {
 }
 
 GBDecisionTree::~GBDecisionTree() {
-	if (features)
+	if (features) {
 		delete[] features;
-	if (thresholds)
+		features = nullptr;
+	}
+	if (thresholds) {
 		delete[] thresholds;
-	if (leaves)
+		thresholds = nullptr;
+	}
+	if (leaves) {
 		delete[] leaves;
+		leaves = nullptr;
+	}
 }
