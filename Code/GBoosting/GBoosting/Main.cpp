@@ -32,13 +32,13 @@ float randInterval(float from, float to) {
 
 void testBoosting() {
 	size_t treeCount = 3;
-	
+
 	// task: regression
 	// 2 features
 	// function: f(x1, x2) = x1 ** 2 + x2 + 10sin(x3) + 30
 
 	size_t trainLen = 1000;
-	size_t testLen = 10;
+	size_t testLen = 100;
 	
 	// fill train dataset
 	std::vector<std::vector<FVal_t>> xTrain;

@@ -13,7 +13,7 @@ GBHist::GBHist(const size_t binCount,
 	
 	size_t curLeft = 0; // left border for the binary search
 	for (size_t i = 0; i < binCount; ++i) {
-		curThreshold = i * binWidth + featureMin;
+		curThreshold = (i + 1) * binWidth + featureMin;
 		//thresholds.push_back(curThreshold);
 
 		// Remember result to use it in search 
@@ -63,14 +63,19 @@ Lab_t GBHist::findBestSplit(const std::vector<size_t>& subset,
 	// for each bin calculate score
 	// new threshold -> left += diff, right -= diff
 	size_t sample;
-	for (size_t curBin = 0; curBin < binCount - 1; ++curBin) {
+	size_t curBin = 0;
+	while (curBin < binCount - 1 && prevPos < subsetSize) {
+		// skip empty bins
+		while (curBin < binCount - 1 &&
+			thresholdPos[curBin] <= sortedSubset[prevPos])
+			++curBin;
 		size_t curThPos = thresholdPos[curBin];
-		for (sample = prevPos; sample < sortedSubset.size() && sortedSubset[sample] < curThPos; ++sample) {
+		for (sample = prevPos; sample < subsetSize && sortedSubset[sample] < curThPos; ++sample) {
 			leftSum += labels[sortedSubset[sample]];
 			rightSum -= labels[sortedSubset[sample]];
-			leftCnt += 1;
-			rightCnt -= 1;
+			++leftCnt;
 		}
+		rightCnt = subsetSize - leftCnt;  // subsetSize = left + right
 		prevPos = sample;  // for the next step
 		leftAvg = leftSum / leftCnt;
 		rightAvg = rightSum / rightCnt;
@@ -91,8 +96,9 @@ Lab_t GBHist::findBestSplit(const std::vector<size_t>& subset,
 			bestScore = curScore;
 			bestSplitPos = curThPos;
 		}
+		++curBin;  // get the next bin
 	}
-	// now the best score found
+	// now the best score found	
 	splitPos = bestSplitPos;
 	return bestScore;
 }

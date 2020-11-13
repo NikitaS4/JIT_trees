@@ -31,5 +31,5 @@ protected:
 	Lab_t zeroPredictor; // constant model
 
 	// constants
-	static const size_t defaultBinCount = 8;
+	static const size_t defaultBinCount = 128;
 };
