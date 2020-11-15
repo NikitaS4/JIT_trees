@@ -31,6 +31,8 @@ float randInterval(float from, float to) {
 
 void testBoosting() {
 	size_t treeCount = 3;
+	size_t treeDepth = 2;
+	size_t binCount = 256;
 
 	// task: regression
 	// 2 features
@@ -64,10 +66,10 @@ void testBoosting() {
 
 	std::cout << "Dataset generated\n";
 
-	GradientBoosting model;
+	GradientBoosting model(binCount);
 
 	std::cout << "Fitting model\n";
-	model.fit(xTrain, yTrain, treeCount);
+	model.fit(xTrain, yTrain, treeCount, treeDepth);
 
 	std::cout << "Model has been fit. Collecting predictions\n";
 
