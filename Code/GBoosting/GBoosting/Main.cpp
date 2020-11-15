@@ -7,8 +7,7 @@
 
 void testSort() {
 	std::vector<FVal_t> sample = { 1, 3, 8, 15, 2, 16, 10, 7, 4, 3 };
-	std::vector<size_t> sorted;
-	GBTest::testSort(sample, sorted);
+	std::vector<size_t> sorted = GBTest::testSort(sample);
 
 	std::cout << "Original array:\n";
 	for (auto& it : sample) {

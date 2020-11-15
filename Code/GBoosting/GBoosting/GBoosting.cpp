@@ -24,8 +24,7 @@ void GradientBoosting::fit(const std::vector<std::vector<FVal_t>>& xTest,
 	// Now it's easy to pass feature slices to build histogram
 	// Histogram building
 	for (auto& featureSlice : xSwapped) {
-		std::vector<size_t> sortedIdxs;
-		sortFeature(featureSlice, sortedIdxs);
+		std::vector<size_t> sortedIdxs = sortFeature(featureSlice);
 		hists.push_back(GBHist(binCount, sortedIdxs, featureSlice));
 	}
 
@@ -76,12 +75,11 @@ void GradientBoosting::swapAxes(const std::vector<std::vector<FVal_t>>& xTest) {
 }
 
 
-void GradientBoosting::sortFeature(const std::vector<FVal_t>& xData,
-	std::vector<size_t>& sortedIdxs) {
+std::vector<size_t> GradientBoosting::sortFeature(const std::vector<FVal_t>& xData) {
 	// wierd bubble sort, the first implementation
 
 	size_t n = xData.size();  // data len
-	sortedIdxs.clear();  // clear array
+	std::vector<size_t> sortedIdxs;
 
 	for (size_t i = 0; i < n; ++i) {
 		sortedIdxs.push_back(i);  // at once, order as in xData
@@ -95,4 +93,5 @@ void GradientBoosting::sortFeature(const std::vector<FVal_t>& xData,
 			}
 		}
 	}
+	return sortedIdxs;
 }
