@@ -55,7 +55,7 @@ void GradientBoosting::fit(const std::vector<std::vector<FVal_t>>& xTest,
 	realTreeCount = treeCount;  // without early stopping
 }
 
-Lab_t GradientBoosting::predict(const std::vector<FVal_t>& xTest) {
+Lab_t GradientBoosting::predict(const std::vector<FVal_t>& xTest) const {
 	Lab_t curPred = zeroPredictor;
 	for (auto& curTree : trees)
 		curPred += curTree.predict(xTest);

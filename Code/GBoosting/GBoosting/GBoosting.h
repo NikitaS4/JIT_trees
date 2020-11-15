@@ -13,7 +13,7 @@ public:
 	void fit(const std::vector<std::vector<FVal_t>>& xTrain, 
 			 const std::vector<Lab_t>& yTrain, 
 			 const size_t treeCount);
-	Lab_t predict(const std::vector<FVal_t>& xTest);
+	Lab_t predict(const std::vector<FVal_t>& xTest) const;
 protected:
 	static std::vector<size_t> sortFeature(const std::vector<FVal_t>& xData);
 	void swapAxes(const std::vector<std::vector<FVal_t>>& xTrain);

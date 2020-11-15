@@ -15,7 +15,7 @@ public:
 	GBDecisionTree(const GBDecisionTree& other);  // copy ctor
 	virtual ~GBDecisionTree();
 
-	Lab_t predict(const std::vector<FVal_t>& sample);
+	Lab_t predict(const std::vector<FVal_t>& sample) const;
 private:
 	// tree with depth 1 is node with 2 children
 	// leaves = 2 ** height
