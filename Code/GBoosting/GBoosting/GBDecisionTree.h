@@ -15,7 +15,9 @@ public:
 	GBDecisionTree(const GBDecisionTree& other);  // copy ctor
 	virtual ~GBDecisionTree();
 
-	Lab_t predict(const std::vector<FVal_t>& sample);
+	Lab_t predict(const std::vector<FVal_t>& sample) const;
+
+	static void initTreeDepth(const size_t depth = defaultTreeDepth);
 private:
 	// tree with depth 1 is node with 2 children
 	// leaves = 2 ** height
@@ -24,8 +26,13 @@ private:
 	FVal_t* thresholds = nullptr;
 	Lab_t* leaves = nullptr;
 
+	// static
+	static size_t treeDepth;
+	static bool depthAssigned;
+	static size_t innerNodes;
+	static size_t leafCnt;
+	static std::vector<std::vector<size_t>> subset;
+
 	// constants
-	static const size_t treeDepth = 2;
-	static const size_t innerNodes;
-	static const size_t leafCnt;
+	static const size_t defaultTreeDepth = 6;
 };

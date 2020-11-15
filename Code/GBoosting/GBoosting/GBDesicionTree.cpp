@@ -1,20 +1,39 @@
 #include "GBDecisionTree.h"
 
+#include <stdexcept>
 
-const size_t GBDecisionTree::innerNodes = (1 << treeDepth) - 1;
-const size_t GBDecisionTree::leafCnt = 1 << treeDepth;
+
+// static initializations
+bool GBDecisionTree::depthAssigned = false;
+size_t GBDecisionTree::treeDepth = 0;
+size_t GBDecisionTree::innerNodes = 0;
+size_t GBDecisionTree::leafCnt = 0;
+std::vector<std::vector<size_t>> GBDecisionTree::subset;
+
+void GBDecisionTree::initTreeDepth(const size_t depth) {
+	if (depth == 0)
+		throw std::runtime_error("Wrong tree depth");
+	treeDepth = depth;
+	innerNodes = (1 << treeDepth) - 1;
+	leafCnt = 1 << treeDepth;
+	std::vector<size_t> initializer;
+	subset = std::vector<std::vector<size_t>>(innerNodes + leafCnt,
+		initializer);
+	depthAssigned = true;
+}
 
 GBDecisionTree::GBDecisionTree(const std::vector<std::vector<FVal_t>>& xSwapped,
 	const std::vector<size_t>& chosen, 
 	const std::vector<Lab_t>& yTest,
 	const std::vector<GBHist>& hists) {
+	if (!depthAssigned)
+		throw std::runtime_error("Tree depth was not assigned");
 	features = new size_t[treeDepth];
 	thresholds = new FVal_t[innerNodes];
 	leaves = new Lab_t[leafCnt];
 
 	// 1st dim - node number, 2nd dim - sample idx
-	std::vector<std::vector<size_t>> subset;
-	subset.push_back(chosen);
+	subset[0] = chosen;
 
 	size_t featureCount = xSwapped.size();
 
@@ -52,8 +71,8 @@ GBDecisionTree::GBDecisionTree(const std::vector<std::vector<FVal_t>>& xSwapped,
 			hists[bestFeature].performSplit(subset[firstBroNum + node],
 				bestSplitPos[node], leftSubset, rightSubset);
 			// subset will be placed to their topological places
-			subset.push_back(leftSubset);
-			subset.push_back(rightSubset);
+			subset[2 * (firstBroNum + node) + 1] = leftSubset;
+			subset[2 * (firstBroNum + node) + 2] = rightSubset;
 			thresholds[firstBroNum + node] = xSwapped[bestFeature][hists[bestFeature].getDataSplitIdx(bestSplitPos[node])];
 		}
 		features[h] = bestFeature;
@@ -99,7 +118,7 @@ GBDecisionTree::GBDecisionTree(const GBDecisionTree& other) {
 	}
 }
 
-Lab_t GBDecisionTree::predict(const std::vector<FVal_t>& sample) {
+Lab_t GBDecisionTree::predict(const std::vector<FVal_t>& sample) const {
 	size_t curNode = 0;
 	for (size_t h = 0; h < treeDepth; ++h) {
 		if (sample[features[h]] < thresholds[curNode])

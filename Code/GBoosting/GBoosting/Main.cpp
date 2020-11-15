@@ -7,8 +7,7 @@
 
 void testSort() {
 	std::vector<FVal_t> sample = { 1, 3, 8, 15, 2, 16, 10, 7, 4, 3 };
-	std::vector<size_t> sorted;
-	GBTest::testSort(sample, sorted);
+	std::vector<size_t> sorted = GBTest::testSort(sample);
 
 	std::cout << "Original array:\n";
 	for (auto& it : sample) {
@@ -32,6 +31,8 @@ float randInterval(float from, float to) {
 
 void testBoosting() {
 	size_t treeCount = 3;
+	size_t treeDepth = 2;
+	size_t binCount = 256;
 
 	// task: regression
 	// 2 features
@@ -65,10 +66,10 @@ void testBoosting() {
 
 	std::cout << "Dataset generated\n";
 
-	GradientBoosting model;
+	GradientBoosting model(binCount);
 
 	std::cout << "Fitting model\n";
-	model.fit(xTrain, yTrain, treeCount);
+	model.fit(xTrain, yTrain, treeCount, treeDepth);
 
 	std::cout << "Model has been fit. Collecting predictions\n";
 

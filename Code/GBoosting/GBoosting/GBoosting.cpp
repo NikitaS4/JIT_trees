@@ -4,8 +4,8 @@
 #include <utility>
 
 
-GradientBoosting::GradientBoosting(): featureCount(1), 
-	trainLen(0), realTreeCount(0), binCount(defaultBinCount), 
+GradientBoosting::GradientBoosting(const size_t binCount): featureCount(1), 
+	trainLen(0), realTreeCount(0), binCount(binCount), 
 	zeroPredictor(0) {
 	// ctor
 }
@@ -15,8 +15,8 @@ GradientBoosting::~GradientBoosting() {
 }
 
 void GradientBoosting::fit(const std::vector<std::vector<FVal_t>>& xTest,
-	const std::vector<Lab_t>& yTest, const size_t treeCount) {
-
+	const std::vector<Lab_t>& yTest, const size_t treeCount,
+	const size_t treeDepth) {
 	// Prepare data	
 	trainLen = xTest.size();
 	featureCount = xTest[0].size();
@@ -24,8 +24,7 @@ void GradientBoosting::fit(const std::vector<std::vector<FVal_t>>& xTest,
 	// Now it's easy to pass feature slices to build histogram
 	// Histogram building
 	for (auto& featureSlice : xSwapped) {
-		std::vector<size_t> sortedIdxs;
-		sortFeature(featureSlice, sortedIdxs);
+		std::vector<size_t> sortedIdxs = sortFeature(featureSlice);
 		hists.push_back(GBHist(binCount, sortedIdxs, featureSlice));
 	}
 
@@ -44,7 +43,7 @@ void GradientBoosting::fit(const std::vector<std::vector<FVal_t>>& xTest,
 	std::vector<size_t> subset;
 	for (size_t i = 0; i < trainLen; ++i)
 		subset.push_back(i);
-
+	GBDecisionTree::initTreeDepth(treeDepth);
 	for (size_t treeNum = 0; treeNum < treeCount; ++treeNum) {
 		// TODO: add early stopping
 		GBDecisionTree curTree(xSwapped, subset, residuals, hists);
@@ -56,7 +55,7 @@ void GradientBoosting::fit(const std::vector<std::vector<FVal_t>>& xTest,
 	realTreeCount = treeCount;  // without early stopping
 }
 
-Lab_t GradientBoosting::predict(const std::vector<FVal_t>& xTest) {
+Lab_t GradientBoosting::predict(const std::vector<FVal_t>& xTest) const {
 	Lab_t curPred = zeroPredictor;
 	for (auto& curTree : trees)
 		curPred += curTree.predict(xTest);
@@ -76,12 +75,11 @@ void GradientBoosting::swapAxes(const std::vector<std::vector<FVal_t>>& xTest) {
 }
 
 
-void GradientBoosting::sortFeature(const std::vector<FVal_t>& xData,
-	std::vector<size_t>& sortedIdxs) {
+std::vector<size_t> GradientBoosting::sortFeature(const std::vector<FVal_t>& xData) {
 	// wierd bubble sort, the first implementation
 
 	size_t n = xData.size();  // data len
-	sortedIdxs.clear();  // clear array
+	std::vector<size_t> sortedIdxs;
 
 	for (size_t i = 0; i < n; ++i) {
 		sortedIdxs.push_back(i);  // at once, order as in xData
@@ -95,4 +93,5 @@ void GradientBoosting::sortFeature(const std::vector<FVal_t>& xData,
 			}
 		}
 	}
+	return sortedIdxs;
 }

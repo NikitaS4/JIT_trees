@@ -7,16 +7,16 @@
 
 class GradientBoosting {
 public:
-	GradientBoosting();
+	GradientBoosting(const size_t binCount = defaultBinCount);
 	virtual ~GradientBoosting();
 	// 1st dim - object number, 2nd dim - feature number
 	void fit(const std::vector<std::vector<FVal_t>>& xTrain, 
 			 const std::vector<Lab_t>& yTrain, 
-			 const size_t treeCount);
-	Lab_t predict(const std::vector<FVal_t>& xTest);
+			 const size_t treeCount,
+			 const size_t treeDepth);
+	Lab_t predict(const std::vector<FVal_t>& xTest) const;
 protected:
-	static void sortFeature(const std::vector<FVal_t>& xData, 
-		std::vector<size_t>& sortedIdxs);
+	static std::vector<size_t> sortFeature(const std::vector<FVal_t>& xData);
 	void swapAxes(const std::vector<std::vector<FVal_t>>& xTrain);
 
 	// fields
