@@ -13,7 +13,8 @@ public:
 	void fit(const std::vector<std::vector<FVal_t>>& xTrain, 
 			 const std::vector<Lab_t>& yTrain, 
 			 const size_t treeCount,
-			 const size_t treeDepth);
+			 const size_t treeDepth,
+			 const float learningRate = defaultLR);
 	Lab_t predict(const std::vector<FVal_t>& xTest) const;
 protected:
 	static std::vector<size_t> sortFeature(const std::vector<FVal_t>& xData);
@@ -32,4 +33,5 @@ protected:
 
 	// constants
 	static const size_t defaultBinCount = 128;
+	static const float defaultLR;
 };

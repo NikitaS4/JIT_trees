@@ -8,9 +8,11 @@ bool GBDecisionTree::depthAssigned = false;
 size_t GBDecisionTree::treeDepth = 0;
 size_t GBDecisionTree::innerNodes = 0;
 size_t GBDecisionTree::leafCnt = 0;
+float GBDecisionTree::learningRate = 1;
 std::vector<std::vector<size_t>> GBDecisionTree::subset;
 
-void GBDecisionTree::initTreeDepth(const size_t depth) {
+void GBDecisionTree::initStaticMembers(const float learnRate,
+	const size_t depth) {
 	if (depth == 0)
 		throw std::runtime_error("Wrong tree depth");
 	treeDepth = depth;
@@ -20,6 +22,7 @@ void GBDecisionTree::initTreeDepth(const size_t depth) {
 	subset = std::vector<std::vector<size_t>>(innerNodes + leafCnt,
 		initializer);
 	depthAssigned = true;
+	learningRate = learnRate;
 }
 
 GBDecisionTree::GBDecisionTree(const std::vector<std::vector<FVal_t>>& xSwapped,
@@ -89,7 +92,7 @@ GBDecisionTree::GBDecisionTree(const std::vector<std::vector<FVal_t>>& xSwapped,
 			curSum += yTest[sample];
 		}
 		curCnt = subset[innerNodes + leaf].size();
-		leaves[leaf] = curSum / curCnt;  // mean leaf residual
+		leaves[leaf] = learningRate * curSum / curCnt;  // mean leaf residual
 	}
 }
 

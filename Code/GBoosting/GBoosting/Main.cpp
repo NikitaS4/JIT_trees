@@ -33,6 +33,7 @@ void testBoosting() {
 	size_t treeCount = 3;
 	size_t treeDepth = 2;
 	size_t binCount = 256;
+	float learningRate = 0.5;
 
 	// task: regression
 	// 2 features
@@ -69,7 +70,7 @@ void testBoosting() {
 	GradientBoosting model(binCount);
 
 	std::cout << "Fitting model\n";
-	model.fit(xTrain, yTrain, treeCount, treeDepth);
+	model.fit(xTrain, yTrain, treeCount, treeDepth, learningRate);
 
 	std::cout << "Model has been fit. Collecting predictions\n";
 
