@@ -70,9 +70,10 @@ void testBoosting() {
 	GradientBoosting model(binCount);
 
 	std::cout << "Fitting model\n";
-	model.fit(xTrain, yTrain, treeCount, treeDepth, learningRate);
+	size_t estimCount = model.fit(xTrain, yTrain, xTest, yTest, 
+		treeCount, treeDepth, learningRate);
 
-	std::cout << "Model has been fit. Collecting predictions\n";
+	std::cout << "Model has been fit. Estimators count = " << estimCount << "\n";
 
 	std::vector<Lab_t> preds;
 	for (auto& curTest : xTest) {
