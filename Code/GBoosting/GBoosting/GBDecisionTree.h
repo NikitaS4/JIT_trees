@@ -17,7 +17,8 @@ public:
 
 	Lab_t predict(const std::vector<FVal_t>& sample) const;
 
-	static void initTreeDepth(const size_t depth = defaultTreeDepth);
+	static void initStaticMembers(const float learnRate, 
+		const size_t depth = defaultTreeDepth);
 private:
 	// tree with depth 1 is node with 2 children
 	// leaves = 2 ** height
@@ -31,6 +32,7 @@ private:
 	static bool depthAssigned;
 	static size_t innerNodes;
 	static size_t leafCnt;
+	static float learningRate;
 	static std::vector<std::vector<size_t>> subset;
 
 	// constants

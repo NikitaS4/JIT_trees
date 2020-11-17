@@ -4,6 +4,9 @@
 #include <utility>
 
 
+// static members initialization
+const float GradientBoosting::defaultLR = 0.4;
+
 GradientBoosting::GradientBoosting(const size_t binCount): featureCount(1), 
 	trainLen(0), realTreeCount(0), binCount(binCount), 
 	zeroPredictor(0) {
@@ -16,7 +19,7 @@ GradientBoosting::~GradientBoosting() {
 
 void GradientBoosting::fit(const std::vector<std::vector<FVal_t>>& xTest,
 	const std::vector<Lab_t>& yTest, const size_t treeCount,
-	const size_t treeDepth) {
+	const size_t treeDepth, const float learningRate) {
 	// Prepare data	
 	trainLen = xTest.size();
 	featureCount = xTest[0].size();
@@ -31,7 +34,7 @@ void GradientBoosting::fit(const std::vector<std::vector<FVal_t>>& xTest,
 	// fit ensemble
 
 	// fit the constant model
-	zeroPredictor = StatisticsHelper::mean(yTest);
+	zeroPredictor = learningRate * StatisticsHelper::mean(yTest);
 
 	// fit another models
 	std::vector<Lab_t> residuals;
@@ -43,7 +46,7 @@ void GradientBoosting::fit(const std::vector<std::vector<FVal_t>>& xTest,
 	std::vector<size_t> subset;
 	for (size_t i = 0; i < trainLen; ++i)
 		subset.push_back(i);
-	GBDecisionTree::initTreeDepth(treeDepth);
+	GBDecisionTree::initStaticMembers(learningRate, treeDepth);
 	for (size_t treeNum = 0; treeNum < treeCount; ++treeNum) {
 		// TODO: add early stopping
 		GBDecisionTree curTree(xSwapped, subset, residuals, hists);
