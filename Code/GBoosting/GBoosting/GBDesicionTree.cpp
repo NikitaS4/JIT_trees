@@ -1,6 +1,8 @@
 #include "GBDecisionTree.h"
+#include "StatisticsHelper.h"
 
 #include <stdexcept>
+#include <iostream>
 
 
 // static initializations
@@ -19,6 +21,7 @@ void GBDecisionTree::initStaticMembers(const float learnRate,
 	innerNodes = (1 << treeDepth) - 1;
 	leafCnt = 1 << treeDepth;
 	std::vector<size_t> initializer;
+	std::vector<Lab_t> initializerLabels;
 	subset = std::vector<std::vector<size_t>>(innerNodes + leafCnt,
 		initializer);
 	depthAssigned = true;
@@ -37,6 +40,9 @@ GBDecisionTree::GBDecisionTree(const std::vector<std::vector<FVal_t>>& xSwapped,
 
 	// 1st dim - node number, 2nd dim - sample idx
 	subset[0] = chosen;
+	std::vector<Lab_t> initializer;
+	std::vector<std::vector<Lab_t>> myLabels(innerNodes + leafCnt, initializer);
+	myLabels[0] = yTest;
 
 	size_t featureCount = xSwapped.size();
 
@@ -48,16 +54,30 @@ GBDecisionTree::GBDecisionTree(const std::vector<std::vector<FVal_t>>& xSwapped,
 	std::vector<size_t> curSplitPos(leafCnt, 0);
 	size_t atomicSplitPos;
 	size_t bestFeature = 0;
+	bool skip = false;  // to skip used features
+	std::vector<size_t> usedFeatures; // not use repeated features
 	for (size_t h = 0; h < treeDepth; ++h) {
 		// find best split
 		size_t firstBroNum = (1 << h) - 1;
 		for (size_t feature = 0; feature < featureCount; ++feature) {
 			// for all nodes look for the best split of the feature
+			// skip used features
+			for (auto& used : usedFeatures) {
+				if (feature == used) {
+					skip = true;
+					break;
+				}
+			}
+			if (skip) { // get the next feature
+				skip = false;
+				continue;
+			}
+
 			curScore = 0;
 			for (size_t node = 0; node < broCount; ++node) {
 				// find best score
 				curScore += hists[feature].findBestSplit(subset[firstBroNum + node], 
-					yTest, atomicSplitPos);
+					/*myLabels[firstBroNum + node]*/yTest, atomicSplitPos);
 				curSplitPos[node] = atomicSplitPos;
 			}
 			if (!firstSplitFound || curScore < bestScore) {
@@ -67,16 +87,28 @@ GBDecisionTree::GBDecisionTree(const std::vector<std::vector<FVal_t>>& xSwapped,
 			}
 		}
 		// the best score is found now
+		usedFeatures.push_back(bestFeature);  // lock feature
 		// need to perform the split
 		for (size_t node = 0; node < broCount; ++node) {
 			std::vector<size_t> leftSubset;
 			std::vector<size_t> rightSubset;
-			hists[bestFeature].performSplit(subset[firstBroNum + node],
-				bestSplitPos[node], leftSubset, rightSubset);
+			size_t absoluteNode = firstBroNum + node;
+			leftSubset = hists[bestFeature].performSplit(subset[absoluteNode],
+				bestSplitPos[node], rightSubset);
 			// subset will be placed to their topological places
-			subset[2 * (firstBroNum + node) + 1] = leftSubset;
-			subset[2 * (firstBroNum + node) + 2] = rightSubset;
-			thresholds[firstBroNum + node] = xSwapped[bestFeature][hists[bestFeature].getDataSplitIdx(bestSplitPos[node])];
+			size_t leftSon = 2 * absoluteNode + 1;
+			size_t rightSon = leftSon + 1;
+			subset[leftSon] = leftSubset;
+			subset[rightSon] = rightSubset;
+			// update labels
+			Lab_t leftAvg = StatisticsHelper::mean(yTest, leftSubset);
+			Lab_t rightAvg = StatisticsHelper::mean(yTest, rightSubset);
+			for (size_t sample = 0; sample < yTest.size(); ++sample) {
+				myLabels[leftSon].push_back(myLabels[absoluteNode][sample] - leftAvg);
+				myLabels[rightSon].push_back(myLabels[absoluteNode][sample] - rightAvg);
+			}
+
+			thresholds[absoluteNode] = xSwapped[bestFeature][hists[bestFeature].getDataSplitIdx(bestSplitPos[node])];
 		}
 		features[h] = bestFeature;
 		broCount <<= 1;  // it equals *= 2
@@ -124,10 +156,10 @@ GBDecisionTree::GBDecisionTree(const GBDecisionTree& other) {
 Lab_t GBDecisionTree::predict(const std::vector<FVal_t>& sample) const {
 	size_t curNode = 0;
 	for (size_t h = 0; h < treeDepth; ++h) {
-		if (sample[features[h]] < thresholds[curNode])
-			curNode = curNode * 2 + 1;
+		if (sample[features[h]] <= thresholds[curNode])
+			curNode = 2 * curNode + 1;
 		else
-			curNode = curNode * 2 + 2;
+			curNode = 2 * curNode + 2;
 	}
 	// now curNode is the node-leaf number
 	// have to convert node-leaf number to pure leaf number
@@ -147,4 +179,28 @@ GBDecisionTree::~GBDecisionTree() {
 		delete[] leaves;
 		leaves = nullptr;
 	}
+}
+
+void GBDecisionTree::printTree() const {
+	std::cout << "Printing GBDT\n\n";
+	
+	std::cout << "h = " << treeDepth << "\n";
+	size_t broCount = 1;
+	size_t curNode = 0;
+	for (size_t depth = 0; depth < treeDepth; ++depth) {
+		std::cout << "Feature: " << features[depth] << "\n";
+		std::cout << "Thresholds: ";
+		for (size_t node = 0; node < broCount; ++node) {
+			std::cout << thresholds[curNode] << " ";
+		}
+		std::cout << "\n";
+		broCount *= 2;
+		++curNode;
+	}
+
+	std::cout << "Leaves: ";
+	for (size_t leaf = 0; leaf < leafCnt; ++leaf) {
+		std::cout << leaves[leaf] << " ";
+	}
+	std::cout << "\n\n";
 }

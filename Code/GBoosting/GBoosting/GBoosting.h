@@ -20,8 +20,11 @@ public:
 			   const size_t treeDepth,
 			   const float learningRate = defaultLR);
 	Lab_t predict(const std::vector<FVal_t>& xTest) const;
+
+	void printModel() const;
 protected:
-	static std::vector<size_t> sortFeature(const std::vector<FVal_t>& xData);
+	static std::vector<size_t> sortFeature(const std::vector<FVal_t>& xData,
+		std::vector<size_t>& backIdxs);
 	void swapAxes(const std::vector<std::vector<FVal_t>>& xTrain);
 	static Lab_t loss(const std::vector<Lab_t>& pred, 
 					  const std::vector<Lab_t>& truth);

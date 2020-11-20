@@ -4,8 +4,9 @@
 
 GBHist::GBHist(const size_t binCount, 
 	const std::vector<size_t>& sortedIdxs,
+	const std::vector<size_t>& backIdxs,
 	const std::vector<FVal_t>& xFeature): binCount(binCount), 
-	sortedIdxs(sortedIdxs) {
+	sortedIdxs(sortedIdxs), backIdxs(backIdxs) {
 	FVal_t featureMin = xFeature[sortedIdxs[0]];
 	FVal_t featureMax = xFeature[sortedIdxs[sortedIdxs.size() - 1]];
 	FVal_t binWidth = (featureMax - featureMin) / binCount;
@@ -35,11 +36,10 @@ size_t GBHist::getDataSplitIdx(const size_t splitPos) const {
 
 Lab_t GBHist::findBestSplit(const std::vector<size_t>& subset, 
 	const std::vector<Lab_t>& labels, size_t& splitPos) const {
-	//y_t curMean = StatisticsHelper::mean(labels, subset);
 	std::vector<size_t> sortedSubset;
-	for (auto& curX : subset) {
+	std::vector<size_t> backSortedSubset;
+	for (auto& curX : subset)
 		sortedSubset.push_back(sortedIdxs[curX]);
-	}
 	size_t subsetSize = sortedSubset.size();
 	Lab_t leftSum = 0;
 	Lab_t rightSum = 0;
@@ -67,7 +67,7 @@ Lab_t GBHist::findBestSplit(const std::vector<size_t>& subset,
 	while (curBin < binCount - 1 && prevPos < subsetSize) {
 		// skip empty bins
 		while (curBin < binCount - 1 &&
-			thresholdPos[curBin] <= sortedSubset[prevPos])
+			thresholdPos[curBin] <= sortedIdxs[prevPos])
 			++curBin;
 		size_t curThPos = thresholdPos[curBin];
 		for (sample = prevPos; sample < subsetSize && sortedSubset[sample] < curThPos; ++sample) {
@@ -79,18 +79,16 @@ Lab_t GBHist::findBestSplit(const std::vector<size_t>& subset,
 		prevPos = sample;  // for the next step
 		leftAvg = leftSum / leftCnt;
 		rightAvg = rightSum / rightCnt;
-		curScore = 0;
 		leftScore = 0;
 		rightScore = 0;
 
 		for (sample = 0; sample < leftCnt; ++sample) {
 			leftScore += abs(leftAvg - labels[sortedSubset[sample]]);
 		}
-		curScore = leftScore / leftCnt;
-		for (sample = leftCnt; sample < subsetSize; ++sample) {
+		for (/*sample = leftCnt*/; sample < subsetSize; ++sample) {
 			rightScore += abs(rightAvg - labels[sortedSubset[sample]]);
 		}
-		curScore += rightScore / rightCnt;
+		curScore = leftScore / leftCnt + rightScore / rightCnt;
 		if (!firstScoreFound || curScore < bestScore) {
 			firstScoreFound = true;
 			bestScore = curScore;
@@ -104,17 +102,17 @@ Lab_t GBHist::findBestSplit(const std::vector<size_t>& subset,
 }
 
 
-void GBHist::performSplit(const std::vector<size_t>& subset,
-	const size_t splitPos, std::vector<size_t>& leftSubset,
-	std::vector<size_t>& rightSubset) const {
-	leftSubset.clear();
+std::vector<size_t> GBHist::performSplit(const std::vector<size_t>& subset,
+	const size_t splitPos, std::vector<size_t>& rightSubset) const {
+	std::vector<size_t> leftSubset;
 	rightSubset.clear();
 	for (auto& curIdx : subset) {
-		if (sortedIdxs[curIdx] < splitPos)
+		if (backIdxs[curIdx] < splitPos)
 			leftSubset.push_back(curIdx);
 		else
 			rightSubset.push_back(curIdx);
 	}
+	return leftSubset;
 }
 
 
