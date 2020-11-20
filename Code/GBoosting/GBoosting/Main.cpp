@@ -5,6 +5,7 @@
 #include "GBTest.h"
 #include "StatisticsHelper.h"
 #include "TestLauncher.h"
+#include "History.h"
 
 void testSort() {
 	std::vector<FVal_t> sample = { 1, 3, 8, 15, 2, 16, 10, 7, 4, 3 };
@@ -76,8 +77,9 @@ void testBoosting() {
 	GradientBoosting model(binCount);
 
 	std::cout << "Fitting model\n";
-	size_t estimCount = model.fit(xTrain, yTrain, xTest, yTest, 
+	History history = model.fit(xTrain, yTrain, xTest, yTest, 
 		treeCount, treeDepth, learningRate);
+	size_t estimCount = history.getTreesLearnt();
 
 	std::cout << "Model has been fit. Estimators count = " << estimCount << "\n";
 
@@ -110,9 +112,10 @@ void testGrid() {
 	std::vector<size_t> treeDepths({1, 2, 3});
 	std::vector<size_t> binCounts({4, 16, 32});
 	std::vector<float> learnRates({1.0f, 0.5f, 0.8f, 1.0f});
+	size_t patience = 10;
 
 	testLauncher.performTest(treeCounts, treeDepths, binCounts,
-		learnRates);
+		learnRates, patience);
 }
 
 void testSingle() {
@@ -124,12 +127,13 @@ void testSingle() {
 	TestLauncher testLauncher(xTrainFile, yTrainFile,
 		xValidFile, yValidFile);
 
-	size_t treeCount = 10;
+	size_t treeCount = 50;
 	size_t treeDepth = 3;
 	size_t binCount = 256;
 	float learnRate = 0.4f;
+	size_t patience = 4;
 	testLauncher.singleTestPrint(treeCount, treeDepth,
-		binCount, learnRate);
+		binCount, learnRate, patience);
 }
 
 void testTrivial() {
@@ -146,16 +150,17 @@ void testTrivial() {
 	size_t treeDepth = 1;
 	size_t binCount = 16;
 	float learnRate = 1.0f;
+	size_t patience = 4;
 	testLauncher.singleTestPrint(treeCount, treeDepth,
-		binCount, learnRate);
+		binCount, learnRate, patience);
 }
 
 int main() {
 	try {
 		//testSort();
 		//testBoosting();
-		testGrid();
-		//testSingle();
+		//testGrid();
+		testSingle();
 		//testTrivial();
 	}
 	catch (std::runtime_error & err) {

@@ -25,11 +25,12 @@ public:
 	void performTest(const std::vector<size_t>& treeCounts,
 		const std::vector<size_t>& treeDepths,
 		const std::vector<size_t>& binCounts,
-		const std::vector<float>& learnRates) const;
+		const std::vector<float>& learnRates,
+		const size_t commonPatience) const;
 
 	void singleTestPrint(const size_t treeCount,
 		const size_t treeDepth, const size_t binCount,
-		const float learnRate) const;
+		const float learnRate, const size_t patience) const;
 private:
 	// fields
 	std::vector<std::vector<FVal_t>> xTrain;

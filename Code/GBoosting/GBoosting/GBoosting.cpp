@@ -13,21 +13,15 @@ const float GradientBoosting::defaultLR = 0.4f;
 GradientBoosting::GradientBoosting(const size_t binCount,
 	const size_t patience): featureCount(1), 
 	trainLen(0), realTreeCount(0), binCount(binCount), 
-	zeroPredictor(0), patience(patience), lossesRising(nullptr),
-	lastLossDiff(0) {
+	zeroPredictor(0), patience(patience) {
 	// ctor
-	lossesRising = new bool[patience];
 }
 
 GradientBoosting::~GradientBoosting() {
 	// dtor
-	if (lossesRising != nullptr) {
-		delete[] lossesRising;
-		lossesRising = nullptr;
-	}
 }
 
-size_t GradientBoosting::fit(const std::vector<std::vector<FVal_t>>& xTrain,
+History GradientBoosting::fit(const std::vector<std::vector<FVal_t>>& xTrain,
 	const std::vector<Lab_t>& yTrain, 
 	const std::vector<std::vector<FVal_t>>& xValid,
 	const std::vector<Lab_t>& yValid, const size_t treeCount,
@@ -71,8 +65,9 @@ size_t GradientBoosting::fit(const std::vector<std::vector<FVal_t>>& xTrain,
 	}
 	validLoss = loss(validPreds, yValid);  // update loss
 	
-	// update losses difference
-	lastLossDiff = abs(trainLoss - validLoss);
+	// remember losses
+	trainLosses.push_back(trainLoss);
+	validLosses.push_back(validLoss);
 
 	// default subset: all data
 	std::vector<size_t> subset;
@@ -101,16 +96,25 @@ size_t GradientBoosting::fit(const std::vector<std::vector<FVal_t>>& xTrain,
 		// update validation loss
 		validLoss = loss(validPreds, yValid);
 		
+		// remember losses
+		trainLosses.push_back(trainLoss);
+		validLosses.push_back(validLoss);
+
 		// update losses difference
-		stop = canStop(trainLoss, validLoss, treeNum);
+		stop = canStop(treeNum);
 		if (stop) {
-			realTreeCount = treeNum;
-			return realTreeCount + 1;  // include zero estim
+			break;  // stop fit
 		}
 		trees.emplace_back(std::move(curTree));
 	}
-	realTreeCount = treeCount;  // without early stopping
-	return realTreeCount + 1; // include zero estimator
+	if (stop) {
+		// need delete the last overfitted estimators
+		for (size_t i = 0; i < patience; ++i) {
+			trees.pop_back();
+		}
+	}
+	realTreeCount = trees.size();  // without early stopping
+	return History(realTreeCount, trainLosses, validLosses);
 }
 
 Lab_t GradientBoosting::predict(const std::vector<FVal_t>& xTest) const {
@@ -184,26 +188,15 @@ Lab_t GradientBoosting::loss(const std::vector<Lab_t>& pred,
 	return squaredErrorSum / count;
 }
 
-bool GradientBoosting::canStop(const Lab_t trainLoss,
-	const Lab_t validLoss, const size_t stepNum) {
-	Lab_t curDiff = abs(trainLoss - validLoss);
+bool GradientBoosting::canStop(const size_t stepNum) const {
 	if (stepNum < patience) {
-		// losses rising array is not full
-		lossesRising[stepNum] = (curDiff > lastLossDiff);
-		return false;  // too early to stop
+		return false;
 	}
 	else {
-		bool allRising = true;  // use in sequential &&
-		for (size_t i = 0; i < patience - 1; ++i) {
-			// accumulate allRising
-			allRising = (allRising && lossesRising[i]);
-			// move left to append the new result
-			lossesRising[i] = lossesRising[i + 1];
+		for (size_t i = stepNum - patience + 1; i <= stepNum; ++i) {
+			if (validLosses[i] < validLosses[i - 1])
+				return false;
 		}
-		// add the current observation
-		lossesRising[patience - 1] = (curDiff > lastLossDiff);
-		// finish accumulating allRising
-		allRising = (allRising && lossesRising[0] && lossesRising[patience - 1]);
-		return allRising; // stop fit if the loss diffs rises among all last observations
+		return true;
 	}
 }
