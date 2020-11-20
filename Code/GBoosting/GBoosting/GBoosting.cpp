@@ -2,10 +2,13 @@
 #include "StatisticsHelper.h"
 
 #include <utility>
+#include <iostream>
+#include <algorithm>
+#include <functional>
 
 
 // static members initialization
-const float GradientBoosting::defaultLR = 0.4;
+const float GradientBoosting::defaultLR = 0.4f;
 
 GradientBoosting::GradientBoosting(const size_t binCount,
 	const size_t patience): featureCount(1), 
@@ -36,30 +39,37 @@ size_t GradientBoosting::fit(const std::vector<std::vector<FVal_t>>& xTrain,
 	// Now it's easy to pass feature slices to build histogram
 	// Histogram building
 	for (auto& featureSlice : xSwapped) {
-		std::vector<size_t> sortedIdxs = sortFeature(featureSlice);
-		hists.push_back(GBHist(binCount, sortedIdxs, featureSlice));
+		std::vector<size_t> backIdxs;
+		std::vector<size_t> sortedIdxs = sortFeature(featureSlice, backIdxs);
+		hists.push_back(GBHist(binCount, sortedIdxs, backIdxs, featureSlice));
 	}
-
 	// fit ensemble
 
 	// fit the constant model
-	zeroPredictor = learningRate * StatisticsHelper::mean(yTrain);
+	zeroPredictor = StatisticsHelper::mean(yTrain);
 
 	// fit another models
 	std::vector<Lab_t> residuals;
+	std::vector<Lab_t> preds;
 	std::vector<Lab_t> validRes;
+	std::vector<Lab_t> validPreds;
 	Lab_t trainLoss;
 	Lab_t validLoss;
 	// residuals = yTest - trainPreds
-	for (size_t i = 0; i < trainLen; ++i)
+	for (size_t i = 0; i < trainLen; ++i) {
 		residuals.push_back(yTrain[i] - zeroPredictor);
-	trainLoss = loss(residuals, yTrain);  // update loss
+		preds.push_back(zeroPredictor);
+	}
+
+	trainLoss = loss(preds, yTrain);  // update loss
 
 	// validation residuals
 	size_t validLen = yValid.size();
-	for (size_t i = 0; i < validLen; ++i)
+	for (size_t i = 0; i < validLen; ++i) {
 		validRes.push_back(yValid[i] - zeroPredictor);
-	validLoss = loss(validRes, yValid);  // update loss
+		validPreds.push_back(zeroPredictor);
+	}
+	validLoss = loss(validPreds, yValid);  // update loss
 	
 	// update losses difference
 	lastLossDiff = abs(trainLoss - validLoss);
@@ -70,28 +80,33 @@ size_t GradientBoosting::fit(const std::vector<std::vector<FVal_t>>& xTrain,
 		subset.push_back(i);
 	GBDecisionTree::initStaticMembers(learningRate, treeDepth);
 	bool stop = false;
+
 	for (size_t treeNum = 0; treeNum < treeCount && !stop; ++treeNum) {
-		// TODO: add early stopping
 		GBDecisionTree curTree(xSwapped, subset, residuals, hists);
 		// update residuals
-		for (size_t sample = 0; sample < trainLen; ++sample)
-			residuals[sample] -= curTree.predict(xTrain[sample]);
+		for (size_t sample = 0; sample < trainLen; ++sample) {
+			Lab_t prediction = curTree.predict(xTrain[sample]);
+			residuals[sample] -= prediction;
+			preds[sample] += prediction;
+		}
 		// update loss
-		trainLoss = loss(residuals, yTrain);
+		trainLoss = loss(preds, yTrain);
 
 		// update validation residuals
-		for (size_t sample = 0; sample < validLen; ++sample)
-			validRes[sample] -= curTree.predict(xValid[sample]);
+		for (size_t sample = 0; sample < validLen; ++sample) {
+			Lab_t prediction = curTree.predict(xValid[sample]);
+			validRes[sample] -= prediction;
+			validPreds[sample] += prediction;
+		}
 		// update validation loss
-		validLoss = loss(validRes, yValid);
+		validLoss = loss(validPreds, yValid);
 		
 		// update losses difference
 		stop = canStop(trainLoss, validLoss, treeNum);
 		if (stop) {
-			realTreeCount = treeCount;
+			realTreeCount = treeNum;
 			return realTreeCount + 1;  // include zero estim
 		}
-
 		trees.emplace_back(std::move(curTree));
 	}
 	realTreeCount = treeCount;  // without early stopping
@@ -103,6 +118,20 @@ Lab_t GradientBoosting::predict(const std::vector<FVal_t>& xTest) const {
 	for (auto& curTree : trees)
 		curPred += curTree.predict(xTest);
 	return curPred;
+}
+
+
+void GradientBoosting::printModel() const {
+	std::cout << "Printing Gradient boosting model\n";
+
+	std::cout << "Zero predictor: " << zeroPredictor << "\n";
+
+	for (size_t tree = 0; tree < realTreeCount; ++tree) {
+		std::cout << "Tree " << tree << "\n";
+		trees[tree].printTree();
+	}
+
+	std::cout << "====================\n";
 }
 
 
@@ -118,7 +147,8 @@ void GradientBoosting::swapAxes(const std::vector<std::vector<FVal_t>>& xTest) {
 }
 
 
-std::vector<size_t> GradientBoosting::sortFeature(const std::vector<FVal_t>& xData) {
+std::vector<size_t> GradientBoosting::sortFeature(const std::vector<FVal_t>& xData,
+	std::vector<size_t>& backIdxs) {
 	// wierd bubble sort, the first implementation
 
 	size_t n = xData.size();  // data len
@@ -128,14 +158,16 @@ std::vector<size_t> GradientBoosting::sortFeature(const std::vector<FVal_t>& xDa
 		sortedIdxs.push_back(i);  // at once, order as in xData
 	}
 
-	for (size_t i = 0; i < n - 1; ++i) {
-		for (size_t j = 0; j < n - i - 1; ++j) {
-			if (xData[sortedIdxs[j]] > xData[sortedIdxs[j + 1]]) {
-				// invertion has to be performed
-				std::swap(sortedIdxs[j + 1], sortedIdxs[j]);
-			}
-		}
+	auto comparator = [&xData](size_t a, size_t b)->bool {
+		return xData[a] < xData[b];
+	};
+	std::sort(sortedIdxs.begin(), sortedIdxs.end(), comparator);
+
+	backIdxs = std::vector<size_t>(sortedIdxs.size(), 0);
+	for (size_t i = 0; i < sortedIdxs.size(); ++i) {
+		backIdxs[sortedIdxs[i]] = i;
 	}
+
 	return sortedIdxs;
 }
 
@@ -158,7 +190,7 @@ bool GradientBoosting::canStop(const Lab_t trainLoss,
 	if (stepNum < patience) {
 		// losses rising array is not full
 		lossesRising[stepNum] = (curDiff > lastLossDiff);
-		return true;  // too early to stop
+		return false;  // too early to stop
 	}
 	else {
 		bool allRising = true;  // use in sequential &&

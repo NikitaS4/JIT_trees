@@ -19,6 +19,8 @@ public:
 
 	static void initStaticMembers(const float learnRate, 
 		const size_t depth = defaultTreeDepth);
+
+	void printTree() const;
 private:
 	// tree with depth 1 is node with 2 children
 	// leaves = 2 ** height

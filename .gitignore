@@ -34,5 +34,7 @@
 # Local project files
 .vs
 Debug
+Release
+input
 *.sln
 *.vcxproj*
