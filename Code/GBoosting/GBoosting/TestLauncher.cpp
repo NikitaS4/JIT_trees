@@ -1,4 +1,5 @@
 #include "TestLauncher.h"
+#include "History.h"
 
 TestLauncher::TestLauncher(const std::vector<std::vector<FVal_t>>& xTrain,
 	const std::vector<Lab_t>& yTrain,
@@ -19,11 +20,13 @@ TestLauncher::TestLauncher(const std::string& xTrainFile,
 void TestLauncher::performTest(const std::vector<size_t>& treeCounts,
 	const std::vector<size_t>& treeDepths,
 	const std::vector<size_t>& binCounts,
-	const std::vector<float>& learnRates) const {
+	const std::vector<float>& learnRates,
+	const size_t commonPatience) const {
 	std::cout << "Test launched\n";
 	std::cout << "Train data: " << xTrain.size() << " samples\n";
 	std::cout << "Validation data: " << xValid.size() << " samples\n";
 	std::cout << "Feature count: " << xTrain[0].size() << "\n";
+	std::cout << "Patience: " << commonPatience << "\n";
 
 	size_t experimentNumber = 1;
 	Lab_t bestScore = 0;
@@ -37,11 +40,12 @@ void TestLauncher::performTest(const std::vector<size_t>& treeCounts,
 					std::cout << "===================================\n";
 					printConditions(treeNum, depth, bins, lr);
 
-					GradientBoosting model(bins);
+					GradientBoosting model(bins, commonPatience);
 					std::cout << "Fit\n";
-					size_t estCnt = model.fit(xTrain, yTrain, 
+					History history = model.fit(xTrain, yTrain, 
 						xValid, yValid, treeNum, depth, lr);
-					std::cout << "Real number of trees: " << (estCnt - 1) << "\n";
+					size_t estCnt = history.getTreesLearnt();
+					std::cout << "Real number of trees: " << estCnt << "\n";
 
 					std::vector<Lab_t> residuals = computeResiduals(model);
 					curScore = StatisticsHelper::mean(residuals);
@@ -66,20 +70,21 @@ void TestLauncher::performTest(const std::vector<size_t>& treeCounts,
 
 void TestLauncher::singleTestPrint(const size_t treeCount,
 	const size_t treeDepth, const size_t binCount,
-	const float learnRate) const {
+	const float learnRate, const size_t patience) const {
 	std::cout << "Test launched\n";
 
 	std::cout << "Tree count: " << treeCount << "\n";
 	std::cout << "Tree depth: " << treeDepth << "\n";
 	std::cout << "Bin count: " << binCount << "\n";
 	std::cout << "Learning rate: " << learnRate << "\n";
+	std::cout << "Patience: " << patience << "\n";
 	std::cout << "Fit\n";
 
-	size_t patience = 100;
 	GradientBoosting model(binCount, patience);
-	size_t estCnt = model.fit(xTrain, yTrain,
+	History history = model.fit(xTrain, yTrain,
 		xValid, yValid, treeCount, treeDepth, learnRate);
-	std::cout << "Real tree count: " << (estCnt - 1) << "\n";
+	size_t estCnt = history.getTreesLearnt();
+	std::cout << "Real tree count: " << estCnt << "\n";
 
 	std::vector<Lab_t> residuals = computeResiduals(model);
 	std::cout << "MAE: " << StatisticsHelper::mean(residuals) << "\n";
