@@ -1,6 +1,8 @@
 #include "GBHist.h"
 #include "StatisticsHelper.h"
 
+#include <cmath>
+
 
 GBHist::GBHist(const size_t binCount, 
 	const std::vector<size_t>& sortedIdxs,

@@ -1,3 +1,5 @@
+#ifndef TESTLAUNCHER_H
+#define TESTLAUNCHER_H
 #pragma once
 
 #include <iostream>
@@ -47,3 +49,6 @@ private:
 
 	TestLauncher() = delete;  // can't create without train&validation data
 };
+
+#endif // TESTLAUNCHER
+

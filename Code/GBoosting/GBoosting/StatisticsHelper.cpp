@@ -1,5 +1,8 @@
 #include "StatisticsHelper.h"
 
+#include <cmath>
+
+
 Lab_t StatisticsHelper::mean(const std::vector<Lab_t>& vals) {
 	size_t count = vals.size();
 	Lab_t curSum = 0;

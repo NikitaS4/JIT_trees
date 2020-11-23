@@ -1,3 +1,5 @@
+#ifndef GBOOSTING_H
+#define GBOOSTING_H
 #pragma once
 
 #include "Structs.h"
@@ -51,3 +53,6 @@ protected:
 	static const float defaultLR;
 	static const size_t defaultPatience = 3;
 };
+
+#endif // GBOOSTING_H
+

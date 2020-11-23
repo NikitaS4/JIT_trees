@@ -1,6 +1,9 @@
+#ifndef GBTEST_H
+#define GBTEST_H
 #pragma once
 
 #include "GBoosting.h"
+
 
 class GBTest : public GradientBoosting {
 public:
@@ -9,3 +12,6 @@ public:
 		return sortFeature(xData, backIdxs);
 	}
 };
+
+#endif // GBTEST_H
+

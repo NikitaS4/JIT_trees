@@ -1,3 +1,5 @@
+#ifndef DATALOADER_H
+#define DATALOADER_H
 #pragma once
 
 #include <vector>
@@ -25,3 +27,6 @@ public:
 private:
 	DataLoader() = delete;  // static class == helper
 };
+
+#endif // DATALOADER_H
+

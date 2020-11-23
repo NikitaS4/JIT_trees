@@ -1,3 +1,5 @@
+#ifndef HISTORY_H
+#define HISTORY_H
 #pragma once
 
 #include <vector>
@@ -27,3 +29,6 @@ private:
 	std::vector<Lab_t> trainLosses;
 	std::vector<Lab_t> validLosses;
 };
+
+#endif // HISTORY_H
+

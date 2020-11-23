@@ -1,7 +1,10 @@
+#ifndef GBHIST_H
+#define GBHIST_H
 #pragma once
 
 #include "Structs.h"
 #include <vector>
+
 
 class GBHist {
 public:
@@ -28,3 +31,6 @@ private:
 	size_t binSearch(const std::vector<FVal_t>& xFeature, 
 		const FVal_t threshold, const size_t curLeft) const;
 };
+
+#endif // GBHIST_H
+

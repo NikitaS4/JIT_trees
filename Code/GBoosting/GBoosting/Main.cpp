@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <cmath>
 
 #include "GBoosting.h"
 #include "GBTest.h"
@@ -100,10 +101,10 @@ void testBoosting() {
 }
 
 void testGrid() {
-	std::string xTrainFile("input\\xTr.txt");
-	std::string yTrainFile("input\\yTr.txt");
-	std::string xValidFile("input\\xV.txt");
-	std::string yValidFile("input\\yV.txt");
+	std::string xTrainFile("input/xTr.txt");
+	std::string yTrainFile("input/yTr.txt");
+	std::string xValidFile("input/xV.txt");
+	std::string yValidFile("input/yV.txt");
 
 	TestLauncher testLauncher(xTrainFile, yTrainFile,
 		xValidFile, yValidFile);
@@ -112,17 +113,17 @@ void testGrid() {
 	std::vector<size_t> treeDepths({1, 2, 3});
 	std::vector<size_t> binCounts({4, 16, 32});
 	std::vector<float> learnRates({1.0f, 0.5f, 0.8f, 1.0f});
-	size_t patience = 10;
+	size_t patience = 4;
 
 	testLauncher.performTest(treeCounts, treeDepths, binCounts,
 		learnRates, patience);
 }
 
 void testSingle() {
-	std::string xTrainFile("input\\xTr.txt");
-	std::string yTrainFile("input\\yTr.txt");
-	std::string xValidFile("input\\xV.txt");
-	std::string yValidFile("input\\yV.txt");
+	std::string xTrainFile("input/xTr.txt");
+	std::string yTrainFile("input/yTr.txt");
+	std::string xValidFile("input/xV.txt");
+	std::string yValidFile("input/yV.txt");
 
 	TestLauncher testLauncher(xTrainFile, yTrainFile,
 		xValidFile, yValidFile);

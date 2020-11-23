@@ -30,6 +30,7 @@
 *.exe
 *.out
 *.app
+JITtrees
 
 # Local project files
 .vs
@@ -38,3 +39,4 @@ Release
 input
 *.sln
 *.vcxproj*
+

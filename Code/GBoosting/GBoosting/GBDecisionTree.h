@@ -1,8 +1,11 @@
+#ifndef GBDECISION_TREE_H
+#define GBDECISION_TREE_H
 #pragma once
 
 #include "Structs.h"
 #include "GBHist.h"
 #include <vector>
+
 
 class GBDecisionTree {
 public:
@@ -40,3 +43,6 @@ private:
 	// constants
 	static const size_t defaultTreeDepth = 6;
 };
+
+#endif // GBDECISION_TREE_H
+
