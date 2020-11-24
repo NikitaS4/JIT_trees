@@ -1,6 +1,5 @@
 #ifndef GBOOSTING_H
 #define GBOOSTING_H
-#pragma once
 
 #include "Structs.h"
 #include "GBHist.h"

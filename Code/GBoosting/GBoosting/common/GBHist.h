@@ -1,6 +1,5 @@
 #ifndef GBHIST_H
 #define GBHIST_H
-#pragma once
 
 #include "Structs.h"
 #include <vector>

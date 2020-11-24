@@ -1,6 +1,5 @@
 #ifndef STATISTICS_HELPER_H
 #define STATISTICS_HELPER_H
-#pragma once
 
 #include "Structs.h"
 #include <vector>

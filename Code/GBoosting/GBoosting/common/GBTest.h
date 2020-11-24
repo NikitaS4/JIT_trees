@@ -1,6 +1,5 @@
 #ifndef GBTEST_H
 #define GBTEST_H
-#pragma once
 
 #include "GBoosting.h"
 

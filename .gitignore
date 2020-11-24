@@ -39,4 +39,5 @@ Release
 input
 *.sln
 *.vcxproj*
+*.vscode
 

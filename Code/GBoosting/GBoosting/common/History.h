@@ -1,6 +1,5 @@
 #ifndef HISTORY_H
 #define HISTORY_H
-#pragma once
 
 #include <vector>
 #include "Structs.h"

@@ -1,6 +1,5 @@
 #ifndef GBDECISION_TREE_H
 #define GBDECISION_TREE_H
-#pragma once
 
 #include "Structs.h"
 #include "GBHist.h"

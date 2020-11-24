@@ -1,15 +1,7 @@
-#/bin/bash
+# compile project with pybind to .so target
 
-# compile project
-mkdir build
-cd build
-cmake ..
-make
+c++ -O3 -Wall -shared -std=c++17 -fPIC `python3 -m pybind11 --includes` common/*.cpp pybind/*.cpp common/*.h -o JITtrees`python3-config --extension-suffix`
 
-# move executable to the src dir
-mv JITtrees ../JITtrees
-
-# delete temporary files
-cd ..
-rm -r build
+# compile project to executable
+g++ -Wall -std=c++17 common/*.cpp common/*.h cppMain/*.cpp -o JITtrees
 

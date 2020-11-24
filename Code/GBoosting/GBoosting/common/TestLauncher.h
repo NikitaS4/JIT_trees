@@ -1,6 +1,5 @@
 #ifndef TESTLAUNCHER_H
 #define TESTLAUNCHER_H
-#pragma once
 
 #include <iostream>
 #include <vector>

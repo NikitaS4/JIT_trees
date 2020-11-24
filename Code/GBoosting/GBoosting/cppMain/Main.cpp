@@ -2,11 +2,11 @@
 #include <vector>
 #include <cmath>
 
-#include "GBoosting.h"
-#include "GBTest.h"
-#include "StatisticsHelper.h"
-#include "TestLauncher.h"
-#include "History.h"
+#include "../common/GBoosting.h"
+#include "../common/GBTest.h"
+#include "../common/StatisticsHelper.h"
+#include "../common/TestLauncher.h"
+#include "../common/History.h"
 
 void testSort() {
 	std::vector<FVal_t> sample = { 1, 3, 8, 15, 2, 16, 10, 7, 4, 3 };

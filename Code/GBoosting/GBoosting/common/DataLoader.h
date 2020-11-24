@@ -1,6 +1,5 @@
 #ifndef DATALOADER_H
 #define DATALOADER_H
-#pragma once
 
 #include <vector>
 #include <string>
