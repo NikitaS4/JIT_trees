@@ -13,7 +13,7 @@ const float GradientBoosting::defaultLR = 0.4f;
 GradientBoosting::GradientBoosting(const size_t binCount,
 	const size_t patience): featureCount(1), 
 	trainLen(0), realTreeCount(0), binCount(binCount), 
-	zeroPredictor(0), patience(patience) {
+	patience(patience), zeroPredictor(0) {
 	// ctor
 }
 

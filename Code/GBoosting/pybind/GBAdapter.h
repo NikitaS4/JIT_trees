@@ -2,6 +2,7 @@
 #define GBADAPTER_H
 
 #include "../common/GBoosting.h"
+#include "HistoryAdapter.h"
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
@@ -15,7 +16,7 @@ namespace Adapter {
         GradientBoosting(const size_t binCount, const size_t patience);
         virtual ~GradientBoosting();
 
-        void fit(py::array xTrain, py::array yTrain, py::array xValid,
+        History fit(py::array xTrain, py::array yTrain, py::array xValid,
         py::array yValid, const size_t treeCount, const size_t treeDepth,
         const float learningRate);
 

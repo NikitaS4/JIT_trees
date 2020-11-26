@@ -8,7 +8,7 @@ GBHist::GBHist(const size_t binCount,
 	const std::vector<size_t>& sortedIdxs,
 	const std::vector<size_t>& backIdxs,
 	const std::vector<FVal_t>& xFeature): binCount(binCount), 
-	sortedIdxs(sortedIdxs), backIdxs(backIdxs) {
+	backIdxs(backIdxs), sortedIdxs(sortedIdxs) {
 	FVal_t featureMin = xFeature[sortedIdxs[0]];
 	FVal_t featureMax = xFeature[sortedIdxs[sortedIdxs.size() - 1]];
 	FVal_t binWidth = (featureMax - featureMin) / binCount;
@@ -126,7 +126,7 @@ size_t GBHist::binSearch(const std::vector<FVal_t>& xFeature,
 	size_t mid = (right - left) / 2;
 
 	FVal_t leftVal = xFeature[sortedIdxs[left]];
-	FVal_t rightVal = xFeature[sortedIdxs[right]];
+	//FVal_t rightVal = xFeature[sortedIdxs[right]];
 	FVal_t midVal = xFeature[sortedIdxs[mid]];
 
 	while (leftVal < threshold && (right - left) > 1) {
@@ -135,7 +135,7 @@ size_t GBHist::binSearch(const std::vector<FVal_t>& xFeature,
 			left = mid;
 		}
 		else {
-			rightVal = midVal;
+			//rightVal = midVal;
 			right = mid;
 		}
 		mid = (right + left) / 2;

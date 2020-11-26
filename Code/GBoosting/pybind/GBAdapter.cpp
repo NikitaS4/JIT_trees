@@ -6,7 +6,7 @@ namespace Adapter {
     GradientBoosting::GradientBoosting(const size_t binCount,
     const size_t patience): boosting(binCount, patience) {}
 
-    void GradientBoosting::fit(py::array xTrain, py::array yTrain, py::array xValid,
+    History GradientBoosting::fit(py::array xTrain, py::array yTrain, py::array xValid,
         py::array yValid, const size_t treeCount, const size_t treeDepth,
         const float learningRate) {
             // convert numpy arrays to vectors
@@ -16,9 +16,11 @@ namespace Adapter {
             std::vector<Lab_t> yValidVec = ArrayAdapter::labelsToVector(yValid);
 
             // run c++ implementation
-            History history = boosting.fit(xTrainVec, yTrainVec, xValidVec, yValidVec, treeCount, treeDepth,
-            learningRate);
-            // TODO: return history
+            // use rvalued history to create history adapter to return to Python
+            History history(boosting.fit(xTrainVec, yTrainVec, xValidVec, yValidVec, treeCount, treeDepth,
+            learningRate));
+            
+            return history;
         }
 
     Lab_t GradientBoosting::predict(py::array xTest) const {

@@ -1,4 +1,5 @@
 #include "ArrayAdapter.h"
+#include <pybind11/stl.h>
 
 
 namespace Adapter {
@@ -72,19 +73,16 @@ namespace Adapter {
 
 
     py::array ArrayAdapter::labelsToPy(const std::vector<Lab_t>& array) {
-        py::array target = py::cast(array);
-        return target;
+        return py::cast(array);        
     }
 
     
     py::array ArrayAdapter::featuresToPy(const std::vector<FVal_t>& array) {
-        py::array target = py::cast(array);
-        return target;
+        return py::cast(array);
     }
 
 
     py::array ArrayAdapter::featureMtxToPy(const std::vector<std::vector<FVal_t>>& array) {
-        py::array target = py::cast(array);
-        return target;
+        return py::cast(array);
     }
 };

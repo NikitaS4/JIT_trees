@@ -24,6 +24,7 @@ namespace Adapter {
         static py::array featuresToPy(const std::vector<FVal_t>& array);
         static py::array featureMtxToPy(const std::vector<std::vector<FVal_t>>& array);
     private:
+        // static class - delete constructors
         ArrayAdapter() {};
         ~ArrayAdapter() {};
     };

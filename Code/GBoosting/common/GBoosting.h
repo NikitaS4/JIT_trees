@@ -39,11 +39,11 @@ protected:
 	size_t realTreeCount;
 	size_t binCount;
 	size_t patience;
+	Lab_t zeroPredictor; // constant model
 	// xSwapped: 1st dim - feature number, 2nd dim - object number
 	std::vector<std::vector<FVal_t>> xSwapped;
 	std::vector<GBHist> hists; // histogram for each feature
 	std::vector<GBDecisionTree> trees;
-	Lab_t zeroPredictor; // constant model
 	std::vector<Lab_t> trainLosses;
 	std::vector<Lab_t> validLosses;
 
