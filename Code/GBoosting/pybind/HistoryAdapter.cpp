@@ -11,11 +11,11 @@ size_t History::getTreesLearnt() {
     return history.getTreesLearnt();
 }
 
-py::array History::getTrainLosses() {        
+pyarrayY History::getTrainLosses() {        
     return ArrayAdapter::labelsToPy(history.getTrainLosses());
 }
 
-py::array History::getValidLosses() {
+pyarrayY History::getValidLosses() {
     return ArrayAdapter::labelsToPy(history.getValidLosses());
 }
 

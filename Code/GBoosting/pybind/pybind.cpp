@@ -22,4 +22,4 @@ PYBIND11_MODULE(JITtrees, m) {
         .def("predict", &Adapter::GradientBoosting::predict, "Predict labels for sample",
             py::arg("x_test"));
     
-};
+}

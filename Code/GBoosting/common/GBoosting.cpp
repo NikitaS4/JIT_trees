@@ -29,7 +29,15 @@ History GradientBoosting::fit(const std::vector<std::vector<FVal_t>>& xTrain,
 	// Prepare data	
 	trainLen = xTrain.size();
 	featureCount = xTrain[0].size();
-	swapAxes(xTrain);  // x.shape = (featureCount, trainLen)
+
+	if (yTrain.size() != trainLen)
+		throw std::runtime_error("xTrain & yTrain sizes mismatch");
+	if (xValid.size() != yValid.size())
+		throw std::runtime_error("xValid & yValid sizes mismatch");
+	if (xValid[0].size() != featureCount)
+		throw std::runtime_error("xValid feature dimension wrong");
+
+	swapAxes(xTrain);  // x.shape -> (featureCount, trainLen)
 	// Now it's easy to pass feature slices to build histogram
 	// Histogram building
 	for (auto& featureSlice : xSwapped) {

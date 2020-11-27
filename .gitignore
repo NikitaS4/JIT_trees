@@ -37,6 +37,7 @@ JITtrees
 Debug
 Release
 input
+images
 *.sln
 *.vcxproj*
 *.vscode
