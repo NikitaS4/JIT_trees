@@ -54,30 +54,17 @@ GBDecisionTree::GBDecisionTree(const std::vector<std::vector<FVal_t>>& xSwapped,
 	std::vector<size_t> curSplitPos(leafCnt, 0);
 	size_t atomicSplitPos;
 	size_t bestFeature = 0;
-	bool skip = false;  // to skip used features
-	std::vector<size_t> usedFeatures; // not use repeated features
 	for (size_t h = 0; h < treeDepth; ++h) {
 		// find best split
 		size_t firstBroNum = (1 << h) - 1;
 		for (size_t feature = 0; feature < featureCount; ++feature) {
 			// for all nodes look for the best split of the feature
-			// skip used features
-			for (auto& used : usedFeatures) {
-				if (feature == used) {
-					skip = true;
-					break;
-				}
-			}
-			if (skip) { // get the next feature
-				skip = false;
-				continue;
-			}
 
 			curScore = 0;
 			for (size_t node = 0; node < broCount; ++node) {
 				// find best score
 				curScore += hists[feature].findBestSplit(subset[firstBroNum + node], 
-					/*myLabels[firstBroNum + node]*/yTest, atomicSplitPos);
+					myLabels[firstBroNum + node]/*yTest*/, atomicSplitPos);
 				curSplitPos[node] = atomicSplitPos;
 			}
 			if (!firstSplitFound || curScore < bestScore) {
@@ -87,7 +74,7 @@ GBDecisionTree::GBDecisionTree(const std::vector<std::vector<FVal_t>>& xSwapped,
 			}
 		}
 		// the best score is found now
-		usedFeatures.push_back(bestFeature);  // lock feature
+		//usedFeatures.push_back(bestFeature);  // lock feature
 		// need to perform the split
 		for (size_t node = 0; node < broCount; ++node) {
 			std::vector<size_t> leftSubset;
@@ -109,6 +96,7 @@ GBDecisionTree::GBDecisionTree(const std::vector<std::vector<FVal_t>>& xSwapped,
 			}
 
 			thresholds[absoluteNode] = xSwapped[bestFeature][hists[bestFeature].getDataSplitIdx(bestSplitPos[node])];
+			//thresholds[absoluteNode] = hists[bestFeature].getDataSplitIdx[bestSplitPos[node]];
 		}
 		features[h] = bestFeature;
 		broCount <<= 1;  // it equals *= 2

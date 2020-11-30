@@ -23,7 +23,7 @@ private:
 	size_t binCount;
 	std::vector<size_t> backIdxs;
 	std::vector<size_t> sortedIdxs;
-	//std::vector<x_t> thresholds;  // don't needed
+	std::vector<FVal_t> thresholds;  // don't needed ?
 	std::vector<size_t> thresholdPos;
 
 	// functions

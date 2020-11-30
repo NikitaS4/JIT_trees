@@ -161,8 +161,6 @@ void GradientBoosting::swapAxes(const std::vector<std::vector<FVal_t>>& xTest) {
 
 std::vector<size_t> GradientBoosting::sortFeature(const std::vector<FVal_t>& xData,
 	std::vector<size_t>& backIdxs) {
-	// wierd bubble sort, the first implementation
-
 	size_t n = xData.size();  // data len
 	std::vector<size_t> sortedIdxs;
 

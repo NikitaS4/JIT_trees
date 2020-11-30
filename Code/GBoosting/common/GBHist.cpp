@@ -39,7 +39,7 @@ size_t GBHist::getDataSplitIdx(const size_t splitPos) const {
 Lab_t GBHist::findBestSplit(const std::vector<size_t>& subset, 
 	const std::vector<Lab_t>& labels, size_t& splitPos) const {
 	std::vector<size_t> sortedSubset;
-	std::vector<size_t> backSortedSubset;
+	//std::vector<size_t> backSortedSubset;
 	for (auto& curX : subset)
 		sortedSubset.push_back(sortedIdxs[curX]);
 	size_t subsetSize = sortedSubset.size();
@@ -69,10 +69,10 @@ Lab_t GBHist::findBestSplit(const std::vector<size_t>& subset,
 	while (curBin < binCount - 1 && prevPos < subsetSize) {
 		// skip empty bins
 		while (curBin < binCount - 1 &&
-			thresholdPos[curBin] <= sortedIdxs[prevPos])
+			thresholdPos[curBin] <= subset[prevPos])
 			++curBin;
 		size_t curThPos = thresholdPos[curBin];
-		for (sample = prevPos; sample < subsetSize && sortedSubset[sample] < curThPos; ++sample) {
+		for (sample = prevPos; sample < subsetSize && subset[sample] < curThPos; ++sample) {
 			leftSum += labels[sortedSubset[sample]];
 			rightSum -= labels[sortedSubset[sample]];
 			++leftCnt;
@@ -90,7 +90,8 @@ Lab_t GBHist::findBestSplit(const std::vector<size_t>& subset,
 		for (/*sample = leftCnt*/; sample < subsetSize; ++sample) {
 			rightScore += abs(rightAvg - labels[sortedSubset[sample]]);
 		}
-		curScore = leftScore / leftCnt + rightScore / rightCnt;
+		//curScore = leftScore / leftCnt + rightScore / rightCnt;
+		curScore = leftScore + rightScore;
 		if (!firstScoreFound || curScore < bestScore) {
 			firstScoreFound = true;
 			bestScore = curScore;
@@ -123,23 +124,21 @@ size_t GBHist::binSearch(const std::vector<FVal_t>& xFeature,
 	// binary search
 	size_t left = curLeft;  // left most at start
 	size_t right = sortedIdxs.size() - 1;  // right most at start
-	size_t mid = (right - left) / 2;
+	size_t mid;
 
 	FVal_t leftVal = xFeature[sortedIdxs[left]];
-	//FVal_t rightVal = xFeature[sortedIdxs[right]];
-	FVal_t midVal = xFeature[sortedIdxs[mid]];
+	FVal_t midVal;
 
 	while (leftVal < threshold && (right - left) > 1) {
-		if (threshold > midVal) {
+		mid = (right + left) / 2;
+		midVal = xFeature[sortedIdxs[mid]];
+		if (threshold >= midVal) {
 			leftVal = midVal;
 			left = mid;
 		}
 		else {
-			//rightVal = midVal;
 			right = mid;
 		}
-		mid = (right + left) / 2;
-		midVal = xFeature[sortedIdxs[mid]];
 	}
 
 	// leftVal >= threshold, so 'left' is the last in the cur bin
