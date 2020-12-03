@@ -42,3 +42,6 @@ images
 *.vcxproj*
 *.vscode
 
+# Other files
+__pycache__
+
