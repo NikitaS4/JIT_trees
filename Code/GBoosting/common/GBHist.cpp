@@ -84,15 +84,15 @@ Lab_t GBHist::findBestSplit(const std::vector<size_t>& subset,
 		leftScore = 0;
 		rightScore = 0;
 
+		// score(split) = MSE_left + MSE_right (with weights)
 		for (sample = 0; sample < leftCnt; ++sample) {
-			leftScore += abs(leftAvg - labels[sortedSubset[sample]]);
+			leftScore += (leftAvg - labels[sortedSubset[sample]]) * (leftAvg - labels[sortedSubset[sample]]);
 		}
 		for (/*sample = leftCnt*/; sample < subsetSize; ++sample) {
-			rightScore += abs(rightAvg - labels[sortedSubset[sample]]);
+			rightScore += (rightAvg - labels[sortedSubset[sample]]) * (rightAvg - labels[sortedSubset[sample]]);
 		}
-		//curScore = leftScore / leftCnt + rightScore / rightCnt;
-		curScore = leftScore + rightScore;
-		if (!firstScoreFound || curScore < bestScore) {
+		curScore = leftScore / leftCnt + rightScore / rightCnt;
+		if (!firstScoreFound || curScore <= bestScore) {
 			firstScoreFound = true;
 			bestScore = curScore;
 			bestSplitPos = curThPos;
