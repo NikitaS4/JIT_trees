@@ -38,6 +38,7 @@ private:
 	static size_t leafCnt;
 	static float learningRate;
 	static std::vector<std::vector<size_t>> subset;
+	static std::vector<std::vector<Lab_t>> intermediateLabels;
 
 	// constants
 	static const size_t defaultTreeDepth = 6;

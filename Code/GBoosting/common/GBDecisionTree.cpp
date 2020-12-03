@@ -12,6 +12,8 @@ size_t GBDecisionTree::innerNodes = 0;
 size_t GBDecisionTree::leafCnt = 0;
 float GBDecisionTree::learningRate = 1;
 std::vector<std::vector<size_t>> GBDecisionTree::subset;
+std::vector<std::vector<Lab_t>> GBDecisionTree::intermediateLabels;
+
 
 void GBDecisionTree::initStaticMembers(const float learnRate,
 	const size_t depth) {
@@ -19,18 +21,18 @@ void GBDecisionTree::initStaticMembers(const float learnRate,
 		throw std::runtime_error("Wrong tree depth");
 	treeDepth = depth;
 	innerNodes = (1 << treeDepth) - 1;
-	leafCnt = 1 << treeDepth;
-	std::vector<size_t> initializer;
-	std::vector<Lab_t> initializerLabels;
+	leafCnt = 1 << treeDepth;		
 	subset = std::vector<std::vector<size_t>>(innerNodes + leafCnt,
-		initializer);
+		std::vector<size_t>());
+	intermediateLabels = std::vector<std::vector<Lab_t>>(innerNodes + leafCnt, 
+	std::vector<Lab_t>());
 	depthAssigned = true;
 	learningRate = learnRate;
 }
 
 GBDecisionTree::GBDecisionTree(const std::vector<std::vector<FVal_t>>& xSwapped,
 	const std::vector<size_t>& chosen, 
-	const std::vector<Lab_t>& yTest,
+	const std::vector<Lab_t>& yTrain,
 	const std::vector<GBHist>& hists) {
 	if (!depthAssigned)
 		throw std::runtime_error("Tree depth was not assigned");
@@ -39,10 +41,8 @@ GBDecisionTree::GBDecisionTree(const std::vector<std::vector<FVal_t>>& xSwapped,
 	leaves = new Lab_t[leafCnt];
 
 	// 1st dim - node number, 2nd dim - sample idx
-	subset[0] = chosen;
-	std::vector<Lab_t> initializer;
-	std::vector<std::vector<Lab_t>> myLabels(innerNodes + leafCnt, initializer);
-	myLabels[0] = yTest;
+	subset[0] = chosen;	
+	intermediateLabels[0] = yTrain;
 
 	size_t featureCount = xSwapped.size();
 
@@ -64,7 +64,7 @@ GBDecisionTree::GBDecisionTree(const std::vector<std::vector<FVal_t>>& xSwapped,
 			for (size_t node = 0; node < broCount; ++node) {
 				// find best score
 				curScore += hists[feature].findBestSplit(subset[firstBroNum + node], 
-					myLabels[firstBroNum + node]/*yTest*/, atomicSplitPos);
+					intermediateLabels[firstBroNum + node], atomicSplitPos);
 				curSplitPos[node] = atomicSplitPos;
 			}
 			if (!firstSplitFound || curScore < bestScore) {
@@ -88,11 +88,13 @@ GBDecisionTree::GBDecisionTree(const std::vector<std::vector<FVal_t>>& xSwapped,
 			subset[leftSon] = leftSubset;
 			subset[rightSon] = rightSubset;
 			// update labels
-			Lab_t leftAvg = StatisticsHelper::mean(yTest, leftSubset);
-			Lab_t rightAvg = StatisticsHelper::mean(yTest, rightSubset);
-			for (size_t sample = 0; sample < yTest.size(); ++sample) {
-				myLabels[leftSon].push_back(myLabels[absoluteNode][sample] - leftAvg);
-				myLabels[rightSon].push_back(myLabels[absoluteNode][sample] - rightAvg);
+			Lab_t leftAvg = StatisticsHelper::mean(yTrain, leftSubset);
+			Lab_t rightAvg = StatisticsHelper::mean(yTrain, rightSubset);
+			intermediateLabels[leftSon].clear();
+			intermediateLabels[rightSon].clear();
+			for (size_t sample = 0; sample < yTrain.size(); ++sample) {
+				intermediateLabels[leftSon].push_back(intermediateLabels[absoluteNode][sample] - leftAvg);
+				intermediateLabels[rightSon].push_back(intermediateLabels[absoluteNode][sample] - rightAvg);
 			}
 
 			thresholds[absoluteNode] = xSwapped[bestFeature][hists[bestFeature].getDataSplitIdx(bestSplitPos[node])];
@@ -109,7 +111,7 @@ GBDecisionTree::GBDecisionTree(const std::vector<std::vector<FVal_t>>& xSwapped,
 		curSum = 0;
 		curCnt = 0;
 		for (auto& sample : subset[innerNodes + leaf]) {
-			curSum += yTest[sample];
+			curSum += yTrain[sample];
 		}
 		curCnt = subset[innerNodes + leaf].size();
 		leaves[leaf] = learningRate * curSum / curCnt;  // mean leaf residual
