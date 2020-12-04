@@ -146,7 +146,7 @@ GBDecisionTree::GBDecisionTree(const GBDecisionTree& other) {
 Lab_t GBDecisionTree::predict(const std::vector<FVal_t>& sample) const {
 	size_t curNode = 0;
 	for (size_t h = 0; h < treeDepth; ++h) {
-		if (sample[features[h]] <= thresholds[curNode])
+		if (sample[features[h]] < thresholds[curNode])
 			curNode = 2 * curNode + 1;
 		else
 			curNode = 2 * curNode + 2;

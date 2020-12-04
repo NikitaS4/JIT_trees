@@ -25,7 +25,8 @@ History GradientBoosting::fit(const std::vector<std::vector<FVal_t>>& xTrain,
 	const std::vector<Lab_t>& yTrain, 
 	const std::vector<std::vector<FVal_t>>& xValid,
 	const std::vector<Lab_t>& yValid, const size_t treeCount,
-	const size_t treeDepth, const float learningRate) {
+	const size_t treeDepth, const float learningRate,
+	const Lab_t earlyStoppingDelta) {
 	// Prepare data	
 	trainLen = xTrain.size();
 	featureCount = xTrain[0].size();
@@ -36,6 +37,8 @@ History GradientBoosting::fit(const std::vector<std::vector<FVal_t>>& xTrain,
 		throw std::runtime_error("xValid & yValid sizes mismatch");
 	if (xValid[0].size() != featureCount)
 		throw std::runtime_error("xValid feature dimension wrong");
+	if (earlyStoppingDelta < 0)
+		throw std::runtime_error("early stopping delta was negative");
 
 	swapAxes(xTrain);  // x.shape -> (featureCount, trainLen)
 	// Now it's easy to pass feature slices to build histogram
@@ -109,7 +112,7 @@ History GradientBoosting::fit(const std::vector<std::vector<FVal_t>>& xTrain,
 		validLosses.push_back(validLoss);
 
 		// update losses difference
-		stop = canStop(treeNum);
+		stop = canStop(treeNum, earlyStoppingDelta);
 		if (stop) {
 			break;  // stop fit
 		}
@@ -194,13 +197,14 @@ Lab_t GradientBoosting::loss(const std::vector<Lab_t>& pred,
 	return squaredErrorSum / count;
 }
 
-bool GradientBoosting::canStop(const size_t stepNum) const {
+bool GradientBoosting::canStop(const size_t stepNum, 
+	const Lab_t earlyStoppingDelta) const {
 	if (stepNum < patience) {
 		return false;
 	}
 	else {
 		for (size_t i = stepNum - patience + 1; i <= stepNum; ++i) {
-			if (validLosses[i] < validLosses[i - 1])
+			if (validLosses[i] - validLosses[i - 1] < -earlyStoppingDelta)
 				return false;
 		}
 		return true;

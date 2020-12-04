@@ -21,7 +21,8 @@ public:
 				const std::vector<Lab_t>& yValid,
 				const size_t treeCount,
 				const size_t treeDepth,
-				const float learningRate = defaultLR);
+				const float learningRate = defaultLR,
+				const Lab_t earlyStoppingDelta = defaultESDelta);
 	Lab_t predict(const std::vector<FVal_t>& xTest) const;
 
 	void printModel() const;
@@ -31,7 +32,8 @@ protected:
 	void swapAxes(const std::vector<std::vector<FVal_t>>& xTrain);
 	static Lab_t loss(const std::vector<Lab_t>& pred, 
 					  const std::vector<Lab_t>& truth);
-	inline bool canStop(const size_t stepNum) const;
+	inline bool canStop(const size_t stepNum, 
+						const Lab_t earlyStoppingDelta) const;
 
 	// fields
 	size_t featureCount;
@@ -51,6 +53,7 @@ protected:
 	static const size_t defaultBinCount = 128;
 	static const float defaultLR;
 	static const size_t defaultPatience = 3;
+	static constexpr Lab_t defaultESDelta = 0; // for early stopping
 };
 
 #endif // GBOOSTING_H

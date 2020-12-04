@@ -92,7 +92,7 @@ Lab_t GBHist::findBestSplit(const std::vector<size_t>& subset,
 			rightScore += (rightAvg - labels[sortedSubset[sample]]) * (rightAvg - labels[sortedSubset[sample]]);
 		}
 		curScore = leftScore / leftCnt + rightScore / rightCnt;
-		if (!firstScoreFound || curScore <= bestScore) {
+		if (!firstScoreFound || curScore < bestScore) {
 			firstScoreFound = true;
 			bestScore = curScore;
 			bestSplitPos = curThPos;

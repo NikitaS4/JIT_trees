@@ -15,10 +15,12 @@ PYBIND11_MODULE(JITtrees, m) {
         "Get validation losses array");
     
     py::class_<Adapter::GradientBoosting>(m, "Boosting")
-        .def(py::init<const size_t, const size_t>())
+        .def(py::init<const size_t, const size_t>(), "Gradient boosting model constructor",
+            py::arg("bins"), py::arg("patience"))
         .def("fit", &Adapter::GradientBoosting::fit, "Fit regression model", py::arg("x_train"),
             py::arg("y_train"), py::arg("x_valid"), py::arg("y_valid"),
-            py::arg("tree_count"), py::arg("tree_depth"), py::arg("learning_rate"))
+            py::arg("tree_count"), py::arg("tree_depth"), py::arg("learning_rate")=1,
+            py::arg("early_stopping_delta")=0)
         .def("predict", &Adapter::GradientBoosting::predict, "Predict labels for sample",
             py::arg("x_test"));
     

@@ -14,7 +14,7 @@ namespace Adapter {
 
         History fit(pyarray xTrain, pyarrayY yTrain, pyarray xValid,
         pyarrayY yValid, const size_t treeCount, const size_t treeDepth,
-        const float learningRate);
+        const float learningRate, const Lab_t earlyStoppingDelta);
 
         Lab_t predict(pyarray xTest) const;
 
