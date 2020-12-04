@@ -1,6 +1,9 @@
 #include "ArrayAdapter.h"
 
 
+namespace py = pybind11;
+
+
 namespace Adapter {
     std::vector<Lab_t> ArrayAdapter::labelsToVector(pyarrayY array) {        
         py::buffer_info buf = array.request();

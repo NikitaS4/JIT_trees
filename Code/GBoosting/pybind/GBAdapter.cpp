@@ -2,6 +2,9 @@
 #include "ArrayAdapter.h"
 
 
+namespace py = pybind11;
+
+
 namespace Adapter {
     GradientBoosting::GradientBoosting(const size_t binCount,
     const size_t patience): boosting(binCount, patience) {}

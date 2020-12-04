@@ -7,11 +7,9 @@
 #include <pybind11/stl.h>
 
 
-namespace py = pybind11;
-
 // define dtype of numpy array
-using pyarray = py::array_t<FVal_t, py::array::c_style | py::array::forcecast>;
-using pyarrayY = py::array_t<Lab_t, py::array::c_style | py::array::forcecast>;
+using pyarray = pybind11::array_t<FVal_t, pybind11::array::c_style | pybind11::array::forcecast>;
+using pyarrayY = pybind11::array_t<Lab_t, pybind11::array::c_style | pybind11::array::forcecast>;
 
 
 #endif // ADAPTERSTRUCTS_H
