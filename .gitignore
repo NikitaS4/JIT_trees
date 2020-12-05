@@ -42,6 +42,9 @@ images
 *.vcxproj*
 *.vscode
 
+# Build files
+build
+
 # Other files
 __pycache__
 
