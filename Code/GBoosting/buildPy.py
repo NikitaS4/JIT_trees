@@ -11,9 +11,14 @@ from pybind11.setup_helpers import Pybind11Extension
 # use the class below to avoid warnings
 class Build_ext_wrapper(build_ext):
     def build_extensions(self):
-        if '-Wstrict-prototypes' in self.compiler.compiler_so:
-            self.compiler.compiler_so.remove('-Wstrict-prototypes')
-        super().build_extensions()
+        try:
+            if '-Wstrict-prototypes' in self.compiler.compiler_so:
+                self.compiler.compiler_so.remove('-Wstrict-prototypes')
+        except:
+            # But on Windows with another compiler there still can be problems
+            pass
+        finally:
+            super().build_extensions()
 
 
 ext_modules = [
