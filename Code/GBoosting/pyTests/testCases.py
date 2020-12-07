@@ -113,3 +113,61 @@ def poly_3_case():
         'valid_cnt': 3000,
         'plot_sklearn': False
     }
+
+
+def poly_4_case():
+    # y = x ** 3 - 2x ** 2 + 3
+    # x in [-4; 4]
+    return {
+        'test_name': 'poly_4',
+        'bins': 256,
+        'patience': 5,
+        'es_delta': 1e-3,
+        'tree_count': 1000,
+        'learning_rate': 0.02,
+        'tree_depth': 1,
+        'data_border': 4,
+        'target': lambda x: x ** 3 - 2 * (x ** 2) + 3,
+        'target_repr': r"$y = x^3 - 2x^2 + 3$",
+        'train_cnt': 10000,
+        'valid_cnt': 3000,
+        'plot_sklearn': False
+    }
+
+
+def poly_single_tree():
+    # y = x ** 3 - 2x ** 2 + 3
+    # x in [-4; 4]
+    return {
+        'test_name': 'poly_single',
+        'bins': 1024,
+        'patience': 2,
+        'es_delta': 0,
+        'tree_count': 1,
+        'learning_rate': 1,
+        'tree_depth': 8,
+        'data_border': 4,
+        'target': lambda x: x ** 3 - 2 * (x ** 2) + 3,
+        'target_repr': r"$y = x^3 - 2x^2 + 3$",
+        'train_cnt': 10000,
+        'valid_cnt': 3000,
+        'plot_sklearn': False
+    }
+
+
+def linear_single_tree():
+    return {
+        'test_name': 'lin_5_neg',
+        'bins': 32,
+        'patience': 10,
+        'es_delta': 0,
+        'tree_count': 1, # stop with early stopping
+        'learning_rate': 1,
+        'tree_depth': 5,  # 1 tree == 1 split
+        'data_border': 5,  # data from [-5; 5] interval
+        'target': lambda x: 2 * x + 3,  # y = 2x + 3
+        'target_repr': r"$y = -2x + 3$",
+        'train_cnt': 10000,
+        'valid_cnt': 100,
+        'plot_sklearn': False
+    }

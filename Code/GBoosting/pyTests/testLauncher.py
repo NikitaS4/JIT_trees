@@ -10,7 +10,7 @@ from sklearn.ensemble import HistGradientBoostingRegressor
 from sklearn.model_selection import train_test_split
 
 # test cases
-from testCases import lin_5_case, lin_5_neg_case, sin_3_case, sin_2_case, cos_2_case, poly_3_case
+from testCases import lin_5_case, lin_5_neg_case, sin_3_case, sin_2_case, cos_2_case, poly_3_case, poly_4_case, poly_single_tree, linear_single_tree
 
 
 def generate_data_uniform(train_cnt, valid_cnt, target_func, data_border):
@@ -123,8 +123,8 @@ def launch_test(case):
 
 if __name__ == "__main__":
     # define params to launch test
-    test_cases = [#lin_5_case(), lin_5_neg_case(), sin_2_case(), sin_3_case(), cos_2_case(),
-        poly_3_case()]
+    test_cases = [#lin_5_case(), lin_5_neg_case(), sin_2_case(), sin_3_case(), cos_2_case(), poly_3_case(), poly_4_case(), poly_single_tree(),
+        linear_single_tree()]
     
     for case in test_cases:
         launch_test(case)
