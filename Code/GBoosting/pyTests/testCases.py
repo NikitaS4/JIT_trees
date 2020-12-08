@@ -151,13 +151,13 @@ def poly_single_tree():
         'target_repr': r"$y = x^3 - 2x^2 + 3$",
         'train_cnt': 10000,
         'valid_cnt': 3000,
-        'plot_sklearn': False
+        'plot_sklearn': True
     }
 
 
 def linear_single_tree():
     return {
-        'test_name': 'lin_5_neg',
+        'test_name': 'lin_5_single',
         'bins': 32,
         'patience': 10,
         'es_delta': 0,

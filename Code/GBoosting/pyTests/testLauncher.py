@@ -123,7 +123,15 @@ def launch_test(case):
 
 if __name__ == "__main__":
     # define params to launch test
-    test_cases = [#lin_5_case(), lin_5_neg_case(), sin_2_case(), sin_3_case(), cos_2_case(), poly_3_case(), poly_4_case(), poly_single_tree(),
+    test_cases = [
+        lin_5_case(), 
+        lin_5_neg_case(), 
+        sin_2_case(),
+        sin_3_case(),
+        cos_2_case(),
+        poly_3_case(),
+        poly_4_case(),
+        poly_single_tree(),
         linear_single_tree()]
     
     for case in test_cases:

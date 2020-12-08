@@ -10,8 +10,7 @@
 
 void testSort() {
 	std::vector<FVal_t> sample = { 1, 3, 8, 15, 2, 16, 10, 7, 4, 3 };
-	std::vector<size_t> backIdxs;
-	std::vector<size_t> sorted = GBTest::testSort(sample, backIdxs);
+	std::vector<size_t> sorted = GBTest::testSort(sample);
 
 	std::cout << "Original array:\n";
 	for (auto& it : sample) {
@@ -23,10 +22,6 @@ void testSort() {
 	}
 	std::cout << "\nIndexes:\n";
 	for (auto& it : sorted) {
-		std::cout << it << " ";
-	}
-	std::cout << "\nBack indexes:\n";
-	for (auto& it : backIdxs) {
 		std::cout << it << " ";
 	}
 }
