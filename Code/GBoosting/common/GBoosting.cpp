@@ -43,10 +43,9 @@ History GradientBoosting::fit(const std::vector<std::vector<FVal_t>>& xTrain,
 	swapAxes(xTrain);  // x.shape -> (featureCount, trainLen)
 	// Now it's easy to pass feature slices to build histogram
 	// Histogram building
-	for (auto& featureSlice : xSwapped) {
-		std::vector<size_t> backIdxs;
-		std::vector<size_t> sortedIdxs = sortFeature(featureSlice, backIdxs);
-		hists.push_back(GBHist(binCount, sortedIdxs, backIdxs, featureSlice));
+	for (auto& featureSlice : xSwapped) {		
+		std::vector<size_t> sortedIdxs = sortFeature(featureSlice);
+		hists.push_back(GBHist(binCount, sortedIdxs, featureSlice));
 	}
 	// fit ensemble
 
@@ -162,8 +161,7 @@ void GradientBoosting::swapAxes(const std::vector<std::vector<FVal_t>>& xTest) {
 }
 
 
-std::vector<size_t> GradientBoosting::sortFeature(const std::vector<FVal_t>& xData,
-	std::vector<size_t>& backIdxs) {
+std::vector<size_t> GradientBoosting::sortFeature(const std::vector<FVal_t>& xData) {
 	size_t n = xData.size();  // data len
 	std::vector<size_t> sortedIdxs;
 
@@ -175,11 +173,6 @@ std::vector<size_t> GradientBoosting::sortFeature(const std::vector<FVal_t>& xDa
 		return xData[a] < xData[b];
 	};
 	std::sort(sortedIdxs.begin(), sortedIdxs.end(), comparator);
-
-	backIdxs = std::vector<size_t>(sortedIdxs.size(), 0);
-	for (size_t i = 0; i < sortedIdxs.size(); ++i) {
-		backIdxs[sortedIdxs[i]] = i;
-	}
 
 	return sortedIdxs;
 }

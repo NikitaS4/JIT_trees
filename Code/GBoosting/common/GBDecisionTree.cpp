@@ -47,12 +47,12 @@ GBDecisionTree::GBDecisionTree(const std::vector<std::vector<FVal_t>>& xSwapped,
 	size_t featureCount = xSwapped.size();
 
 	size_t broCount = 1;
-	std::vector<size_t> bestSplitPos;
+	std::vector<FVal_t> bestThreshold;
 	Lab_t bestScore;
 	bool firstSplitFound = false;
 	Lab_t curScore;
-	std::vector<size_t> curSplitPos(leafCnt, 0);
-	size_t atomicSplitPos;
+	std::vector<FVal_t> curThreshold(leafCnt, 0);
+	FVal_t atomicThreshold;
 	size_t bestFeature = 0;
 	for (size_t h = 0; h < treeDepth; ++h) {
 		// find best split
@@ -63,13 +63,14 @@ GBDecisionTree::GBDecisionTree(const std::vector<std::vector<FVal_t>>& xSwapped,
 			curScore = 0;
 			for (size_t node = 0; node < broCount; ++node) {
 				// find best score
-				curScore += hists[feature].findBestSplit(subset[firstBroNum + node], 
-					intermediateLabels[firstBroNum + node], atomicSplitPos);
-				curSplitPos[node] = atomicSplitPos;
+				curScore += hists[feature].findBestSplit(xSwapped[feature],
+					subset[firstBroNum + node], 
+					intermediateLabels[firstBroNum + node], atomicThreshold);
+				curThreshold[node] = atomicThreshold;
 			}
 			if (!firstSplitFound || curScore < bestScore) {
 				bestScore = curScore;
-				bestSplitPos = curSplitPos;
+				bestThreshold = curThreshold;
 				bestFeature = feature;
 			}
 		}
@@ -80,8 +81,9 @@ GBDecisionTree::GBDecisionTree(const std::vector<std::vector<FVal_t>>& xSwapped,
 			std::vector<size_t> leftSubset;
 			std::vector<size_t> rightSubset;
 			size_t absoluteNode = firstBroNum + node;
-			leftSubset = hists[bestFeature].performSplit(subset[absoluteNode],
-				bestSplitPos[node], rightSubset);
+			thresholds[absoluteNode] = bestThreshold[node];
+			leftSubset = hists[bestFeature].performSplit(xSwapped[bestFeature],
+				subset[absoluteNode], bestThreshold[node], rightSubset);
 			// subset will be placed to their topological places
 			size_t leftSon = 2 * absoluteNode + 1;
 			size_t rightSon = leftSon + 1;
@@ -96,9 +98,6 @@ GBDecisionTree::GBDecisionTree(const std::vector<std::vector<FVal_t>>& xSwapped,
 				intermediateLabels[leftSon].push_back(intermediateLabels[absoluteNode][sample] - leftAvg);
 				intermediateLabels[rightSon].push_back(intermediateLabels[absoluteNode][sample] - rightAvg);
 			}
-
-			thresholds[absoluteNode] = xSwapped[bestFeature][hists[bestFeature].getDataSplitIdx(bestSplitPos[node])];
-			//thresholds[absoluteNode] = hists[bestFeature].getDataSplitIdx[bestSplitPos[node]];
 		}
 		features[h] = bestFeature;
 		broCount <<= 1;  // it equals *= 2
