@@ -10,7 +10,7 @@ from sklearn.ensemble import HistGradientBoostingRegressor
 from sklearn.model_selection import train_test_split
 
 # test cases
-from testCases import lin_5_case, lin_5_neg_case, sin_3_case, sin_2_case, cos_2_case, poly_3_case, poly_4_case, poly_single_tree, linear_single_tree
+from testCases import SingleSplitCases, SingleTreeCases, MultiTreeMultiSplitCases
 
 
 def generate_data_uniform(train_cnt, valid_cnt, target_func, data_border):
@@ -124,15 +124,21 @@ def launch_test(case):
 if __name__ == "__main__":
     # define params to launch test
     test_cases = [
-        lin_5_case(), 
-        lin_5_neg_case(), 
-        sin_2_case(),
-        sin_3_case(),
-        cos_2_case(),
-        poly_3_case(),
-        poly_4_case(),
-        poly_single_tree(),
-        linear_single_tree()]
+        #SingleSplitCases.lin_5_case(), 
+        #SingleSplitCases.lin_5_neg_case(), 
+        #SingleSplitCases.sin_2_case(),
+        #SingleSplitCases.sin_3_case(),
+        #SingleSplitCases.cos_2_case(),
+        #SingleSplitCases.poly_3_case(),
+        #SingleSplitCases.poly_4_case(),
+        #SingleTreeCases.poly_single_tree(),
+        #SingleTreeCases.linear_single_tree(),
+        #SingleTreeCases.cos_2_single_tree(),
+        MultiTreeMultiSplitCases.poly_4(),
+        #MultiTreeMultiSplitCases.linear_5(),
+        #MultiTreeMultiSplitCases.cos_2(),
+        #MultiTreeMultiSplitCases.cos_2_full(),
+        ]
     
     for case in test_cases:
         launch_test(case)
