@@ -135,6 +135,25 @@ Lab_t GradientBoosting::predict(const std::vector<FVal_t>& xTest) const {
 }
 
 
+Lab_t GradientBoosting::predictFromTo(const std::vector<FVal_t>& xTest, 
+	const size_t firstEstimator, const size_t lastEstimator) const {
+	Lab_t curPred = 0;
+	if (firstEstimator > lastEstimator)
+		throw std::runtime_error("Order of the first and the last estimators is inverted");
+	if (lastEstimator > realTreeCount)
+		throw std::runtime_error("Too big last estimator, ensemble contain less trees number");
+	if (firstEstimator == 0) { // use zero estimator (constant)
+		curPred = zeroPredictor;
+	}
+	for (size_t estimatorNum = firstEstimator; estimatorNum <= lastEstimator; ++estimatorNum) {
+		if (estimatorNum == 0)
+			continue; // zero estimator already used
+		curPred += trees[estimatorNum - 1].predict(xTest);
+	}
+	return curPred;
+}
+
+
 void GradientBoosting::printModel() const {
 	std::cout << "Printing Gradient boosting model\n";
 

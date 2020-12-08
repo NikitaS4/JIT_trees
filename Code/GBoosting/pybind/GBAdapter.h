@@ -17,6 +17,8 @@ namespace Adapter {
         const float learningRate, const Lab_t earlyStoppingDelta);
 
         Lab_t predict(pyarray xTest) const;
+        Lab_t predictFromTo(pyarray xTest, 
+        const size_t firstEstimator, const size_t lastEstimator) const;
 
     private:
         ::GradientBoosting boosting;

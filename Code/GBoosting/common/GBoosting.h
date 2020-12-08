@@ -25,6 +25,14 @@ public:
 				const Lab_t earlyStoppingDelta = defaultESDelta);
 	Lab_t predict(const std::vector<FVal_t>& xTest) const;
 
+	// predict "from-to" - predict using only subset of trees
+	// first estimator - the first tree number to predict (enumeration starts from 1)
+	// if first estimator == 0, include zero predictor (constant)
+	// last estimator - the last tree number to predict (enumeration starts from 1)
+	Lab_t predictFromTo(const std::vector<FVal_t>& xTest, 
+						const size_t firstEstimator, 
+						const size_t lastEstimator) const;
+
 	void printModel() const;
 protected:
 	static std::vector<size_t> sortFeature(const std::vector<FVal_t>& xData);

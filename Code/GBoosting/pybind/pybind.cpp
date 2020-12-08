@@ -22,6 +22,8 @@ PYBIND11_MODULE(JITtrees, m) {
             py::arg("tree_count"), py::arg("tree_depth"), py::arg("learning_rate")=1,
             py::arg("early_stopping_delta")=0)
         .def("predict", &Adapter::GradientBoosting::predict, "Predict labels for sample",
-            py::arg("x_test"));
+            py::arg("x_test"))
+        .def("predict_from_to", &Adapter::GradientBoosting::predictFromTo, "Predict labels for sample on a subset of trees",
+            py::arg("x_test"), py::arg("from"), py::arg("to"));
     
 }

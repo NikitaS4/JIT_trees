@@ -33,6 +33,14 @@ namespace Adapter {
         return boosting.predict(xTestVec);
     }
 
+    Lab_t GradientBoosting::predictFromTo(pyarray xTest, 
+        const size_t firstEstimator, const size_t lastEstimator) const {
+            // convert numpy array to std::vector
+            std::vector<FVal_t> xTestVec = ArrayAdapter::featuresToVector(xTest);
+            // run c++ implementation
+            return boosting.predictFromTo(xTestVec, firstEstimator, lastEstimator);
+        }
+
     GradientBoosting::~GradientBoosting() {
         // dtor
     }
