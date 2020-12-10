@@ -17,7 +17,8 @@ class SingleSplitCases:
             'target_repr': r"$y = -2x + 3$",
             'train_cnt': 10000,
             'valid_cnt': 100,
-            'plot_sklearn': False
+            'plot_sklearn': False,
+            'plot_errors': False
         }
 
     def lin_5_neg_case():
@@ -35,7 +36,8 @@ class SingleSplitCases:
             'target_repr': r"$y = 2x + 3$",
             'train_cnt': 10000,
             'valid_cnt': 100,
-            'plot_sklearn': False
+            'plot_sklearn': False,
+            'plot_errors': False
         }
 
     def sin_3_case():
@@ -53,7 +55,8 @@ class SingleSplitCases:
             'target_repr': r"$y = sin(x)$",
             'train_cnt': 10000,
             'valid_cnt': 3000,
-            'plot_sklearn': True
+            'plot_sklearn': True,
+            'plot_errors': False
         }
 
     def sin_2_case():
@@ -71,7 +74,8 @@ class SingleSplitCases:
             'target_repr': r"$y = sin(x)$",
             'train_cnt': 10000,
             'valid_cnt': 3000,
-            'plot_sklearn': True
+            'plot_sklearn': True,
+            'plot_errors': False
         }
 
     def cos_2_case():
@@ -89,7 +93,8 @@ class SingleSplitCases:
             'target_repr': r"$y = cos(x)$",
             'train_cnt': 10000,
             'valid_cnt': 3000,
-            'plot_sklearn': True
+            'plot_sklearn': True,
+            'plot_errors': False
         }
 
     def poly_3_case():
@@ -107,7 +112,8 @@ class SingleSplitCases:
             'target_repr': r"$y = x^3 - 2x^2 + 3$",
             'train_cnt': 10000,
             'valid_cnt': 3000,
-            'plot_sklearn': False
+            'plot_sklearn': False,
+            'plot_errors': False
         }
 
     def poly_4_case():
@@ -126,7 +132,8 @@ class SingleSplitCases:
             'target_repr': r"$y = x^3 - 2x^2 + 3$",
             'train_cnt': 10000,
             'valid_cnt': 3000,
-            'plot_sklearn': False
+            'plot_sklearn': False,
+            'plot_errors': False
         }
 
 
@@ -147,7 +154,8 @@ class SingleTreeCases:
             'target_repr': r"$y = x^3 - 2x^2 + 3$",
             'train_cnt': 10000,
             'valid_cnt': 3000,
-            'plot_sklearn': True
+            'plot_sklearn': False,
+            'plot_errors': True
         }
  
     def linear_single_tree():
@@ -164,7 +172,8 @@ class SingleTreeCases:
             'target_repr': r"$y = -2x + 3$",
             'train_cnt': 10000,
             'valid_cnt': 100,
-            'plot_sklearn': False
+            'plot_sklearn': False,
+            'plot_errors': False
         }
 
     def cos_2_single_tree():
@@ -182,7 +191,8 @@ class SingleTreeCases:
             'target_repr': r"$y = cos(x)$",
             'train_cnt': 10000,
             'valid_cnt': 3000,
-            'plot_sklearn': False
+            'plot_sklearn': True,
+            'plot_errors': False
         }
 
 
@@ -203,7 +213,8 @@ class MultiTreeMultiSplitCases:
             'target_repr': r"$y = x^3 - 2x^2 + 3$",
             'train_cnt': 10000,
             'valid_cnt': 3000,
-            'plot_sklearn': False
+            'plot_sklearn': False,
+            'plot_errors': False
         }
  
     def linear_5():
@@ -220,7 +231,8 @@ class MultiTreeMultiSplitCases:
             'target_repr': r"$y = -2x + 3$",
             'train_cnt': 10000,
             'valid_cnt': 100,
-            'plot_sklearn': False
+            'plot_sklearn': False,
+            'plot_errors': False
         }
 
     def cos_2():
@@ -238,7 +250,8 @@ class MultiTreeMultiSplitCases:
             'target_repr': r"$y = cos(x)$",
             'train_cnt': 10000,
             'valid_cnt': 3000,
-            'plot_sklearn': False
+            'plot_sklearn': False,
+            'plot_errors': False
         }
     
     def cos_2_full():
@@ -256,5 +269,6 @@ class MultiTreeMultiSplitCases:
             'target_repr': r"$y = cos(x)$",
             'train_cnt': 10000,
             'valid_cnt': 3000,
-            'plot_sklearn': False
+            'plot_sklearn': False,
+            'plot_errors': False
         }

@@ -47,7 +47,7 @@ def plot_losses(history, filename):
     plt.close()
 
 
-def plot_predictions(data_border, model, sk_model, target_func, target_repr, filename):
+def plot_predictions(data_border, model, sk_model, target_func, target_repr, filename, plot_errors=False):
     x_plot = np.linspace(-data_border, data_border, 1000)
     y_plot = np.array([model.predict([x_plot[i]]) for i in range(x_plot.shape[0])])
     ground_truth = target_func(x_plot)
@@ -56,7 +56,7 @@ def plot_predictions(data_border, model, sk_model, target_func, target_repr, fil
     if sk_model is not None:
         # don't need to plot Sklearn model predictions
         y_sk = sk_model.predict(x_plot.reshape(-1, 1))
-        plt.plot(x_plot, y_sk, label='Sklearn model')
+        plt.plot(x_plot, y_sk, label='Sklearn model', linestyle='dotted')
     plt.legend()
     plt.xlabel('x')
     plt.ylabel('y')
@@ -64,6 +64,16 @@ def plot_predictions(data_border, model, sk_model, target_func, target_repr, fil
     plt.savefig(filename)
     plt.show()
     plt.close()
+    
+    if plot_errors:
+        errors = y_plot - ground_truth
+        plt.plot(x_plot, errors)
+        plt.xlabel('x')
+        plt.ylabel(r'prediction - ground truth')
+        plt.title('Prediction residuals')
+        plt.savefig(filename[:-4] + "_errors" + filename[-4:])
+        plt.show()
+        plt.close()
 
 
 def launch_test(case):
@@ -81,6 +91,7 @@ def launch_test(case):
     target_repr = case['target_repr']
     need_plot_sklearn = case['plot_sklearn']
     test_name = case['test_name']
+    plot_errors = case['plot_errors']
 
     # generate dataset
     x_train, y_train, x_valid, y_valid = generate_data_uniform(train_cnt,
@@ -118,7 +129,7 @@ def launch_test(case):
     plot_losses(history, filename)
     filename = os.path.join('images', 'preds_' + test_name + '.png')
     plot_predictions(data_border, model, sk_model if need_plot_sklearn else None,
-        target_func, target_repr, filename)
+        target_func, target_repr, filename, plot_errors)
 
 
 if __name__ == "__main__":
@@ -131,10 +142,10 @@ if __name__ == "__main__":
         #SingleSplitCases.cos_2_case(),
         #SingleSplitCases.poly_3_case(),
         #SingleSplitCases.poly_4_case(),
-        #SingleTreeCases.poly_single_tree(),
+        SingleTreeCases.poly_single_tree(),
         #SingleTreeCases.linear_single_tree(),
         #SingleTreeCases.cos_2_single_tree(),
-        MultiTreeMultiSplitCases.poly_4(),
+        #MultiTreeMultiSplitCases.poly_4(),
         #MultiTreeMultiSplitCases.linear_5(),
         #MultiTreeMultiSplitCases.cos_2(),
         #MultiTreeMultiSplitCases.cos_2_full(),
