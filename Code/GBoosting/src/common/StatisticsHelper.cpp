@@ -3,8 +3,8 @@
 #include <cmath>
 
 
-Lab_t StatisticsHelper::mean(const std::vector<Lab_t>& vals) {
-	size_t count = vals.size();
+Lab_t StatisticsHelper::mean(const pytensorY& vals) {
+	size_t count = vals.shape(0);
 	Lab_t curSum = 0;
 	for (auto& curVal : vals) {
 		curSum += curVal;
@@ -12,7 +12,7 @@ Lab_t StatisticsHelper::mean(const std::vector<Lab_t>& vals) {
 	return curSum / count;
 }
 
-Lab_t StatisticsHelper::mean(const std::vector<Lab_t>& vals,
+Lab_t StatisticsHelper::mean(const pytensorY& vals,
 	const std::vector<size_t>& idxs) {
 	size_t count = idxs.size();
 	Lab_t curSum = 0;
@@ -22,7 +22,7 @@ Lab_t StatisticsHelper::mean(const std::vector<Lab_t>& vals,
 	return curSum / count;
 }
 
-Lab_t StatisticsHelper::maxAbs(const std::vector<Lab_t>& vals) {
+Lab_t StatisticsHelper::maxAbs(const pytensorY& vals) {
 	Lab_t curMax = 0;
 	for (auto& curVal : vals) {
 		if (abs(curVal) > curMax)
