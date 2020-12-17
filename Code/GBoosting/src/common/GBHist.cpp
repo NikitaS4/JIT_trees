@@ -99,7 +99,7 @@ Lab_t GBHist::findBestSplit(const pytensor1& xData,
 		
 		// step 3: compute score
 		// score(split) = MSE_left + MSE_right (with weights)
-		curScore = leftScore / leftSize + rightScore / rightSize;
+		curScore = leftScore * leftSize + rightScore * rightSize;
 
 		// compare with the best value
 		if (firstIter || curScore < bestScore) {
