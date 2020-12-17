@@ -21,10 +21,10 @@ GradientBoosting::~GradientBoosting() {
 	// dtor
 }
 
-History GradientBoosting::fit(const pyarray& xTrain,
-	const pyarrayY& yTrain, 
-	const pyarray& xValid,
-	const pyarrayY& yValid, const size_t treeCount,
+History GradientBoosting::fit(const pytensor2& xTrain,
+	const pytensorY& yTrain, 
+	const pytensor2& xValid,
+	const pytensorY& yValid, const size_t treeCount,
 	const size_t treeDepth, const float learningRate,
 	const Lab_t earlyStoppingDelta) {
 	// Prepare data	
@@ -59,10 +59,10 @@ History GradientBoosting::fit(const pyarray& xTrain,
 	zeroPredictor = StatisticsHelper::mean(yTrain);
 
 	// fit another models
-	pyarrayY residuals = xt::zeros<Lab_t>({trainLen});
-	pyarrayY preds = xt::zeros<Lab_t>({trainLen});
-	pyarrayY validRes = xt::zeros<Lab_t>({yValid.shape(0)});
-	pyarrayY validPreds = xt::zeros<Lab_t>({yValid.shape(0)});
+	pytensorY residuals = xt::zeros<Lab_t>({trainLen});
+	pytensorY preds = xt::zeros<Lab_t>({trainLen});
+	pytensorY validRes = xt::zeros<Lab_t>({yValid.shape(0)});
+	pytensorY validPreds = xt::zeros<Lab_t>({yValid.shape(0)});
 	Lab_t trainLoss;
 	Lab_t validLoss;
 	// residuals = yTest - trainPreds
@@ -99,7 +99,7 @@ History GradientBoosting::fit(const pyarray& xTrain,
 		GBDecisionTree curTree(xTrain, subset, residuals, hists);
 		// update residuals
 		for (size_t sample = 0; sample < trainLen; ++sample) {
-			Lab_t prediction = curTree.predict(xTrain(sample));
+			Lab_t prediction = curTree.predict(xt::row(xTrain, sample));
 			residuals(sample) -= prediction;
 			preds(sample) += prediction;
 		}
@@ -108,7 +108,7 @@ History GradientBoosting::fit(const pyarray& xTrain,
 
 		// update validation residuals
 		for (size_t sample = 0; sample < validLen; ++sample) {
-			Lab_t prediction = curTree.predict(xValid(sample));
+			Lab_t prediction = curTree.predict(xt::row(xValid, sample));
 			validRes(sample) -= prediction;
 			validPreds(sample) += prediction;
 		}
@@ -136,7 +136,7 @@ History GradientBoosting::fit(const pyarray& xTrain,
 	return History(realTreeCount, trainLosses, validLosses);
 }
 
-Lab_t GradientBoosting::predict(const pyarray& xTest) const {
+Lab_t GradientBoosting::predict(const pytensor1& xTest) const {
 	Lab_t curPred = zeroPredictor;
 	for (auto& curTree : trees)
 		curPred += curTree.predict(xTest);
@@ -144,7 +144,7 @@ Lab_t GradientBoosting::predict(const pyarray& xTest) const {
 }
 
 
-Lab_t GradientBoosting::predictFromTo(const pyarray& xTest, 
+Lab_t GradientBoosting::predictFromTo(const pytensor1& xTest, 
 	const size_t firstEstimator, const size_t lastEstimator) const {
 	Lab_t curPred = 0;
 	if (firstEstimator > lastEstimator)
@@ -163,7 +163,7 @@ Lab_t GradientBoosting::predictFromTo(const pyarray& xTest,
 }
 
 
-std::vector<size_t> GradientBoosting::sortFeature(const pyarray& xData) {
+std::vector<size_t> GradientBoosting::sortFeature(const pytensor1& xData) {
 	size_t n = xData.shape(0);  // data len
 	std::vector<size_t> sortedIdxs;
 
@@ -179,8 +179,8 @@ std::vector<size_t> GradientBoosting::sortFeature(const pyarray& xData) {
 	return sortedIdxs;
 }
 
-Lab_t GradientBoosting::loss(const pyarrayY& pred,
-	const pyarrayY& truth) {
+Lab_t GradientBoosting::loss(const pytensorY& pred,
+	const pytensorY& truth) {
 	// 0.5 * MSE
 	size_t count = pred.size();
 	Lab_t squaredErrorSum = 0;

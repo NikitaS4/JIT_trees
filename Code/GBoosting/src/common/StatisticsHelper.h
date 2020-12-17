@@ -7,10 +7,10 @@
 
 class StatisticsHelper {
 public:
-	static Lab_t mean(const pyarrayY& vals);
-	static Lab_t mean(const pyarrayY& vals,
+	static Lab_t mean(const pytensorY& vals);
+	static Lab_t mean(const pytensorY& vals,
 		const std::vector<size_t>& idxs);
-	static Lab_t maxAbs(const pyarrayY& vals);
+	static Lab_t maxAbs(const pytensorY& vals);
 private:
 	StatisticsHelper();
 	~StatisticsHelper() = delete;

@@ -10,13 +10,13 @@ class GBHist {
 public:
 	GBHist(const size_t binCount,
 		const std::vector<size_t>& sortedIdxs,
-		const pyarray& xFeature);
+		const pytensor1& xFeature);
 
 	size_t getBinCount() const;
-	Lab_t findBestSplit(const pyarray& xData,
+	Lab_t findBestSplit(const pytensor1& xData,
 		const std::vector<size_t>& subset, 
-		const pyarrayY& labels, FVal_t& threshold) const;
-	std::vector<size_t> performSplit(const pyarray& xData,
+		const pytensorY& labels, FVal_t& threshold) const;
+	std::vector<size_t> performSplit(const pytensor1& xData,
 	const std::vector<size_t>& subset, const FVal_t threshold, 
 	std::vector<size_t>& rightSubset) const;
 private:

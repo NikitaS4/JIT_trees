@@ -10,15 +10,15 @@
 class GBDecisionTree {
 public:
 	// CTOR == FIT
-	GBDecisionTree(const pyarray& xTrain,
+	GBDecisionTree(const pytensor2& xTrain,
 		const std::vector<size_t>& chosen, 
-		const pyarrayY& yTrain,
+		const pytensorY& yTrain,
 		const std::vector<GBHist>& hists);
 	GBDecisionTree(GBDecisionTree&& other) noexcept;  // move ctor
 	GBDecisionTree(const GBDecisionTree& other);  // copy ctor
 	virtual ~GBDecisionTree();
 
-	Lab_t predict(const pyarray& sample) const;
+	Lab_t predict(const pytensor1& sample) const;
 
 	static void initStaticMembers(const float learnRate, 
 		const size_t trainLen,

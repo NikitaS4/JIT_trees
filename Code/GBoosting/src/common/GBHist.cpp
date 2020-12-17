@@ -6,7 +6,7 @@
 
 GBHist::GBHist(const size_t binCount, 
 	const std::vector<size_t>& sortedIdxs,
-	const pyarray& xFeature): binCount(binCount) {
+	const pytensor1& xFeature): binCount(binCount) {
 	size_t n = xFeature.shape(0); // data size
 	FVal_t featureMin = xFeature(sortedIdxs[0]);
 	FVal_t featureMax = xFeature(sortedIdxs[n - 1]);
@@ -33,9 +33,9 @@ size_t GBHist::getBinCount() const {
 }
 
 
-Lab_t GBHist::findBestSplit(const pyarray& xData,
+Lab_t GBHist::findBestSplit(const pytensor1& xData,
 	const std::vector<size_t>& subset, 
-	const pyarrayY& labels, FVal_t& threshold) const {
+	const pytensorY& labels, FVal_t& threshold) const {
 	size_t nSub = subset.size(); // size of the subset
 
 	// compute histograms
@@ -114,7 +114,7 @@ Lab_t GBHist::findBestSplit(const pyarray& xData,
 }
 
 
-std::vector<size_t> GBHist::performSplit(const pyarray& xData,
+std::vector<size_t> GBHist::performSplit(const pytensor1& xData,
 	const std::vector<size_t>& subset, const FVal_t threshold, 
 	std::vector<size_t>& rightSubset) const {
 	std::vector<size_t> leftSubset;

@@ -26,16 +26,16 @@ void GBDecisionTree::initStaticMembers(const float learnRate,
 	learningRate = learnRate;
 }
 
-GBDecisionTree::GBDecisionTree(const pyarray& xTrain,
+GBDecisionTree::GBDecisionTree(const pytensor2& xTrain,
 	const std::vector<size_t>& chosen, 
-	const pyarrayY& yTrain,
+	const pytensorY& yTrain,
 	const std::vector<GBHist>& hists) {
 	if (!depthAssigned)
 		throw std::runtime_error("Tree depth was not assigned");
 	features = new size_t[treeDepth];
 	thresholds = new FVal_t[innerNodes];
 	leaves = new Lab_t[leafCnt];
-	pyarrayY intermediateLabels = xt::zeros<Lab_t>({innerNodes + leafCnt, xTrain.shape(0)});
+	pytensor2Y intermediateLabels = xt::zeros<Lab_t>({innerNodes + leafCnt, xTrain.shape(0)});
 
 	// 1st dim - node number, 2nd dim - sample idx
 	subset[0] = chosen;	
@@ -138,7 +138,7 @@ GBDecisionTree::GBDecisionTree(const GBDecisionTree& other) {
 	}
 }
 
-Lab_t GBDecisionTree::predict(const pyarray& sample) const {
+Lab_t GBDecisionTree::predict(const pytensor1& sample) const {
 	size_t curNode = 0;
 	for (size_t h = 0; h < treeDepth; ++h) {
 		if (sample(features[h]) < thresholds[curNode])

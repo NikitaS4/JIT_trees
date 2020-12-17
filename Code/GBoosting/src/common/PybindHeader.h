@@ -7,6 +7,6 @@
 #include "xtensor/xarray.hpp"
 #include "xtensor/xview.hpp"
 
-#include "xtensor-python/pyarray.hpp"
+#include "xtensor-python/pytensor.hpp"
 
 #endif // PYBIND_HEADER_H_INCLUDED

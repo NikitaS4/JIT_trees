@@ -3,13 +3,13 @@
 History::History() {}
 
 History::History(const size_t treeNumber,
-	const pyarrayY& trainLosses,
-	const pyarrayY& validLosses) : treesLearnt(treeNumber),
+	const pytensorY& trainLosses,
+	const pytensorY& validLosses) : treesLearnt(treeNumber),
 	trainLosses(trainLosses), validLosses(validLosses) {}
 
 
-void History::addAllLosses(const pyarrayY& train,
-	const pyarrayY& valid) {
+void History::addAllLosses(const pytensorY& train,
+	const pytensorY& valid) {
 	trainLosses = train;
 	validLosses = valid;
 }
@@ -22,10 +22,10 @@ size_t History::getTreesLearnt() const {
 	return treesLearnt;
 }
 
-pyarrayY History::getTrainLosses() const {
+pytensorY History::getTrainLosses() const {
 	return trainLosses;
 }
 
-pyarrayY History::getValidLosses() const {
+pytensorY History::getValidLosses() const {
 	return validLosses;
 }
