@@ -44,8 +44,13 @@ images
 
 # Build files
 build
-*.pyd
+dist
+*.py[cod]
+*.egg-info/
 
-# Other files
+# Python
 __pycache__
+.ipynb_checkpoints/
 
+# OS X
+.DS_Store

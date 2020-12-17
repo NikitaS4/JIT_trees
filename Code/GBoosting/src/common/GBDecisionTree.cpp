@@ -2,7 +2,6 @@
 #include "StatisticsHelper.h"
 
 #include <stdexcept>
-#include <iostream>
 
 
 // static initializations
@@ -12,39 +11,37 @@ size_t GBDecisionTree::innerNodes = 0;
 size_t GBDecisionTree::leafCnt = 0;
 float GBDecisionTree::learningRate = 1;
 std::vector<std::vector<size_t>> GBDecisionTree::subset;
-std::vector<std::vector<Lab_t>> GBDecisionTree::intermediateLabels;
 
 
 void GBDecisionTree::initStaticMembers(const float learnRate,
-	const size_t depth) {
+	const size_t trainLen, const size_t depth) {
 	if (depth == 0)
 		throw std::runtime_error("Wrong tree depth");
 	treeDepth = depth;
 	innerNodes = (1 << treeDepth) - 1;
-	leafCnt = 1 << treeDepth;		
+	leafCnt = size_t(1) << treeDepth;		
 	subset = std::vector<std::vector<size_t>>(innerNodes + leafCnt,
 		std::vector<size_t>());
-	intermediateLabels = std::vector<std::vector<Lab_t>>(innerNodes + leafCnt, 
-	std::vector<Lab_t>());
 	depthAssigned = true;
 	learningRate = learnRate;
 }
 
-GBDecisionTree::GBDecisionTree(const std::vector<std::vector<FVal_t>>& xSwapped,
+GBDecisionTree::GBDecisionTree(const pyarray& xTrain,
 	const std::vector<size_t>& chosen, 
-	const std::vector<Lab_t>& yTrain,
+	const pyarrayY& yTrain,
 	const std::vector<GBHist>& hists) {
 	if (!depthAssigned)
 		throw std::runtime_error("Tree depth was not assigned");
 	features = new size_t[treeDepth];
 	thresholds = new FVal_t[innerNodes];
 	leaves = new Lab_t[leafCnt];
+	pyarrayY intermediateLabels = xt::zeros<Lab_t>({innerNodes + leafCnt, xTrain.shape(0)});
 
 	// 1st dim - node number, 2nd dim - sample idx
 	subset[0] = chosen;	
-	intermediateLabels[0] = yTrain;
+	xt::row(intermediateLabels, 0) = yTrain;
 
-	size_t featureCount = xSwapped.size();
+	size_t featureCount = xTrain.shape(1);
 
 	size_t broCount = 1;
 	std::vector<FVal_t> bestThreshold;
@@ -63,9 +60,9 @@ GBDecisionTree::GBDecisionTree(const std::vector<std::vector<FVal_t>>& xSwapped,
 			curScore = 0;
 			for (size_t node = 0; node < broCount; ++node) {
 				// find best score
-				curScore += hists[feature].findBestSplit(xSwapped[feature],
+				curScore += hists[feature].findBestSplit(xt::col(xTrain, feature),
 					subset[firstBroNum + node], 
-					intermediateLabels[firstBroNum + node], atomicThreshold);
+					xt::row(intermediateLabels, firstBroNum + node), atomicThreshold);
 				curThreshold[node] = atomicThreshold;
 			}
 			if (!firstSplitFound || curScore < bestScore) {
@@ -75,14 +72,13 @@ GBDecisionTree::GBDecisionTree(const std::vector<std::vector<FVal_t>>& xSwapped,
 			}
 		}
 		// the best score is found now
-		//usedFeatures.push_back(bestFeature);  // lock feature
 		// need to perform the split
 		for (size_t node = 0; node < broCount; ++node) {
 			std::vector<size_t> leftSubset;
 			std::vector<size_t> rightSubset;
 			size_t absoluteNode = firstBroNum + node;
 			thresholds[absoluteNode] = bestThreshold[node];
-			leftSubset = hists[bestFeature].performSplit(xSwapped[bestFeature],
+			leftSubset = hists[bestFeature].performSplit(xt::col(xTrain, bestFeature),
 				subset[absoluteNode], bestThreshold[node], rightSubset);
 			// subset will be placed to their topological places
 			size_t leftSon = 2 * absoluteNode + 1;
@@ -92,11 +88,11 @@ GBDecisionTree::GBDecisionTree(const std::vector<std::vector<FVal_t>>& xSwapped,
 			// update labels
 			Lab_t leftAvg = StatisticsHelper::mean(yTrain, leftSubset);
 			Lab_t rightAvg = StatisticsHelper::mean(yTrain, rightSubset);
-			intermediateLabels[leftSon].clear();
-			intermediateLabels[rightSon].clear();
-			for (size_t sample = 0; sample < yTrain.size(); ++sample) {
-				intermediateLabels[leftSon].push_back(intermediateLabels[absoluteNode][sample] - leftAvg);
-				intermediateLabels[rightSon].push_back(intermediateLabels[absoluteNode][sample] - rightAvg);
+			xt::row(intermediateLabels, leftSon) = xt::zeros<Lab_t>(yTrain.shape());
+			xt::row(intermediateLabels, rightSon) = xt::zeros<Lab_t>(yTrain.shape());
+			for (size_t sample = 0; sample < yTrain.shape(0); ++sample) {
+				intermediateLabels(leftSon, sample) = intermediateLabels(absoluteNode, sample) - leftAvg;
+				intermediateLabels(rightSon, sample) = intermediateLabels(absoluteNode, sample) - rightAvg;
 			}
 		}
 		features[h] = bestFeature;
@@ -110,7 +106,7 @@ GBDecisionTree::GBDecisionTree(const std::vector<std::vector<FVal_t>>& xSwapped,
 		curSum = 0;
 		curCnt = 0;
 		for (auto& sample : subset[innerNodes + leaf]) {
-			curSum += yTrain[sample];
+			curSum += yTrain(sample);
 		}
 		curCnt = subset[innerNodes + leaf].size();
 		leaves[leaf] = learningRate * curSum / curCnt;  // mean leaf residual
@@ -142,10 +138,10 @@ GBDecisionTree::GBDecisionTree(const GBDecisionTree& other) {
 	}
 }
 
-Lab_t GBDecisionTree::predict(const std::vector<FVal_t>& sample) const {
+Lab_t GBDecisionTree::predict(const pyarray& sample) const {
 	size_t curNode = 0;
 	for (size_t h = 0; h < treeDepth; ++h) {
-		if (sample[features[h]] < thresholds[curNode])
+		if (sample(features[h]) < thresholds[curNode])
 			curNode = 2 * curNode + 1;
 		else
 			curNode = 2 * curNode + 2;
@@ -168,28 +164,4 @@ GBDecisionTree::~GBDecisionTree() {
 		delete[] leaves;
 		leaves = nullptr;
 	}
-}
-
-void GBDecisionTree::printTree() const {
-	std::cout << "Printing GBDT\n\n";
-	
-	std::cout << "h = " << treeDepth << "\n";
-	size_t broCount = 1;
-	size_t curNode = 0;
-	for (size_t depth = 0; depth < treeDepth; ++depth) {
-		std::cout << "Feature: " << features[depth] << "\n";
-		std::cout << "Thresholds: ";
-		for (size_t node = 0; node < broCount; ++node) {
-			std::cout << thresholds[curNode] << " ";
-		}
-		std::cout << "\n";
-		broCount *= 2;
-		++curNode;
-	}
-
-	std::cout << "Leaves: ";
-	for (size_t leaf = 0; leaf < leafCnt; ++leaf) {
-		std::cout << leaves[leaf] << " ";
-	}
-	std::cout << "\n\n";
 }

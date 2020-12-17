@@ -1,6 +1,7 @@
 #ifndef GBOOSTING_H
 #define GBOOSTING_H
 
+#include "PybindHeader.h"
 #include "Structs.h"
 #include "GBHist.h"
 #include "GBDecisionTree.h"
@@ -15,30 +16,28 @@ public:
 	virtual ~GradientBoosting();
 	// 1st dim - object number, 2nd dim - feature number
 	// fit return the number of estimators (include constant estim)
-	History fit(const std::vector<std::vector<FVal_t>>& xTrain, 
-				const std::vector<Lab_t>& yTrain,
-				const std::vector<std::vector<FVal_t>>& xValid,
-				const std::vector<Lab_t>& yValid,
+	History fit(const pyarray& xTrain, 
+				const pyarrayY& yTrain,
+				const pyarray& xValid,
+				const pyarrayY& yValid,
 				const size_t treeCount,
 				const size_t treeDepth,
 				const float learningRate = defaultLR,
 				const Lab_t earlyStoppingDelta = defaultESDelta);
-	Lab_t predict(const std::vector<FVal_t>& xTest) const;
+	Lab_t predict(const pyarray& xTest) const;
 
 	// predict "from-to" - predict using only subset of trees
 	// first estimator - the first tree number to predict (enumeration starts from 1)
 	// if first estimator == 0, include zero predictor (constant)
 	// last estimator - the last tree number to predict (enumeration starts from 1)
-	Lab_t predictFromTo(const std::vector<FVal_t>& xTest, 
+	Lab_t predictFromTo(const pyarray& xTest, 
 						const size_t firstEstimator, 
 						const size_t lastEstimator) const;
 
-	void printModel() const;
 protected:
-	static std::vector<size_t> sortFeature(const std::vector<FVal_t>& xData);
-	void swapAxes(const std::vector<std::vector<FVal_t>>& xTrain);
-	static Lab_t loss(const std::vector<Lab_t>& pred, 
-					  const std::vector<Lab_t>& truth);
+	static std::vector<size_t> sortFeature(const pyarray& xData);
+	static Lab_t loss(const pyarrayY& pred, 
+					  const pyarrayY& truth);
 	inline bool canStop(const size_t stepNum, 
 						const Lab_t earlyStoppingDelta) const;
 
@@ -49,12 +48,10 @@ protected:
 	size_t binCount;
 	size_t patience;
 	Lab_t zeroPredictor; // constant model
-	// xSwapped: 1st dim - feature number, 2nd dim - object number
-	std::vector<std::vector<FVal_t>> xSwapped;
 	std::vector<GBHist> hists; // histogram for each feature
 	std::vector<GBDecisionTree> trees;
-	std::vector<Lab_t> trainLosses;
-	std::vector<Lab_t> validLosses;
+	pyarrayY trainLosses;
+	pyarrayY validLosses;
 
 	// constants
 	static const size_t defaultBinCount = 128;

@@ -1,6 +1,7 @@
 #ifndef GBDECISION_TREE_H
 #define GBDECISION_TREE_H
 
+#include "PybindHeader.h"
 #include "Structs.h"
 #include "GBHist.h"
 #include <vector>
@@ -9,20 +10,20 @@
 class GBDecisionTree {
 public:
 	// CTOR == FIT
-	GBDecisionTree(const std::vector<std::vector<FVal_t>>& xSwapped,
+	GBDecisionTree(const pyarray& xTrain,
 		const std::vector<size_t>& chosen, 
-		const std::vector<Lab_t>& yTrain,
+		const pyarrayY& yTrain,
 		const std::vector<GBHist>& hists);
 	GBDecisionTree(GBDecisionTree&& other) noexcept;  // move ctor
 	GBDecisionTree(const GBDecisionTree& other);  // copy ctor
 	virtual ~GBDecisionTree();
 
-	Lab_t predict(const std::vector<FVal_t>& sample) const;
+	Lab_t predict(const pyarray& sample) const;
 
 	static void initStaticMembers(const float learnRate, 
+		const size_t trainLen,
 		const size_t depth = defaultTreeDepth);
 
-	void printTree() const;
 private:
 	// tree with depth 1 is node with 2 children
 	// leaves = 2 ** height
@@ -38,11 +39,9 @@ private:
 	static size_t leafCnt;
 	static float learningRate;
 	static std::vector<std::vector<size_t>> subset;
-	static std::vector<std::vector<Lab_t>> intermediateLabels;
 
 	// constants
 	static const size_t defaultTreeDepth = 6;
 };
 
 #endif // GBDECISION_TREE_H
-

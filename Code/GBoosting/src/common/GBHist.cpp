@@ -6,10 +6,10 @@
 
 GBHist::GBHist(const size_t binCount, 
 	const std::vector<size_t>& sortedIdxs,
-	const std::vector<FVal_t>& xFeature): binCount(binCount) {
-	size_t n = xFeature.size(); // data size
-	FVal_t featureMin = xFeature[sortedIdxs[0]];
-	FVal_t featureMax = xFeature[sortedIdxs[n - 1]];
+	const pyarray& xFeature): binCount(binCount) {
+	size_t n = xFeature.shape(0); // data size
+	FVal_t featureMin = xFeature(sortedIdxs[0]);
+	FVal_t featureMax = xFeature(sortedIdxs[n - 1]);
 	FVal_t binWidth = (featureMax - featureMin) / binCount;
 	FVal_t curThreshold;
 
@@ -20,14 +20,10 @@ GBHist::GBHist(const size_t binCount,
 		curThreshold = (i + 1) * binWidth + featureMin; // compute threshold
 		thresholds.push_back(curThreshold); // remember threshold
 		
-		while (posInData < n && xFeature[sortedIdxs[posInData]] < curThreshold) {
+		while (posInData < n && xFeature(sortedIdxs[posInData]) < curThreshold) {
 			idxToBin[sortedIdxs[posInData++]] = i; // put this one into the current bin			
 			// and increase posInData index
 		}
-		// Remember result to use it in search 
-		// in the next iteration
-		//curLeft = binSearch(xFeature, curThreshold, curLeft);
-		//thresholdPos.push_back(curLeft);
 	}
 }
 
@@ -37,9 +33,9 @@ size_t GBHist::getBinCount() const {
 }
 
 
-Lab_t GBHist::findBestSplit(const std::vector<FVal_t>& xData,
+Lab_t GBHist::findBestSplit(const pyarray& xData,
 	const std::vector<size_t>& subset, 
-	const std::vector<Lab_t>& labels, FVal_t& threshold) const {
+	const pyarrayY& labels, FVal_t& threshold) const {
 	size_t nSub = subset.size(); // size of the subset
 
 	// compute histograms
@@ -53,9 +49,9 @@ Lab_t GBHist::findBestSplit(const std::vector<FVal_t>& xData,
 	// map subset to bins
 	for (auto& curX : subset) {
 		currentBin = idxToBin[curX]; // get bin number for the current sample
-		binValue[currentBin] += labels[curX]; // add value (compute sum)
+		binValue[currentBin] += labels(curX); // add value (compute sum)
 		++binSize[currentBin]; // to compute avg later
-		rightValue += labels[curX]; // prepare for the best split searching
+		rightValue += labels(curX); // prepare for the best split searching
 	}
 
 	// prepare to find the best split
@@ -92,12 +88,12 @@ Lab_t GBHist::findBestSplit(const std::vector<FVal_t>& xData,
 		leftScore = rightScore = 0; // init scores for sum
 		size_t tmpCnter = 0;
 		for (auto& curX : subset) {
-			if (xData[curX] < curThreshold) {
+			if (xData(curX) < curThreshold) {
 				// increase left score
-				leftScore += square(leftAvg - labels[curX]);
+				leftScore += square(leftAvg - labels(curX));
 			} else {
 				// increase right score
-				rightScore += square(rightAvg - labels[curX]);
+				rightScore += square(rightAvg - labels(curX));
 			}
 		}
 		
@@ -118,13 +114,13 @@ Lab_t GBHist::findBestSplit(const std::vector<FVal_t>& xData,
 }
 
 
-std::vector<size_t> GBHist::performSplit(const std::vector<FVal_t>& xData,
+std::vector<size_t> GBHist::performSplit(const pyarray& xData,
 	const std::vector<size_t>& subset, const FVal_t threshold, 
 	std::vector<size_t>& rightSubset) const {
 	std::vector<size_t> leftSubset;
 	rightSubset.clear();
 	for (auto& curIdx : subset) {
-		if (xData[curIdx] < threshold)
+		if (xData(curIdx) < threshold)
 			leftSubset.push_back(curIdx);
 		else
 			rightSubset.push_back(curIdx);
