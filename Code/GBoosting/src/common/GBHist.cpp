@@ -5,25 +5,22 @@
 
 
 GBHist::GBHist(const size_t binCount, 
-	const std::vector<size_t>& sortedIdxs,
 	const pytensor1& xFeature): binCount(binCount) {
 	size_t n = xFeature.shape(0); // data size
-	FVal_t featureMin = xFeature(sortedIdxs[0]);
-	FVal_t featureMax = xFeature(sortedIdxs[n - 1]);
+	FVal_t featureMin = xFeature(0); // at start
+	FVal_t featureMax = featureMin;
+	for (size_t i = 1; i < n; ++i) { // find min and max
+		if (xFeature(i) < featureMin)
+			featureMin = xFeature(i);
+		if (xFeature(i) > featureMax)
+			featureMax = xFeature(i);
+	}
 	FVal_t binWidth = (featureMax - featureMin) / binCount;
 	FVal_t curThreshold;
 
-	size_t curLeft = 0; // left border for the binary search
-	size_t posInData = 0; // index in data
-	idxToBin = std::vector<size_t>(n, 0);
 	for (size_t i = 0; i < binCount; ++i) {
 		curThreshold = (i + 1) * binWidth + featureMin; // compute threshold
 		thresholds.push_back(curThreshold); // remember threshold
-		
-		while (posInData < n && xFeature(sortedIdxs[posInData]) < curThreshold) {
-			idxToBin[sortedIdxs[posInData++]] = i; // put this one into the current bin			
-			// and increase posInData index
-		}
 	}
 }
 
@@ -48,7 +45,7 @@ Lab_t GBHist::findBestSplit(const pytensor1& xData,
 
 	// map subset to bins
 	for (auto& curX : subset) {
-		currentBin = idxToBin[curX]; // get bin number for the current sample
+		currentBin = whichBin(xData(curX)); // get bin number for the current sample		
 		binValue[currentBin] += labels(curX); // add value (compute sum)
 		++binSize[currentBin]; // to compute avg later
 		rightValue += labels(curX); // prepare for the best split searching
@@ -131,4 +128,13 @@ std::vector<size_t> GBHist::performSplit(const pytensor1& xData,
 
 Lab_t GBHist::square(const Lab_t arg) {
 	return arg * arg;
+}
+
+
+size_t GBHist::whichBin(const FVal_t& sample) const {
+	size_t bin = 0;
+	do {
+		++bin;
+	} while (bin < binCount && sample > thresholds[bin]);
+	return bin - 1;
 }

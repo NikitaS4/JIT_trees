@@ -35,7 +35,6 @@ public:
 						const size_t lastEstimator) const;
 
 protected:
-	static std::vector<size_t> sortFeature(const pytensor1& xData);
 	static Lab_t loss(const pytensorY& pred, 
 					  const pytensorY& truth);
 	inline bool canStop(const size_t stepNum, 
