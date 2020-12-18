@@ -8,9 +8,7 @@
 
 class GBHist {
 public:
-	GBHist(const size_t binCount,
-		const std::vector<size_t>& sortedIdxs,
-		const pytensor1& xFeature);
+	GBHist(const size_t binCount, const pytensor1& xFeature);
 
 	size_t getBinCount() const;
 	Lab_t findBestSplit(const pytensor1& xData,
@@ -22,10 +20,10 @@ public:
 private:
 	size_t binCount;
 	std::vector<FVal_t> thresholds;
-	std::vector<size_t> idxToBin; // index in X to bin number
 
 	// functions
 	static inline Lab_t square(const Lab_t arg);
+	inline size_t whichBin(const FVal_t& sample) const;
 };
 
 #endif // GBHIST_H

@@ -48,11 +48,9 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 	if (earlyStoppingDelta < 0)
 		throw std::runtime_error("early stopping delta was negative");
 	
-	// Histogram building
-	for (size_t featureSlice = 0; featureSlice < xTrain.shape(1); ++featureSlice) {
-		std::vector<size_t> sortedIdxs = sortFeature(xt::col(xTrain, featureSlice));
-		hists.push_back(GBHist(binCount, sortedIdxs, xt::col(xTrain, featureSlice)));
-	}
+	// Histogram init (compute and remember thresholds)
+	for (size_t featureSlice = 0; featureSlice < xTrain.shape(1); ++featureSlice)
+		hists.push_back(GBHist(binCount, xt::col(xTrain, featureSlice)));
 	// fit ensemble
 
 	// fit the constant model
@@ -163,22 +161,6 @@ Lab_t GradientBoosting::predictFromTo(const pytensor1& xTest,
 }
 
 
-std::vector<size_t> GradientBoosting::sortFeature(const pytensor1& xData) {
-	size_t n = xData.shape(0);  // data len
-	std::vector<size_t> sortedIdxs;
-
-	for (size_t i = 0; i < n; ++i) {
-		sortedIdxs.push_back(i);  // at once, order as in xData
-	}
-
-	auto comparator = [&xData](size_t a, size_t b)->bool {
-		return xData(a) < xData(b);
-	};
-	std::sort(sortedIdxs.begin(), sortedIdxs.end(), comparator);
-
-	return sortedIdxs;
-}
-
 Lab_t GradientBoosting::loss(const pytensorY& pred,
 	const pytensorY& truth) {
 	// 0.5 * MSE
@@ -191,6 +173,7 @@ Lab_t GradientBoosting::loss(const pytensorY& pred,
 	}
 	return squaredErrorSum / count;
 }
+
 
 bool GradientBoosting::canStop(const size_t stepNum, 
 	const Lab_t earlyStoppingDelta) const {
