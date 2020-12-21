@@ -8,9 +8,12 @@
 
 #include "../common/History.h"
 #include "../common/GBoosting.h"
+#include "defaultParameters.h"
 
 
 namespace py = pybind11;
+namespace dp = defaultParams;
+
 
 PYBIND11_MODULE(JITtrees, m) {
     xt::import_numpy();
@@ -27,11 +30,13 @@ PYBIND11_MODULE(JITtrees, m) {
     
     py::class_<GradientBoosting>(m, "Boosting")
         .def(py::init<const size_t, const size_t>(), "Gradient boosting model constructor",
-            py::arg("bins"), py::arg("patience"))
+            py::arg("bins")=dp::bins, py::arg("patience")=dp::patience)
         .def("fit", &GradientBoosting::fit, "Fit regression model", py::arg("x_train"),
             py::arg("y_train"), py::arg("x_valid"), py::arg("y_valid"),
-            py::arg("tree_count"), py::arg("tree_depth"), py::arg("learning_rate")=1,
-            py::arg("early_stopping_delta")=0)
+            py::arg("tree_count")=dp::treeCount, 
+            py::arg("tree_depth")=dp::treeDepth,
+            py::arg("learning_rate")=dp::learningRate,
+            py::arg("early_stopping_delta")=dp::earlyStoppingDelta)
         .def("predict", &GradientBoosting::predict, "Predict labels for sample",
             py::arg("x_test"))
         .def("predict_from_to", &GradientBoosting::predictFromTo, "Predict labels for sample on a subset of trees",
