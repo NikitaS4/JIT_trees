@@ -138,7 +138,7 @@ GBDecisionTree::GBDecisionTree(const GBDecisionTree& other) {
 	}
 }
 
-Lab_t GBDecisionTree::predict(const pytensor1& sample) const {
+Lab_t GBDecisionTree::predictSingle(const pytensor1& sample) const {
 	size_t curNode = 0;
 	for (size_t h = 0; h < treeDepth; ++h) {
 		if (sample(features[h]) < thresholds[curNode])
@@ -149,6 +149,15 @@ Lab_t GBDecisionTree::predict(const pytensor1& sample) const {
 	// now curNode is the node-leaf number
 	// have to convert node-leaf number to pure leaf number
 	return leaves[curNode - innerNodes];
+}
+
+pytensorY GBDecisionTree::predict(const pytensor2& samples) const {
+	size_t predCount = samples.shape(0);
+	pytensorY preds = xt::zeros<Lab_t>({predCount});
+	for (size_t i = 0; i < predCount; ++i) {
+		preds(i) = predictSingle(xt::row(samples, i));
+	}
+	return preds;
 }
 
 GBDecisionTree::~GBDecisionTree() {

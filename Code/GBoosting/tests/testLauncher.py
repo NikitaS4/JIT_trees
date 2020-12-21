@@ -113,7 +113,7 @@ def launch_test(case):
     sk_model.fit(x_train, y_train)
 
     # evaluate both models
-    preds = np.array([model.predict(x_valid[i,:]) for i in range(x_valid.shape[0])])
+    preds = model.predict(x_valid)
 
     print("Evaluation:")
     model_mae = mae(y_valid, preds)

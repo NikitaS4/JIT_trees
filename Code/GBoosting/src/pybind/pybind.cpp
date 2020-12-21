@@ -37,7 +37,9 @@ PYBIND11_MODULE(JITtrees, m) {
             py::arg("tree_depth")=dp::treeDepth,
             py::arg("learning_rate")=dp::learningRate,
             py::arg("early_stopping_delta")=dp::earlyStoppingDelta)
-        .def("predict", &GradientBoosting::predict, "Predict labels for sample",
+        .def("predict", static_cast<Lab_t (GradientBoosting::*)(const pytensor1&)const>(&GradientBoosting::predict), "Predict labels for a single sample",
+            py::arg("x_test"))
+        .def("predict", static_cast<pytensorY (GradientBoosting::*)(const pytensor2&)const>(&GradientBoosting::predict), "Predict labels for batch",
             py::arg("x_test"))
         .def("predict_from_to", &GradientBoosting::predictFromTo, "Predict labels for sample on a subset of trees",
             py::arg("x_test"), py::arg("from"), py::arg("to"));

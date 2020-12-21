@@ -18,7 +18,8 @@ public:
 	GBDecisionTree(const GBDecisionTree& other);  // copy ctor
 	virtual ~GBDecisionTree();
 
-	Lab_t predict(const pytensor1& sample) const;
+	Lab_t predictSingle(const pytensor1& sample) const; // pred for one
+	pytensorY predict(const pytensor2& samples) const; // pred for many
 
 	static void initStaticMembers(const float learnRate, 
 		const size_t trainLen,

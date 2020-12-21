@@ -97,7 +97,7 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 		GBDecisionTree curTree(xTrain, subset, residuals, hists);
 		// update residuals
 		for (size_t sample = 0; sample < trainLen; ++sample) {
-			Lab_t prediction = curTree.predict(xt::row(xTrain, sample));
+			Lab_t prediction = curTree.predictSingle(xt::row(xTrain, sample));
 			residuals(sample) -= prediction;
 			preds(sample) += prediction;
 		}
@@ -106,7 +106,7 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 
 		// update validation residuals
 		for (size_t sample = 0; sample < validLen; ++sample) {
-			Lab_t prediction = curTree.predict(xt::row(xValid, sample));
+			Lab_t prediction = curTree.predictSingle(xt::row(xValid, sample));
 			validRes(sample) -= prediction;
 			validPreds(sample) += prediction;
 		}
@@ -137,8 +137,22 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 Lab_t GradientBoosting::predict(const pytensor1& xTest) const {
 	Lab_t curPred = zeroPredictor;
 	for (auto& curTree : trees)
-		curPred += curTree.predict(xTest);
+		curPred += curTree.predictSingle(xTest);
 	return curPred;
+}
+
+pytensorY GradientBoosting::predict(const pytensor2& xTest) const {
+	size_t predCount = xTest.shape(0);
+	size_t features = xTest.shape(1);
+	if (features != featureCount)
+		throw std::runtime_error("Wrong feature count in x_test"); 
+	pytensorY preds = xt::zeros<Lab_t>({predCount});
+	for (size_t i = 0; i < predCount; ++i) {
+		preds(i) = zeroPredictor;
+	}
+	for (auto& curTree : trees)
+		preds = preds + curTree.predict(xTest);
+	return preds;
 }
 
 
@@ -155,7 +169,7 @@ Lab_t GradientBoosting::predictFromTo(const pytensor1& xTest,
 	for (size_t estimatorNum = firstEstimator; estimatorNum <= lastEstimator; ++estimatorNum) {
 		if (estimatorNum == 0)
 			continue; // zero estimator already used
-		curPred += trees[estimatorNum - 1].predict(xTest);
+		curPred += trees[estimatorNum - 1].predictSingle(xTest);
 	}
 	return curPred;
 }

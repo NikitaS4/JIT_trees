@@ -25,6 +25,7 @@ public:
 				const float learningRate = defaultLR,
 				const Lab_t earlyStoppingDelta = defaultESDelta);
 	Lab_t predict(const pytensor1& xTest) const;
+	pytensorY predict(const pytensor2& xTest) const;
 
 	// predict "from-to" - predict using only subset of trees
 	// first estimator - the first tree number to predict (enumeration starts from 1)
