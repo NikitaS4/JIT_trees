@@ -1,4 +1,5 @@
 # imports
+import argparse
 import os, sys
 sys.path.append(os.path.abspath('..'))
 import JITtrees
@@ -76,7 +77,7 @@ def plot_predictions(data_border, model, sk_model, target_func, target_repr, fil
         plt.close()
 
 
-def launch_test(case):
+def launch_test(case, parsed_flags):
     # extract params
     bins = case['bins']
     patience = case['patience']
@@ -108,9 +109,10 @@ def launch_test(case):
     print(f"Real tree count: {history.trees_number()}")
 
     # fit Sklearn model to compare with
-    sk_model = HistGradientBoostingRegressor(learning_rate=learning_rate,
-    max_depth=tree_depth, max_iter=tree_count)
-    sk_model.fit(x_train, y_train)
+    if parsed_flags.compare_sklearn:
+        sk_model = HistGradientBoostingRegressor(learning_rate=learning_rate,
+        max_depth=tree_depth, max_iter=tree_count)
+        sk_model.fit(x_train, y_train)
 
     # evaluate both models
     preds = model.predict(x_valid)
@@ -119,20 +121,31 @@ def launch_test(case):
     model_mae = mae(y_valid, preds)
     print(f"JITtrees model MAE: {model_mae}")
     
-    sk_preds = sk_model.predict(x_valid)    
-    sklearn_mae = mae(y_valid, sk_preds)
-    print(f"Sklearn model MAE: {sklearn_mae}")
-    print(f"Sklearn better {model_mae / sklearn_mae} times")
+    if parsed_flags.compare_sklearn:
+        sk_preds = sk_model.predict(x_valid)    
+        sklearn_mae = mae(y_valid, sk_preds)
+        print(f"Sklearn model MAE: {sklearn_mae}")
+        print(f"Sklearn better {model_mae / sklearn_mae} times")
 
     # make plots
-    filename = os.path.join('images', 'losses_' + test_name + '.png')
-    plot_losses(history, filename)
-    filename = os.path.join('images', 'preds_' + test_name + '.png')
-    plot_predictions(data_border, model, sk_model if need_plot_sklearn else None,
-        target_func, target_repr, filename, plot_errors)
+    if parsed_flags.make_plots:
+        filename = os.path.join('images', 'losses_' + test_name + '.png')
+        plot_losses(history, filename)
+        filename = os.path.join('images', 'preds_' + test_name + '.png')
+        plot_predictions(data_border, model, sk_model if need_plot_sklearn and parsed_flags.compare_sklearn else None,
+            target_func, target_repr, filename, plot_errors)
 
 
 if __name__ == "__main__":
+    # define command line arguments
+    parser = argparse.ArgumentParser(description="testLauncher", add_help=True)
+
+    parser.add_argument('-p', action="store_true", dest="make_plots", help="make plots")
+    parser.add_argument('-s', action="store_true", dest="compare_sklearn", help="compare with sklearn model")
+
+    # parse command line arguments
+    parsed_flags = parser.parse_args()
+
     # define params to launch test
     test_cases = [
         #SingleSplitCases.lin_5_case(), 
@@ -152,4 +165,4 @@ if __name__ == "__main__":
         ]
     
     for case in test_cases:
-        launch_test(case)
+        launch_test(case, parsed_flags)
