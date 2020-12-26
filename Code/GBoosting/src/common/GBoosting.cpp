@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <algorithm>
 #include <functional>
+#include <iostream>
 
 
 // static members initialization
@@ -19,6 +20,10 @@ GradientBoosting::GradientBoosting(const size_t binCount,
 
 GradientBoosting::~GradientBoosting() {
 	// dtor
+	if (treeHolder) {
+		delete treeHolder;
+		treeHolder = nullptr;
+	}
 }
 
 History GradientBoosting::fit(const pytensor2& xTrain,
@@ -48,6 +53,9 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 	if (earlyStoppingDelta < 0)
 		throw std::runtime_error("early stopping delta was negative");
 	
+	// init JIT compiler
+	treeHolder = new JITedTree(treeDepth, featureCount);
+
 	// Histogram init (compute and remember thresholds)
 	for (size_t featureSlice = 0; featureSlice < xTrain.shape(1); ++featureSlice)
 		hists.push_back(GBHist(binCount, xt::col(xTrain, featureSlice)));
@@ -94,10 +102,13 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 	bool stop = false;
 
 	for (size_t treeNum = 0; treeNum < treeCount && !stop; ++treeNum) {
-		GBDecisionTree curTree(xTrain, subset, residuals, hists);
+		// grow & compile tree
+		GBDecisionTree::growTree(xTrain, subset, residuals, hists, *treeHolder);
 		// update residuals
 		for (size_t sample = 0; sample < trainLen; ++sample) {
-			Lab_t prediction = curTree.predictSingle(xt::row(xTrain, sample));
+			//Lab_t prediction = curTree.predictSingle(xt::row(xTrain, sample));
+			Lab_t prediction = treeHolder->predictTree(xt::row(xTrain, sample), 
+				treeNum);
 			residuals(sample) -= prediction;
 			preds(sample) += prediction;
 		}
@@ -106,7 +117,9 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 
 		// update validation residuals
 		for (size_t sample = 0; sample < validLen; ++sample) {
-			Lab_t prediction = curTree.predictSingle(xt::row(xValid, sample));
+			//Lab_t prediction = curTree.predictSingle(xt::row(xValid, sample));
+			Lab_t prediction = treeHolder->predictTree(xt::row(xValid, sample),
+				treeNum);
 			validRes(sample) -= prediction;
 			validPreds(sample) += prediction;
 		}
@@ -122,23 +135,22 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 		if (stop) {
 			break;  // stop fit
 		}
-		trees.emplace_back(std::move(curTree));
+		//trees.emplace_back(std::move(curTree));
 	}
 	if (stop) {
 		// need delete the last overfitted estimators
 		for (size_t i = 0; i < patience; ++i) {
-			trees.pop_back();
+			treeHolder->popTree();
 		}
 	}
-	realTreeCount = trees.size();  // without early stopping
+	realTreeCount = treeHolder->getTreeCount();
 	return History(realTreeCount, trainLosses, validLosses);
 }
 
 Lab_t GradientBoosting::predict(const pytensor1& xTest) const {
-	Lab_t curPred = zeroPredictor;
-	for (auto& curTree : trees)
-		curPred += curTree.predictSingle(xTest);
-	return curPred;
+	if (xTest.shape(0) != featureCount)
+		throw std::runtime_error("Wrong feature count in x_test");
+	return zeroPredictor + treeHolder->predictAllTrees(xTest);
 }
 
 pytensorY GradientBoosting::predict(const pytensor2& xTest) const {
@@ -147,11 +159,9 @@ pytensorY GradientBoosting::predict(const pytensor2& xTest) const {
 	if (features != featureCount)
 		throw std::runtime_error("Wrong feature count in x_test"); 
 	pytensorY preds = xt::zeros<Lab_t>({predCount});
-	for (size_t i = 0; i < predCount; ++i) {
-		preds(i) = zeroPredictor;
+	for (size_t i = 0; i < predCount; ++i) {		
+		preds(i) = zeroPredictor + treeHolder->predictAllTrees(xt::row(xTest, i));
 	}
-	for (auto& curTree : trees)
-		preds = preds + curTree.predict(xTest);
 	return preds;
 }
 
@@ -159,19 +169,18 @@ pytensorY GradientBoosting::predict(const pytensor2& xTest) const {
 Lab_t GradientBoosting::predictFromTo(const pytensor1& xTest, 
 	const size_t firstEstimator, const size_t lastEstimator) const {
 	Lab_t curPred = 0;
+	size_t from = firstEstimator;
+	if (xTest.shape(0) != featureCount)
+		throw std::runtime_error("Wrong feature count in x_test");
 	if (firstEstimator > lastEstimator)
 		throw std::runtime_error("Order of the first and the last estimators is inverted");
 	if (lastEstimator > realTreeCount)
 		throw std::runtime_error("Too big last estimator, ensemble contain less trees number");
 	if (firstEstimator == 0) { // use zero estimator (constant)
 		curPred = zeroPredictor;
+		++from;
 	}
-	for (size_t estimatorNum = firstEstimator; estimatorNum <= lastEstimator; ++estimatorNum) {
-		if (estimatorNum == 0)
-			continue; // zero estimator already used
-		curPred += trees[estimatorNum - 1].predictSingle(xTest);
-	}
-	return curPred;
+	return curPred + treeHolder->predictFromTo(xTest, from - 1, lastEstimator - 1);	
 }
 
 

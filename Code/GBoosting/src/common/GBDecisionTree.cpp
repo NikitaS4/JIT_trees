@@ -4,8 +4,10 @@
 #include <stdexcept>
 
 
+
 // static initializations
 bool GBDecisionTree::depthAssigned = false;
+size_t GBDecisionTree::featureCount = 0;
 size_t GBDecisionTree::treeDepth = 0;
 size_t GBDecisionTree::innerNodes = 0;
 size_t GBDecisionTree::leafCnt = 0;
@@ -19,29 +21,34 @@ void GBDecisionTree::initStaticMembers(const float learnRate,
 		throw std::runtime_error("Wrong tree depth");
 	treeDepth = depth;
 	innerNodes = (1 << treeDepth) - 1;
-	leafCnt = size_t(1) << treeDepth;		
+	leafCnt = size_t(1) << treeDepth;
 	subset = std::vector<std::vector<size_t>>(innerNodes + leafCnt,
 		std::vector<size_t>());
 	depthAssigned = true;
 	learningRate = learnRate;
 }
 
-GBDecisionTree::GBDecisionTree(const pytensor2& xTrain,
+void GBDecisionTree::growTree(const pytensor2& xTrain,
 	const std::vector<size_t>& chosen, 
 	const pytensorY& yTrain,
-	const std::vector<GBHist>& hists) {
+	const std::vector<GBHist>& hists,
+	JITedTree& compiler) {
 	if (!depthAssigned)
 		throw std::runtime_error("Tree depth was not assigned");
-	features = new size_t[treeDepth];
-	thresholds = new FVal_t[innerNodes];
-	leaves = new Lab_t[leafCnt];
+	size_t* features = new size_t[treeDepth];
+	FVal_t* thresholds = new FVal_t[innerNodes];
+	for (size_t i = 0; i < innerNodes; ++i)
+		thresholds[i] = 0;
+	Lab_t* leaves = new Lab_t[leafCnt];
+	for (size_t i = 0; i < leafCnt; ++i)
+		leaves[i] = 0;
 	pytensor2Y intermediateLabels = xt::zeros<Lab_t>({innerNodes + leafCnt, xTrain.shape(0)});
 
 	// 1st dim - node number, 2nd dim - sample idx
 	subset[0] = chosen;	
 	xt::row(intermediateLabels, 0) = yTrain;
 
-	size_t featureCount = xTrain.shape(1);
+	featureCount = xTrain.shape(1);
 
 	size_t broCount = 1;
 	std::vector<FVal_t> bestThreshold;
@@ -109,58 +116,13 @@ GBDecisionTree::GBDecisionTree(const pytensor2& xTrain,
 			curSum += yTrain(sample);
 		}
 		curCnt = subset[innerNodes + leaf].size();
-		leaves[leaf] = learningRate * curSum / curCnt;  // mean leaf residual
+		if (curCnt != 0)
+			leaves[leaf] = learningRate * curSum / curCnt;  // mean leaf residual
 	}
-}
+	// compile tree
+	compiler.compileTree(features, thresholds, leaves);
 
-GBDecisionTree::GBDecisionTree(GBDecisionTree&& other) noexcept:
-	features(std::move(other.features)), 
-	thresholds(std::move(other.thresholds)), 
-	leaves(std::move(other.leaves)) {
-	other.features = nullptr;
-	other.thresholds = nullptr;
-	other.leaves = nullptr;
-}
-
-GBDecisionTree::GBDecisionTree(const GBDecisionTree& other) {
-	features = new size_t[treeDepth];
-	thresholds = new FVal_t[innerNodes];
-	leaves = new Lab_t[leafCnt];
-
-	for (size_t i = 0; i < treeDepth; ++i) {
-		features[i] = other.features[i];
-	}
-	for (size_t i = 0; i < innerNodes; ++i) {
-		thresholds[i] = other.thresholds[i];
-	}
-	for (size_t i = 0; i < leafCnt; ++i) {
-		leaves[i] = other.leaves[i];
-	}
-}
-
-Lab_t GBDecisionTree::predictSingle(const pytensor1& sample) const {
-	size_t curNode = 0;
-	for (size_t h = 0; h < treeDepth; ++h) {
-		if (sample(features[h]) < thresholds[curNode])
-			curNode = 2 * curNode + 1;
-		else
-			curNode = 2 * curNode + 2;
-	}
-	// now curNode is the node-leaf number
-	// have to convert node-leaf number to pure leaf number
-	return leaves[curNode - innerNodes];
-}
-
-pytensorY GBDecisionTree::predict(const pytensor2& samples) const {
-	size_t predCount = samples.shape(0);
-	pytensorY preds = xt::zeros<Lab_t>({predCount});
-	for (size_t i = 0; i < predCount; ++i) {
-		preds(i) = predictSingle(xt::row(samples, i));
-	}
-	return preds;
-}
-
-GBDecisionTree::~GBDecisionTree() {
+	// free memory
 	if (features) {
 		delete[] features;
 		features = nullptr;

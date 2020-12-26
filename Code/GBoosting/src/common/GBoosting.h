@@ -6,6 +6,7 @@
 #include "GBHist.h"
 #include "GBDecisionTree.h"
 #include "History.h"
+#include "../JIT/JITedTree.h"
 #include <vector>
 
 
@@ -49,9 +50,10 @@ protected:
 	size_t patience;
 	Lab_t zeroPredictor; // constant model
 	std::vector<GBHist> hists; // histogram for each feature
-	std::vector<GBDecisionTree> trees;
+	//std::vector<GBDecisionTree> trees;
 	pytensorY trainLosses;
 	pytensorY validLosses;
+	JITedTree* treeHolder = nullptr;
 
 	// constants
 	static const size_t defaultBinCount = 128;
