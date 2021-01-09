@@ -6,6 +6,13 @@
 #include <vector>
 #include <string>
 
+// OS-dependent imports
+#ifdef _WIN32
+    // windows
+    // import windows.h for HINSTANCE type
+    #include <windows.h>
+#endif
+
 
 class JITedTree {
 public:
@@ -36,7 +43,17 @@ private:
     const size_t leafCnt;
     const std::string dirName;
     size_t treeCnt;
-    std::vector<void*> libPtr;
+
+    // OS-dependent pointer types
+    #ifdef __linux__
+        // linux
+        std::vector<void*> libPtr;
+    #elif _WIN32
+        // windows
+        std::vector<HINSTANCE> libPtr;
+    #else // unsupported OS
+        int a[-1]; // can not compile for unsupported OS
+    #endif
     std::vector<Lab_t(*)(const double*)> treePredict;
     
     // need count models to create different dirs with JIT files for each model
@@ -44,6 +61,9 @@ private:
 
     // constants
     static const std::string dirPreffix;
+    static const std::string rmExe;
+    static const std::string dexport;
+    static const std::string dirDelimeter;
 
     // methods
     void inline createSrc(const std::string& fname,
