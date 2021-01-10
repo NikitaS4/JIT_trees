@@ -36,8 +36,7 @@ size_t JITedTree::lastModel = 0;
 
 
 JITedTree::JITedTree(const size_t treeDepth, const size_t featureCnt): 
-    treeDepth(treeDepth), innerNodes((1 << treeDepth) - 1), featureCnt(featureCnt),
-    leafCnt(size_t(1) << treeDepth), dirName(dirPreffix + std::to_string(lastModel++)), treeCnt(0) {
+    TreeHolder(treeDepth, featureCnt), dirName(dirPreffix + std::to_string(lastModel++)) {
     // create directory where sources and JIT compiled libs will be stored
     std::string makeDirCmd = "mkdir " + dirName;
     if (std::system(makeDirCmd.c_str()) != 0)
@@ -45,7 +44,7 @@ JITedTree::JITedTree(const size_t treeDepth, const size_t featureCnt):
 }
 
 
-void JITedTree::compileTree(const size_t* features, const FVal_t* thresholds,
+void JITedTree::newTree(const size_t* features, const FVal_t* thresholds,
     const Lab_t* leaves) {
     std::string fname = std::to_string(treeCnt);
     std::string fnameWithDir = dirName + dirDelimeter + fname;
@@ -93,11 +92,6 @@ Lab_t JITedTree::predictFromTo(const pytensor1& sample, const size_t from,
     for (size_t i = from; i < to; ++i)
         cumSum += treePredict[i](pData);
     return cumSum;
-}
-
-
-size_t JITedTree::getTreeCount() const {
-    return treeCnt;
 }
 
 

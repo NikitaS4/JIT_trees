@@ -4,7 +4,6 @@
 #include <stdexcept>
 
 
-
 // static initializations
 bool GBDecisionTree::depthAssigned = false;
 size_t GBDecisionTree::featureCount = 0;
@@ -32,7 +31,7 @@ void GBDecisionTree::growTree(const pytensor2& xTrain,
 	const std::vector<size_t>& chosen, 
 	const pytensorY& yTrain,
 	const std::vector<GBHist>& hists,
-	JITedTree& compiler) {
+	TreeHolder* treeHolder) {
 	if (!depthAssigned)
 		throw std::runtime_error("Tree depth was not assigned");
 	size_t* features = new size_t[treeDepth];
@@ -119,8 +118,8 @@ void GBDecisionTree::growTree(const pytensor2& xTrain,
 		if (curCnt != 0)
 			leaves[leaf] = learningRate * curSum / curCnt;  // mean leaf residual
 	}
-	// compile tree
-	compiler.compileTree(features, thresholds, leaves);
+	// remember or compile tree (in case of JIT compilation enabled)
+	treeHolder->newTree(features, thresholds, leaves);
 
 	// free memory
 	if (features) {

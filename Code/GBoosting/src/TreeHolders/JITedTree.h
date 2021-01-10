@@ -1,7 +1,7 @@
 #ifndef JITED_TREE_H
 #define JITED_TREE_H
 
-#include "../common/Structs.h"
+#include "TreeHolder.h"
 #include <cstddef>
 #include <vector>
 #include <string>
@@ -14,35 +14,29 @@
 #endif
 
 
-class JITedTree {
+class JITedTree: public TreeHolder {
 public:
     JITedTree(const size_t treeDepth, const size_t featureCnt);
 
-    JITedTree(const size_t treeDepth, const size_t innerNodes, 
+    /*JITedTree(const size_t treeDepth, const size_t innerNodes, 
         const size_t featureCnt, const size_t leafCnt, const size_t* features, 
         const FVal_t* thresholds, const Lab_t* leaves);
     JITedTree();
-    JITedTree(JITedTree && other) noexcept;
+    JITedTree(JITedTree && other) noexcept;*/
     virtual ~JITedTree();
 
-    void compileTree(const size_t* features, const FVal_t* thresholds, 
-        const Lab_t* leaves);
-    void popTree();
-    size_t getTreeCount() const;
+    virtual void newTree(const size_t* features, const FVal_t* thresholds, 
+        const Lab_t* leaves) final override;
+    virtual void popTree() final override;
 
-    Lab_t predictTree(const pytensor1& sample, const size_t treeNum) const;
-    Lab_t predictAllTrees(const pytensor1& sample) const;
-    Lab_t predictFromTo(const pytensor1& sample, const size_t from, 
-        const size_t to) const;
+    virtual Lab_t predictTree(const pytensor1& sample, const size_t treeNum) const final override;
+    virtual Lab_t predictAllTrees(const pytensor1& sample) const final override;
+    virtual Lab_t predictFromTo(const pytensor1& sample, const size_t from, 
+        const size_t to) const final override;
 
 private:
     // fields
-    const size_t treeDepth;
-    const size_t innerNodes;
-    const size_t featureCnt;
-    const size_t leafCnt;
     const std::string dirName;
-    size_t treeCnt;
 
     // OS-dependent pointer types
     #ifdef __linux__

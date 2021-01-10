@@ -6,7 +6,7 @@
 #include "GBHist.h"
 #include "GBDecisionTree.h"
 #include "History.h"
-#include "../JIT/JITedTree.h"
+#include "../TreeHolders/TreeHolder.h"
 #include <vector>
 
 
@@ -24,7 +24,8 @@ public:
 				const size_t treeCount,
 				const size_t treeDepth,
 				const float learningRate = defaultLR,
-				const Lab_t earlyStoppingDelta = defaultESDelta);
+				const Lab_t earlyStoppingDelta = defaultESDelta,
+				const bool useJIT = false);
 	Lab_t predict(const pytensor1& xTest) const;
 	pytensorY predict(const pytensor2& xTest) const;
 
@@ -53,7 +54,7 @@ protected:
 	//std::vector<GBDecisionTree> trees;
 	pytensorY trainLosses;
 	pytensorY validLosses;
-	JITedTree* treeHolder = nullptr;
+	TreeHolder* treeHolder = nullptr;
 
 	// constants
 	static const size_t defaultBinCount = 128;

@@ -4,7 +4,7 @@
 #include "PybindHeader.h"
 #include "Structs.h"
 #include "GBHist.h"
-#include "../JIT/JITedTree.h"
+#include "../TreeHolders/TreeHolder.h"
 #include <vector>
 
 
@@ -20,7 +20,7 @@ public:
 		const std::vector<size_t>& chosen, 
 		const pytensorY& yTrain,
 		const std::vector<GBHist>& hists,
-		JITedTree& compiler);
+		TreeHolder* treeHolder);
 
 private:
 	// tree with depth 1 is node with 2 children
@@ -39,7 +39,7 @@ private:
 	// constants
 	static const size_t defaultTreeDepth = 6;
 
-	// helper - no constructor
+	// helper - no constructors
 	GBDecisionTree() = delete;
 	~GBDecisionTree() = delete;
 };

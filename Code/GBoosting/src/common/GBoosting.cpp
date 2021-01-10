@@ -31,7 +31,8 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 	const pytensor2& xValid,
 	const pytensorY& yValid, const size_t treeCount,
 	const size_t treeDepth, const float learningRate,
-	const Lab_t earlyStoppingDelta) {
+	const Lab_t earlyStoppingDelta,
+	const bool useJIT) {
 	// Prepare data	
 	trainLen = xTrain.shape(0);
 	featureCount = xTrain.shape(1);
@@ -53,8 +54,8 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 	if (earlyStoppingDelta < 0)
 		throw std::runtime_error("early stopping delta was negative");
 	
-	// init JIT compiler
-	treeHolder = new JITedTree(treeDepth, featureCount);
+	// init tree holder
+	treeHolder = TreeHolder::createHolder(useJIT, treeDepth, featureCount);
 
 	// Histogram init (compute and remember thresholds)
 	for (size_t featureSlice = 0; featureSlice < xTrain.shape(1); ++featureSlice)
@@ -103,7 +104,7 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 
 	for (size_t treeNum = 0; treeNum < treeCount && !stop; ++treeNum) {
 		// grow & compile tree
-		GBDecisionTree::growTree(xTrain, subset, residuals, hists, *treeHolder);
+		GBDecisionTree::growTree(xTrain, subset, residuals, hists, treeHolder);
 		// update residuals
 		for (size_t sample = 0; sample < trainLen; ++sample) {
 			//Lab_t prediction = curTree.predictSingle(xt::row(xTrain, sample));
