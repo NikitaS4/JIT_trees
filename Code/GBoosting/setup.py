@@ -45,7 +45,7 @@ ext_modules = [
     #Extension(
     Pybind11Extension(
         'JITtrees',
-        [os.path.join("src", "pybind", "pybind.cpp")] + sorted(glob(os.path.join("src", "common", "*.cpp"))),
+        [os.path.join("src", "pybind", "pybind.cpp")] + sorted(glob(os.path.join("src", "common", "*.cpp"))) + sorted(glob(os.path.join("src", "TreeHolders", "*.cpp"))),
         include_dirs=[
             # Path to pybind11 headers
             get_pybind_include(),
@@ -55,6 +55,7 @@ ext_modules = [
             os.path.join(sys.prefix, 'Library', 'include'),
             os.path.join("src", "common"),
             os.path.join("src", "pybind"),
+            os.path.join("src", "TreeHolders"),
         ],
         language='c++'
     ),

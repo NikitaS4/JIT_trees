@@ -93,6 +93,7 @@ def launch_test(case, parsed_flags):
     need_plot_sklearn = case['plot_sklearn']
     test_name = case['test_name']
     plot_errors = case['plot_errors']
+    use_jit = case['use_jit']
 
     # generate dataset
     x_train, y_train, x_valid, y_valid = generate_data_uniform(train_cnt,
@@ -105,7 +106,7 @@ def launch_test(case, parsed_flags):
     # fit model
     model = JITtrees.Boosting(bins, patience)
     history = model.fit(x_train, y_train, x_valid, y_valid, tree_count,
-        tree_depth, learning_rate, es_delta)
+        tree_depth, learning_rate, es_delta, use_jit)
     print(f"Real tree count: {history.trees_number()}")
 
     # fit Sklearn model to compare with
@@ -148,19 +149,19 @@ if __name__ == "__main__":
 
     # define params to launch test
     test_cases = [
-        #SingleSplitCases.lin_5_case(), 
+        #SingleSplitCases.lin_5_case(),
         #SingleSplitCases.lin_5_neg_case(), 
         #SingleSplitCases.sin_2_case(),
-        #SingleSplitCases.sin_3_case(),
         #SingleSplitCases.cos_2_case(),
         #SingleSplitCases.poly_3_case(),
         #SingleSplitCases.poly_4_case(),
-        SingleTreeCases.poly_single_tree(),
+        #SingleTreeCases.poly_single_tree(),
+        #SingleTreeCases.linear_trivial(),
         #SingleTreeCases.linear_single_tree(),
         #SingleTreeCases.cos_2_single_tree(),
-        #MultiTreeMultiSplitCases.poly_4(),
-        #MultiTreeMultiSplitCases.linear_5(),
-        #MultiTreeMultiSplitCases.cos_2(),
+        MultiTreeMultiSplitCases.poly_4(),
+        MultiTreeMultiSplitCases.linear_5(),
+        MultiTreeMultiSplitCases.cos_2(),
         #MultiTreeMultiSplitCases.cos_2_full(),
         ]
     

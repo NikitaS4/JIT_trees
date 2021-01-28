@@ -83,7 +83,6 @@ Lab_t GBHist::findBestSplit(const pytensor1& xData,
 		// step 2: calculate RSS
 		FVal_t curThreshold = thresholds[leftLastBin];
 		leftScore = rightScore = 0; // init scores for sum
-		size_t tmpCnter = 0;
 		for (auto& curX : subset) {
 			if (xData(curX) < curThreshold) {
 				// increase left score

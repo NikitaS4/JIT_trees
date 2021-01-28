@@ -18,7 +18,8 @@ class SingleSplitCases:
             'train_cnt': 10000,
             'valid_cnt': 100,
             'plot_sklearn': False,
-            'plot_errors': False
+            'plot_errors': False,
+            'use_jit': True
         }
 
     def lin_5_neg_case():
@@ -37,7 +38,8 @@ class SingleSplitCases:
             'train_cnt': 10000,
             'valid_cnt': 100,
             'plot_sklearn': False,
-            'plot_errors': False
+            'plot_errors': False,
+            'use_jit': True
         }
 
     def sin_3_case():
@@ -56,7 +58,8 @@ class SingleSplitCases:
             'train_cnt': 10000,
             'valid_cnt': 3000,
             'plot_sklearn': True,
-            'plot_errors': False
+            'plot_errors': False,
+            'use_jit': True
         }
 
     def sin_2_case():
@@ -75,7 +78,8 @@ class SingleSplitCases:
             'train_cnt': 10000,
             'valid_cnt': 3000,
             'plot_sklearn': True,
-            'plot_errors': False
+            'plot_errors': False,
+            'use_jit': True
         }
 
     def cos_2_case():
@@ -94,7 +98,8 @@ class SingleSplitCases:
             'train_cnt': 10000,
             'valid_cnt': 3000,
             'plot_sklearn': True,
-            'plot_errors': False
+            'plot_errors': False,
+            'use_jit': True
         }
 
     def poly_3_case():
@@ -113,7 +118,8 @@ class SingleSplitCases:
             'train_cnt': 10000,
             'valid_cnt': 3000,
             'plot_sklearn': False,
-            'plot_errors': False
+            'plot_errors': False,
+            'use_jit': True
         }
 
     def poly_4_case():
@@ -133,7 +139,8 @@ class SingleSplitCases:
             'train_cnt': 10000,
             'valid_cnt': 3000,
             'plot_sklearn': False,
-            'plot_errors': False
+            'plot_errors': False,
+            'use_jit': True
         }
 
 
@@ -155,7 +162,8 @@ class SingleTreeCases:
             'train_cnt': 10000,
             'valid_cnt': 3000,
             'plot_sklearn': False,
-            'plot_errors': True
+            'plot_errors': True,
+            'use_jit': True
         }
  
     def linear_single_tree():
@@ -173,7 +181,27 @@ class SingleTreeCases:
             'train_cnt': 10000,
             'valid_cnt': 100,
             'plot_sklearn': False,
-            'plot_errors': False
+            'plot_errors': False,
+            'use_jit': True
+        }
+    
+    def linear_trivial():
+        return {
+            'test_name': 'lin_5_trivial',
+            'bins': 32,
+            'patience': 10,
+            'es_delta': 0,
+            'tree_count': 1, # stop with early stopping
+            'learning_rate': 1,
+            'tree_depth': 3,  # 1 tree == 1 split
+            'data_border': 2,  # data from [-5; 5] interval
+            'target': lambda x: 2 * x + 3,  # y = 2x + 3
+            'target_repr': r"$y = 2x + 3$",
+            'train_cnt': 10,
+            'valid_cnt': 2,
+            'plot_sklearn': False,
+            'plot_errors': False,
+            'use_jit': True
         }
 
     def cos_2_single_tree():
@@ -192,7 +220,8 @@ class SingleTreeCases:
             'train_cnt': 10000,
             'valid_cnt': 3000,
             'plot_sklearn': True,
-            'plot_errors': False
+            'plot_errors': False,
+            'use_jit': True
         }
 
 
@@ -214,7 +243,8 @@ class MultiTreeMultiSplitCases:
             'train_cnt': 10000,
             'valid_cnt': 3000,
             'plot_sklearn': False,
-            'plot_errors': False
+            'plot_errors': False,
+            'use_jit': True
         }
  
     def linear_5():
@@ -232,7 +262,8 @@ class MultiTreeMultiSplitCases:
             'train_cnt': 10000,
             'valid_cnt': 100,
             'plot_sklearn': False,
-            'plot_errors': False
+            'plot_errors': False,
+            'use_jit': True
         }
 
     def cos_2():
@@ -251,7 +282,8 @@ class MultiTreeMultiSplitCases:
             'train_cnt': 10000,
             'valid_cnt': 3000,
             'plot_sklearn': False,
-            'plot_errors': False
+            'plot_errors': False,
+            'use_jit': True
         }
     
     def cos_2_full():
@@ -270,5 +302,6 @@ class MultiTreeMultiSplitCases:
             'train_cnt': 10000,
             'valid_cnt': 3000,
             'plot_sklearn': False,
-            'plot_errors': False
+            'plot_errors': False,
+            'use_jit': True
         }

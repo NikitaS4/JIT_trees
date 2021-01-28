@@ -8,4 +8,5 @@ namespace defaultParams {
     const size_t treeDepth = 7;
     const float learningRate = 0.6f;
     const Lab_t earlyStoppingDelta = 1e-7;
+    const bool useJIT = true;
 };
