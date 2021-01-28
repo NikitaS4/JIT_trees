@@ -2,9 +2,7 @@
 #define STRUCTS_H
 
 #include "PybindHeader.h"
-
-using FVal_t = double; // INPUT data type (the value of each feature)
-using Lab_t = double; // OUTPUT data type
+#include "AtomicTypes.h"
 
 using pytensor1 = xt::pytensor<FVal_t, 1>;
 using pytensor2 = xt::pytensor<FVal_t, 2>;
