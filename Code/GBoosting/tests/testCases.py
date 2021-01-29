@@ -58,7 +58,8 @@ class TargetOptionsHelper:
             "func": lambda x: 2*x + 3,
             "data_border": 5,
             "repr": r"$y = 2x + 3$",
-            "short_name": "lin"
+            "short_name": "lin",
+            "dim": 1
         }
     
     @staticmethod
@@ -67,7 +68,8 @@ class TargetOptionsHelper:
             "func": lambda x: x ** 3 - 2 * (x ** 2) + 3,
             "data_border": 4,
             "repr": r"$y = x^3 - 2x^2 + 3$",
-            "short_name": "poly"
+            "short_name": "poly",
+            "dim": 1
         }
 
     @staticmethod
@@ -76,7 +78,8 @@ class TargetOptionsHelper:
             "func": lambda x: np.cos(x),
             "data_border": 3,
             "repr": r"$y = cos(x)$",
-            "short_name": "cos"
+            "short_name": "cos",
+            "dim": 1
         }
     
     @staticmethod
@@ -85,5 +88,16 @@ class TargetOptionsHelper:
             "func": lambda x: np.sin(x),
             "data_border": 3,
             "repr": r"$y = sin(x)$",
-            "short_name": "sin"
+            "short_name": "sin",
+            "dim": 1
+        }
+
+    @staticmethod
+    def squared_form():
+        return {
+            "func": lambda x, y: x ** 2 + y ** 2,
+            "data_border": 1,
+            "repr": r"$f(x, y) = x^2 + y^2$",
+            "short_name": "sq_form",
+            "dim": 2 
         }
