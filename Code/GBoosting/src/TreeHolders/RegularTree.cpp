@@ -26,8 +26,8 @@ RegularTree::~RegularTree() {
 void RegularTree::newTree(const size_t* features, const FVal_t* thresholds,
     const Lab_t* leaves) {
     static const size_t featuresSize = treeDepth * sizeof(*features);
-    static const FVal_t thresholdSize = innerNodes * sizeof(*thresholds);
-    static const Lab_t leavesSize = leafCnt * sizeof(*leaves); 
+    static const size_t thresholdSize = innerNodes * sizeof(*thresholds);
+    static const size_t leavesSize = leafCnt * sizeof(*leaves);
     ++treeCnt;
     // copy arrays
     this->features.push_back((size_t*)(std::memcpy(new size_t[treeDepth], features, featuresSize)));
