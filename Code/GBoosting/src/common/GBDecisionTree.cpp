@@ -75,6 +75,7 @@ void GBDecisionTree::growTree(const pytensor2& xTrain,
 				bestScore = curScore;
 				bestThreshold = curThreshold;
 				bestFeature = feature;
+				firstSplitFound = true;
 			}
 		}
 		// the best score is found now

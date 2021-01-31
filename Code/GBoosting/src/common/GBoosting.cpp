@@ -58,7 +58,7 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 	treeHolder = TreeHolder::createHolder(useJIT, treeDepth, featureCount);
 
 	// Histogram init (compute and remember thresholds)
-	for (size_t featureSlice = 0; featureSlice < xTrain.shape(1); ++featureSlice)
+	for (size_t featureSlice = 0; featureSlice < featureCount; ++featureSlice)
 		hists.push_back(GBHist(binCount, xt::col(xTrain, featureSlice)));
 	// fit ensemble
 
@@ -107,7 +107,6 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 		GBDecisionTree::growTree(xTrain, subset, residuals, hists, treeHolder);
 		// update residuals
 		for (size_t sample = 0; sample < trainLen; ++sample) {
-			//Lab_t prediction = curTree.predictSingle(xt::row(xTrain, sample));
 			Lab_t prediction = treeHolder->predictTree(xt::row(xTrain, sample), 
 				treeNum);
 			residuals(sample) -= prediction;
@@ -118,7 +117,6 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 
 		// update validation residuals
 		for (size_t sample = 0; sample < validLen; ++sample) {
-			//Lab_t prediction = curTree.predictSingle(xt::row(xValid, sample));
 			Lab_t prediction = treeHolder->predictTree(xt::row(xValid, sample),
 				treeNum);
 			validRes(sample) -= prediction;
@@ -136,7 +134,6 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 		if (stop) {
 			break;  // stop fit
 		}
-		//trees.emplace_back(std::move(curTree));
 	}
 	if (stop) {
 		// need delete the last overfitted estimators

@@ -229,14 +229,16 @@ def check_all_test():
     model_options_list = [
         ModelOptionsHelper.single_tree(),
         ModelOptionsHelper.single_split(),
-        ModelOptionsHelper.ensemble()
+        ModelOptionsHelper.ensemble(),
+        #ModelOptionsHelper.hard_model(),
     ]
 
     target_options_list = [
         TargetOptionsHelper.linear(),
         TargetOptionsHelper.poly(),
         TargetOptionsHelper.cos(),
-        TargetOptionsHelper.sin()
+        TargetOptionsHelper.sin(),
+        TargetOptionsHelper.squared_form(),
     ]
 
     tests_cnt = len(target_options_list) * len(model_options_list)
@@ -268,7 +270,8 @@ def check_fast_test():
     model_options_list = [
         #ModelOptionsHelper.single_tree(),
         #ModelOptionsHelper.single_split(),
-        ModelOptionsHelper.ensemble()
+        ModelOptionsHelper.ensemble(),
+        #ModelOptionsHelper.hard_model()
     ]
 
     target_options_list = [
@@ -276,7 +279,7 @@ def check_fast_test():
         TargetOptionsHelper.poly(),
         TargetOptionsHelper.cos(),
         #TargetOptionsHelper.sin(),
-        #TargetOptionsHelper.squared_form()
+        TargetOptionsHelper.squared_form(),
     ]
 
     tests_cnt = len(target_options_list) * len(model_options_list)
@@ -309,7 +312,7 @@ def entry_point():
     parser.add_argument('--skplot', action="store_true", dest="plot_sklearn", help="add plot of sklearn model")
     parser.add_argument('-s', action="store_true", dest="compare_sklearn", help="compare with sklearn model")
     parser.add_argument('-j', action="store_true", dest="use_JIT", help="use JIT-compiled trees")
-    parser.add_argument('--compare-jit', action="store_false", dest="compare_jit", 
+    parser.add_argument('--compare-jit', action="store_true", default=False, dest="compare_jit", 
         help="compare reuglar trees and JITed trees (train time)")
 
     # parse command line arguments
@@ -348,7 +351,8 @@ def entry_point():
     model_options_list = [
         #ModelOptionsHelper.single_tree(use_JIT),
         #ModelOptionsHelper.single_split(use_JIT),
-        ModelOptionsHelper.ensemble(use_JIT)
+        ModelOptionsHelper.ensemble(use_JIT),
+        #ModelOptionsHelper.hard_model(use_JIT),
     ]
 
     # target options, comment unneeded
@@ -357,7 +361,7 @@ def entry_point():
         #TargetOptionsHelper.poly(),
         #TargetOptionsHelper.cos(),
         #TargetOptionsHelper.sin(),
-        TargetOptionsHelper.squared_form()
+        TargetOptionsHelper.squared_form(),
     ]
 
     # launch tests
