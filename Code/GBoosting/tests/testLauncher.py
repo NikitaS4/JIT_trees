@@ -239,6 +239,8 @@ def check_all_test():
         TargetOptionsHelper.cos(),
         TargetOptionsHelper.sin(),
         TargetOptionsHelper.squared_form(),
+        TargetOptionsHelper.saddle(),
+        TargetOptionsHelper.cos_poly(),
     ]
 
     tests_cnt = len(target_options_list) * len(model_options_list)
@@ -279,7 +281,9 @@ def check_fast_test():
         TargetOptionsHelper.poly(),
         TargetOptionsHelper.cos(),
         #TargetOptionsHelper.sin(),
-        TargetOptionsHelper.squared_form(),
+        #TargetOptionsHelper.squared_form(),
+        TargetOptionsHelper.saddle(),
+        TargetOptionsHelper.cos_poly(),
     ]
 
     tests_cnt = len(target_options_list) * len(model_options_list)
@@ -361,7 +365,9 @@ def entry_point():
         #TargetOptionsHelper.poly(),
         #TargetOptionsHelper.cos(),
         #TargetOptionsHelper.sin(),
-        TargetOptionsHelper.squared_form(),
+        #TargetOptionsHelper.squared_form(),
+        TargetOptionsHelper.saddle(),
+        TargetOptionsHelper.cos_poly(),
     ]
 
     # launch tests
