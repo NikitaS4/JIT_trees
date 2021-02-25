@@ -2,6 +2,7 @@
 #define JITED_TREE_H
 
 #include "TreeHolder.h"
+#include "SourcesWriter.h"
 #include <cstddef>
 #include <vector>
 #include <string>
@@ -16,13 +17,9 @@
 
 class JITedTree: public TreeHolder {
 public:
-    JITedTree(const size_t treeDepth, const size_t featureCnt);
+    JITedTree(const size_t treeDepth, const size_t featureCnt,
+        const SW_t writerType = SW_t::BASIC_FOR);
 
-    /*JITedTree(const size_t treeDepth, const size_t innerNodes, 
-        const size_t featureCnt, const size_t leafCnt, const size_t* features, 
-        const FVal_t* thresholds, const Lab_t* leaves);
-    JITedTree();
-    JITedTree(JITedTree && other) noexcept;*/
     virtual ~JITedTree();
 
     virtual void newTree(const size_t* features, const FVal_t* thresholds, 
@@ -37,6 +34,7 @@ public:
 private:
     // fields
     const std::string dirName;
+    std::shared_ptr<SourcesWriter> sourcesWriter;
 
     // OS-dependent pointer types
     #ifdef __linux__

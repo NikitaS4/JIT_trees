@@ -9,4 +9,5 @@ namespace defaultParams {
     const float learningRate = 0.6f;
     const Lab_t earlyStoppingDelta = 1e-7;
     const bool useJIT = true;
+    const int JITedCodeType = 0; // SW_t::BASIC_FOR
 };

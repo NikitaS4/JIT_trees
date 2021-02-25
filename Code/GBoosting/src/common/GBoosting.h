@@ -7,6 +7,7 @@
 #include "GBDecisionTree.h"
 #include "History.h"
 #include "../TreeHolders/TreeHolder.h"
+#include "../TreeHolders/SWTypes.h"
 #include <vector>
 
 
@@ -25,7 +26,8 @@ public:
 				const size_t treeDepth,
 				const float learningRate = defaultLR,
 				const Lab_t earlyStoppingDelta = defaultESDelta,
-				const bool useJIT = false);
+				const bool useJIT = false,
+				const int JITedCodeType = int(SW_t::BASIC_FOR));
 	Lab_t predict(const pytensor1& xTest) const;
 	pytensorY predict(const pytensor2& xTest) const;
 
@@ -42,6 +44,7 @@ protected:
 					  const pytensorY& truth);
 	inline bool canStop(const size_t stepNum, 
 						const Lab_t earlyStoppingDelta) const;
+	static inline SW_t codeTypeToEnum(const int JITedCodeType);
 
 	// fields
 	size_t featureCount;

@@ -19,14 +19,12 @@ size_t JITedTree::lastModel = 0;
 #ifdef __linux__
     // linux
     const std::string JITedTree::rmExe = "rm -r ";
-    const std::string JITedTree::dexport = ""; // empty
     const std::string JITedTree::dirDelimeter = "/";
 
     #define CLOSE_LIBRARY(arg) {dlclose((arg));}
 #elif _WIN32
     // windows
     const std::string JITedTree::rmExe = "rd /s /q ";
-    const std::string JITedTree::dexport = "__declspec(dllexport)";
     const std::string JITedTree::dirDelimeter = "\\";
 
     #define CLOSE_LIBRARY(arg) {FreeLibrary((arg));}
@@ -35,12 +33,19 @@ size_t JITedTree::lastModel = 0;
 #endif
 
 
-JITedTree::JITedTree(const size_t treeDepth, const size_t featureCnt): 
-    TreeHolder(treeDepth, featureCnt), dirName(dirPreffix + std::to_string(lastModel++)) {
+JITedTree::JITedTree(const size_t treeDepth, 
+    const size_t featureCnt, const SW_t writerType): 
+    TreeHolder(treeDepth, featureCnt), 
+    dirName(dirPreffix + std::to_string(lastModel++)),
+    sourcesWriter(nullptr) {
     // create directory where sources and JIT compiled libs will be stored
     std::string makeDirCmd = "mkdir " + dirName;
     if (std::system(makeDirCmd.c_str()) != 0)
         throw std::runtime_error("JIT error: can't create directory");
+
+    // create writer by type
+    sourcesWriter = SourcesWriter::getInst(writerType, treeDepth,
+        innerNodes, featureCnt, leafCnt);
 }
 
 
@@ -107,38 +112,7 @@ void JITedTree::popTree() {
 
 void JITedTree::createSrc(const std::string& fname, const size_t* features, 
     const FVal_t* thresholds, const Lab_t* leaves) {
-    std::ofstream jitSrc(fname + ".cpp");
-    jitSrc <<
-        //"#include \"..\\..\\src\\common\\AtomicTypes.h\"\n"
-        //"#include <cstddef>\n"
-        "#ifdef __cplusplus\n"
-        "extern \"C\" \n"
-        "#endif\n"
-        "double " << dexport << " predict(const double* sample) {\n"
-        "static unsigned int features[] = {";
-    for (size_t i = 0; i < treeDepth - 1; ++i) {
-        jitSrc << features[i] << ", ";
-    }
-    jitSrc << features[treeDepth - 1] << "};"
-        "static double thresholds[] = {";
-    for (size_t i = 0; i < innerNodes - 1; ++i) {
-        jitSrc << thresholds[i] << ", ";
-    }
-    jitSrc << thresholds[innerNodes - 1] << "};"
-        "static double leaves[] = {";
-    for (size_t i = 0; i < leafCnt - 1; ++i) {
-        jitSrc << leaves[i] << ", ";
-    }
-    jitSrc << leaves[leafCnt - 1] << "};\n"
-        "unsigned int curNode = 0;\n"
-        "for (unsigned int h = 0; h < " << treeDepth << "; ++h) {\n"
-        "if (sample[features[h]] < thresholds[curNode])\n"
-        "   curNode = 2 * curNode + 1;\n"
-        "else\n"
-        "   curNode = 2 * curNode + 2;\n"
-        "}\n"
-        "return leaves[curNode - " << innerNodes << "];}\n";
-    jitSrc.close();
+    sourcesWriter->createFile(fname, features, thresholds, leaves);
 }
 
 
