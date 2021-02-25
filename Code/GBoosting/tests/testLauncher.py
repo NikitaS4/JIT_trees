@@ -179,24 +179,14 @@ class TestHelper:
             for i, x1_val in enumerate(t_grid):
                 for j, x2_val in enumerate(t_grid):
                     y_plot[j, i] = model.predict(np.array([x1_val, x2_val]).reshape(-1, dim))
-            fig = plt.figure()
-            ax = fig.gca(projection='3d')
-            surf = ax.plot_surface(x1, x2, y_plot)
-            ax.plot_surface(x1, x2, ground_truth)
-            fig.colorbar(surf, shrink=0.5, aspect=5)
-            plt.xlabel('x')
-            plt.ylabel('y')
-            ax.set_zlabel(r'$f(x, y)$')
-            plt.title('Model prediction')
-            plt.savefig(os.path.join(dir, filename + '.png'))
-            plt.show()
-            plt.close()
+            TestHelper.__plot_3d(x1, x2, ground_truth, "Ground truth", "gt_" + target_options["short_name"], dir)
+            TestHelper.__plot_3d(x1, x2, y_plot, "Model prediction", "pred_" + target_options["short_name"], dir)
 
             if plot_options['plot_errors']:
                 errors = y_plot - ground_truth
                 fig = plt.figure()
                 ax = fig.gca(projection='3d')
-                surf = ax.plot_surface(x1, x2, errors)
+                surf = ax.plot_surface(x1, x2, errors, cmap='plasma')
                 fig.colorbar(surf, shrink=0.5, aspect=5)
                 plt.xlabel('x')
                 plt.ylabel('y')
@@ -205,7 +195,20 @@ class TestHelper:
                 plt.savefig(os.path.join(dir, filename + "_err" + ".png"))
                 plt.show()
                 plt.close()
-            
+    
+    @staticmethod
+    def __plot_3d(x1, x2, func_values, plt_title, filename, dir):
+        fig = plt.figure()
+        ax = fig.gca(projection='3d')
+        plt.xlabel('x')
+        plt.ylabel('y')
+        ax.set_zlabel(r"$f(x, y)$")
+        plt.title(plt_title)
+        surf = ax.plot_surface(x1, x2, func_values, cmap='plasma')
+        fig.colorbar(surf, shrink=0.5, aspect=5)
+        plt.savefig(os.path.join(dir, filename + '.png'))
+        plt.show()
+        plt.close()           
 
 
 def check_all_test():
@@ -239,6 +242,8 @@ def check_all_test():
         TargetOptionsHelper.cos(),
         TargetOptionsHelper.sin(),
         TargetOptionsHelper.squared_form(),
+        TargetOptionsHelper.saddle(),
+        TargetOptionsHelper.cos_poly(),
     ]
 
     tests_cnt = len(target_options_list) * len(model_options_list)
@@ -279,7 +284,9 @@ def check_fast_test():
         TargetOptionsHelper.poly(),
         TargetOptionsHelper.cos(),
         #TargetOptionsHelper.sin(),
-        TargetOptionsHelper.squared_form(),
+        #TargetOptionsHelper.squared_form(),
+        TargetOptionsHelper.saddle(),
+        TargetOptionsHelper.cos_poly(),
     ]
 
     tests_cnt = len(target_options_list) * len(model_options_list)
@@ -307,11 +314,11 @@ def entry_point():
     parser.add_argument('--all', action="store_true", default=False, dest="test_all", help="pass all tests")
     parser.add_argument('--all-fast', action="store_true", default=False, dest="test_fast", help="pass most representative tests")
     parser.add_argument('-v', type=int, default=1, dest="verbose", help="verbose mode (0 - quiet, 3 - the most detailed)")
-    parser.add_argument('-p', action="store_true", dest="make_plots", help="make plots")
-    parser.add_argument('--error-plot', action="store_true", dest="make_error_plots", help="make plots of errors")
-    parser.add_argument('--skplot', action="store_true", dest="plot_sklearn", help="add plot of sklearn model")
-    parser.add_argument('-s', action="store_true", dest="compare_sklearn", help="compare with sklearn model")
-    parser.add_argument('-j', action="store_true", dest="use_JIT", help="use JIT-compiled trees")
+    parser.add_argument('-p', action="store_true", default=False, dest="make_plots", help="make plots")
+    parser.add_argument('--error-plot', action="store_true", default=False, dest="make_error_plots", help="make plots of errors")
+    parser.add_argument('--skplot', action="store_true", default=False, dest="plot_sklearn", help="add plot of sklearn model")
+    parser.add_argument('-s', action="store_true", default=False, dest="compare_sklearn", help="compare with sklearn model")
+    parser.add_argument('-j', action="store_true", default=False, dest="use_JIT", help="use JIT-compiled trees")
     parser.add_argument('--compare-jit', action="store_true", default=False, dest="compare_jit", 
         help="compare reuglar trees and JITed trees (train time)")
 
@@ -361,7 +368,9 @@ def entry_point():
         #TargetOptionsHelper.poly(),
         #TargetOptionsHelper.cos(),
         #TargetOptionsHelper.sin(),
-        TargetOptionsHelper.squared_form(),
+        #TargetOptionsHelper.squared_form(),
+        TargetOptionsHelper.saddle(),
+        TargetOptionsHelper.cos_poly(),
     ]
 
     # launch tests

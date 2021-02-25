@@ -101,3 +101,23 @@ class TargetOptionsHelper:
             "short_name": "sq_form",
             "dim": 2 
         }
+    
+    @staticmethod
+    def saddle():
+        return {
+            "func": lambda x, y: x ** 2 - y ** 2,
+            "data_border": 1,
+            "repr": r"$f(x, y) = x^2 - y^2$",
+            "short_name": "saddle",
+            "dim": 2
+        }
+
+    @staticmethod
+    def cos_poly():
+        return {
+            "func": lambda x, y: np.cos(x) + y ** 3 - 2 * y ** 2 + 3,
+            "data_border": 1,
+            "repr": r"$f(x, y) = cos(x) + y^3 - 2y^2 + 3$",
+            "short_name": "saddle",
+            "dim": 2
+        }
