@@ -32,7 +32,8 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 	const pytensorY& yValid, const size_t treeCount,
 	const size_t treeDepth, const float learningRate,
 	const Lab_t earlyStoppingDelta,
-	const bool useJIT) {
+	const bool useJIT,
+	const int JITedCodeType) {
 	// Prepare data	
 	trainLen = xTrain.shape(0);
 	featureCount = xTrain.shape(1);
@@ -55,7 +56,11 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 		throw std::runtime_error("early stopping delta was negative");
 	
 	// init tree holder
-	treeHolder = TreeHolder::createHolder(useJIT, treeDepth, featureCount);
+	// firstly, convert JITed code type to SW_t enum
+	SW_t JITedCodeTypeEnum = GradientBoosting::codeTypeToEnum(JITedCodeType);
+	// call factory
+	treeHolder = TreeHolder::createHolder(useJIT, treeDepth, 
+		featureCount, JITedCodeTypeEnum);
 
 	// Histogram init (compute and remember thresholds)
 	for (size_t featureSlice = 0; featureSlice < featureCount; ++featureSlice)
@@ -208,4 +213,12 @@ bool GradientBoosting::canStop(const size_t stepNum,
 		}
 		return true;
 	}
+}
+
+
+SW_t GradientBoosting::codeTypeToEnum(const int JITedCodeType) {
+	// Firstly, ensure the type number is in [0, MAX_TYPE]
+	int enumFit = JITedCodeType % (int(SW_t::SW_COUNT) - 1);
+	// Cast int to enum
+	return static_cast<SW_t>(JITedCodeType);
 }

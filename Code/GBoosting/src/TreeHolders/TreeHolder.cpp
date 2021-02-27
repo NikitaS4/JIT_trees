@@ -21,9 +21,10 @@ size_t TreeHolder::getTreeCount() const {
 
 
 TreeHolder* TreeHolder::createHolder(const bool JITed, 
-    const size_t treeDepth, const size_t featureCnt) {
+    const size_t treeDepth, const size_t featureCnt,
+    const SW_t JITedCodeType) {
     if (JITed)
-        return new JITedTree(treeDepth, featureCnt);
+        return new JITedTree(treeDepth, featureCnt, JITedCodeType);
     else
         return new RegularTree(treeDepth, featureCnt);
 }

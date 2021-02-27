@@ -2,6 +2,7 @@
 #define TREE_HOLDER_INCLUDED
 
 #include "../common/Structs.h"
+#include "SWTypes.h"
 #include <cstddef>
 
 
@@ -20,7 +21,9 @@ public:
         const size_t to) const = 0;
 
     // create needed holder
-    static TreeHolder* createHolder(const bool JITed, const size_t treeDepth, const size_t featureCnt);
+    static TreeHolder* createHolder(const bool JITed, 
+        const size_t treeDepth, const size_t featureCnt,
+        const SW_t JITedCodeType);
 protected:
     // fields
     const size_t treeDepth;
