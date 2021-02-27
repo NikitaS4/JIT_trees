@@ -1,5 +1,6 @@
 #include "SourcesWriter.h"
 #include "SWCycles.h"
+#include "SWIfStack.h"
 
 
 // OS-dependent initializations
@@ -30,6 +31,10 @@ std::shared_ptr<SourcesWriter> SourcesWriter::getInst(const SW_t writerType,
     switch (writerType) {
     case SW_t::BASIC_FOR:
         return std::make_shared<SWCycles>(treeDepth,
+            innerNodes, featureCnt, leafCnt);
+        break;
+    case SW_t::IF_STACK:
+        return std::make_shared<SWIfStack>(treeDepth,
             innerNodes, featureCnt, leafCnt);
         break;
     case SW_t::SW_COUNT:

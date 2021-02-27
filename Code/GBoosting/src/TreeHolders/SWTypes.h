@@ -3,6 +3,7 @@
 
 enum class SW_t {
     BASIC_FOR,
+    IF_STACK,
     SW_COUNT
 };
 
