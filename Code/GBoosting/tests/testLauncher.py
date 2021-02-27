@@ -37,7 +37,7 @@ class TestHelper:
             start_time = time.time() # get start time to count the time of execution
             history = model.fit(x_train, y_train, x_valid, y_valid, model_options['tree_count'],
                 model_options['tree_depth'], model_options['learning_rate'], model_options['es_delta'],
-                model_options['use_jit'])
+                model_options['use_jit'], out_options['jit_type'])
             exec_time = time.time() - start_time
             if out_options['verbose'] >= 1:
                 print("Fit time (" + ("JIT" if JIT_option else "no JIT") + f") = {exec_time} seconds")
@@ -321,6 +321,8 @@ def entry_point():
     parser.add_argument('-j', action="store_true", default=False, dest="use_JIT", help="use JIT-compiled trees")
     parser.add_argument('--compare-jit', action="store_true", default=False, dest="compare_jit", 
         help="compare reuglar trees and JITed trees (train time)")
+    parser.add_argument('--jit-type', type=int, default=0, dest="jit_type", 
+        help="JIT source type (0 - cyclic traverse, 1 - if-else traverse)")
 
     # parse command line arguments
     parsed_flags = parser.parse_args()
@@ -338,7 +340,8 @@ def entry_point():
     out_options = {
         'verbose': parsed_flags.verbose,
         'sklearn': parsed_flags.compare_sklearn,
-        'compare_jit': parsed_flags.compare_jit
+        'compare_jit': parsed_flags.compare_jit,
+        'jit_type': parsed_flags.jit_type
     }
 
     plot_options = {
