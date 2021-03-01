@@ -125,7 +125,7 @@ int JITedTree::compile(const std::string& fname) {
     #elif _WIN32
         // windows
         std::string command1 = "cd " + dirName + " & g++ -c " + fname + ".cpp";
-        std::string command2 = "cd " + dirName + " & g++ -shared -o " + fname + ".dll " + fname + ".o -Wl,--out-implib," + fname + ".a";
+        std::string command2 = "cd " + dirName + " & g++ -shared -O3 -o " + fname + ".dll " + fname + ".o -Wl,--out-implib," + fname + ".a";
         std::system(command1.c_str());
         return std::system(command2.c_str());
     #else // unsupported OS

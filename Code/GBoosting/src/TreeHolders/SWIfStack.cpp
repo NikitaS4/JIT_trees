@@ -25,6 +25,7 @@ void SWIfStack::createFile(const std::string& fname,
     const size_t currentH = 0; // the root node
     // print tree recursively as if-else operators composition
     addIf(features, thresholds, leaves, currentNode, currentH, jitSrc);
+    jitSrc << "}\n";  // finish function predict
     jitSrc.close();
 }
 
