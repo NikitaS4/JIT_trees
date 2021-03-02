@@ -26,6 +26,7 @@ public:
 				const size_t treeDepth,
 				const float learningRate = defaultLR,
 				const Lab_t earlyStoppingDelta = defaultESDelta,
+				const float batchPart = 1.0f,
 				const bool useJIT = false,
 				const int JITedCodeType = int(SW_t::BASIC_FOR));
 	Lab_t predict(const pytensor1& xTest) const;
@@ -45,6 +46,9 @@ protected:
 	inline bool canStop(const size_t stepNum, 
 						const Lab_t earlyStoppingDelta) const;
 	static inline SW_t codeTypeToEnum(const int JITedCodeType);
+	// returns the next curStart (curStart for the next batch) 
+	inline void nextBatch(const size_t batchSize, 
+		std::vector<size_t>& allocatedSubset) const;
 
 	// fields
 	size_t featureCount;
