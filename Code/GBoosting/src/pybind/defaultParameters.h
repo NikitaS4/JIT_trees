@@ -10,4 +10,5 @@ namespace defaultParams {
     const Lab_t earlyStoppingDelta = 1e-7;
     const bool useJIT = true;
     const int JITedCodeType = 0; // SW_t::BASIC_FOR
+    const float batchPart = 1.0f;
 };

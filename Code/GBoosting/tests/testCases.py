@@ -11,7 +11,8 @@ class ModelOptionsHelper:
             "tree_depth": 8,
             "learning_rate": 1,
             "es_delta": 0,
-            "use_jit": use_JIT
+            "use_jit": use_JIT,
+            "batch_part": 1
         }
     
     @staticmethod
@@ -23,7 +24,8 @@ class ModelOptionsHelper:
             "tree_depth": 1,
             "learning_rate": 0.2,
             "es_delta": 0,
-            "use_jit": use_JIT
+            "use_jit": use_JIT,
+            "batch_part": 1
         }
     
     @staticmethod
@@ -35,7 +37,8 @@ class ModelOptionsHelper:
             "tree_depth": 4,
             "learning_rate": 0.2,
             "es_delta": 1e-5,
-            "use_jit": use_JIT
+            "use_jit": use_JIT,
+            "batch_part": 0.7
         }
     
     @staticmethod
@@ -47,7 +50,8 @@ class ModelOptionsHelper:
             "tree_depth": 5,
             "learning_rate": 0.1,
             "es_delta": 0,
-            "use_jit": use_JIT
+            "use_jit": use_JIT,
+            "batch_part": 1
         }
 
 

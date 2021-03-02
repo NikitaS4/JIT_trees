@@ -32,6 +32,7 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 	const pytensorY& yValid, const size_t treeCount,
 	const size_t treeDepth, const float learningRate,
 	const Lab_t earlyStoppingDelta,
+	const float batchPart,
 	const bool useJIT,
 	const int JITedCodeType) {
 	// Prepare data	
@@ -101,13 +102,17 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 	validLosses(0) = validLoss;
 
 	// default subset: all data
-	std::vector<size_t> subset;
-	for (size_t i = 0; i < trainLen; ++i)
-		subset.push_back(i);
+	const size_t batchSize = size_t(batchPart * trainLen);
+	std::vector<size_t> subset(batchSize, 0);
+	for (size_t i = 0; i < batchSize; ++i)
+		subset[i] = i;
+	
 	GBDecisionTree::initStaticMembers(learningRate, trainLen, treeDepth);
 	bool stop = false;
 
 	for (size_t treeNum = 0; treeNum < treeCount && !stop; ++treeNum) {
+		// take the next batch (updates subset)
+		nextBatch(batchSize, subset);
 		// grow & compile tree
 		GBDecisionTree::growTree(xTrain, subset, residuals, hists, treeHolder);
 		// update residuals
@@ -221,4 +226,13 @@ SW_t GradientBoosting::codeTypeToEnum(const int JITedCodeType) {
 	int enumFit = JITedCodeType % (int(SW_t::SW_COUNT) - 1);
 	// Cast int to enum
 	return static_cast<SW_t>(JITedCodeType);
+}
+
+
+void GradientBoosting::nextBatch(const size_t batchSize,
+	std::vector<size_t>& allocatedSubset) const {
+	// take the next fold
+	for (auto & curIdx: allocatedSubset) {
+		curIdx = (curIdx + batchSize) % trainLen;
+	}
 }

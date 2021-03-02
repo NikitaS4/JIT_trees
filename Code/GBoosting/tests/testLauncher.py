@@ -37,7 +37,7 @@ class TestHelper:
             start_time = time.time() # get start time to count the time of execution
             history = model.fit(x_train, y_train, x_valid, y_valid, model_options['tree_count'],
                 model_options['tree_depth'], model_options['learning_rate'], model_options['es_delta'],
-                model_options['use_jit'], out_options['jit_type'])
+                model_options['batch_part'], model_options['use_jit'], out_options['jit_type'])
             exec_time = time.time() - start_time
             if out_options['verbose'] >= 1:
                 print("Fit time (" + ("JIT" if JIT_option else "no JIT") + f") = {exec_time} seconds")
