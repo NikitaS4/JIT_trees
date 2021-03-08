@@ -30,7 +30,8 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 	const pytensorY& yTrain, 
 	const pytensor2& xValid,
 	const pytensorY& yValid, const size_t treeCount,
-	const size_t treeDepth, const float learningRate,
+	const size_t treeDepth, const size_t featureSubsetSize,
+	const float learningRate,
 	const Lab_t earlyStoppingDelta,
 	const float batchPart,
 	const bool useJIT,
@@ -55,7 +56,11 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 		throw std::runtime_error("xValid feature dimension wrong");
 	if (earlyStoppingDelta < 0)
 		throw std::runtime_error("early stopping delta was negative");
-	
+	if (batchPart < 0 || batchPart > 1)
+		throw std::runtime_error("batch part was out of [0; 1] interval");
+	if (featureSubsetSize <= 0)
+		throw std::runtime_error("feature fold size was less or equal zero");
+
 	// init tree holder
 	// firstly, convert JITed code type to SW_t enum
 	SW_t JITedCodeTypeEnum = GradientBoosting::codeTypeToEnum(JITedCodeType);
@@ -106,6 +111,10 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 	std::vector<size_t> subset(batchSize, 0);
 	for (size_t i = 0; i < batchSize; ++i)
 		subset[i] = i;
+	// defalt feature subset: all features
+	std::vector<size_t> featureSubset(featureSubsetSize, 0);
+	for (size_t i = 0; i < featureSubsetSize; ++i)
+		featureSubset[i] = i;
 	
 	GBDecisionTree::initStaticMembers(learningRate, trainLen, treeDepth);
 	bool stop = false;
@@ -113,8 +122,12 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 	for (size_t treeNum = 0; treeNum < treeCount && !stop; ++treeNum) {
 		// take the next batch (updates subset)
 		nextBatch(batchSize, subset);
+		// take the next feature subset (updates feature subset)
+		nextFeatureSubset(featureSubsetSize, featureCount,
+			featureSubset);
 		// grow & compile tree
-		GBDecisionTree::growTree(xTrain, subset, residuals, hists, treeHolder);
+		GBDecisionTree::growTree(xTrain, subset, residuals, hists, featureSubset,
+			treeHolder);
 		// update residuals
 		for (size_t sample = 0; sample < trainLen; ++sample) {
 			Lab_t prediction = treeHolder->predictTree(xt::row(xTrain, sample), 
@@ -234,5 +247,15 @@ void GradientBoosting::nextBatch(const size_t batchSize,
 	// take the next fold
 	for (auto & curIdx: allocatedSubset) {
 		curIdx = (curIdx + batchSize) % trainLen;
+	}
+}
+
+
+void GradientBoosting::nextFeatureSubset(const size_t featureSubsetSize,
+	const size_t featureCount,
+	std::vector<size_t>& allocatedFeatureSubset) const {
+	// take the next fold
+	for (auto & curIdx: allocatedFeatureSubset) {
+		curIdx = (curIdx + featureSubsetSize) % featureCount;
 	}
 }

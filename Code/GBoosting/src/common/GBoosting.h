@@ -24,6 +24,7 @@ public:
 				const pytensorY& yValid,
 				const size_t treeCount,
 				const size_t treeDepth,
+				const size_t featureSubsetSize,
 				const float learningRate = defaultLR,
 				const Lab_t earlyStoppingDelta = defaultESDelta,
 				const float batchPart = 1.0f,
@@ -46,9 +47,13 @@ protected:
 	inline bool canStop(const size_t stepNum, 
 						const Lab_t earlyStoppingDelta) const;
 	static inline SW_t codeTypeToEnum(const int JITedCodeType);
-	// returns the next curStart (curStart for the next batch) 
+ 
 	inline void nextBatch(const size_t batchSize, 
 		std::vector<size_t>& allocatedSubset) const;
+
+	inline void nextFeatureSubset(const size_t featureSubsetSize,
+		const size_t featureCount,
+		std::vector<size_t>& allocatedFeatureSubset) const;
 
 	// fields
 	size_t featureCount;

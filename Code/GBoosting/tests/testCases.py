@@ -12,7 +12,8 @@ class ModelOptionsHelper:
             "learning_rate": 1,
             "es_delta": 0,
             "use_jit": use_JIT,
-            "batch_part": 1
+            "batch_part": 1,
+            "feature_fold_size": 1
         }
     
     @staticmethod
@@ -25,7 +26,8 @@ class ModelOptionsHelper:
             "learning_rate": 0.2,
             "es_delta": 0,
             "use_jit": use_JIT,
-            "batch_part": 1
+            "batch_part": 1,
+            "feature_fold_size": 1
         }
     
     @staticmethod
@@ -38,7 +40,8 @@ class ModelOptionsHelper:
             "learning_rate": 0.2,
             "es_delta": 1e-5,
             "use_jit": use_JIT,
-            "batch_part": 0.7
+            "batch_part": 0.7,
+            "feature_fold_size": 0.6
         }
     
     @staticmethod
@@ -51,7 +54,8 @@ class ModelOptionsHelper:
             "learning_rate": 0.1,
             "es_delta": 0,
             "use_jit": use_JIT,
-            "batch_part": 1
+            "batch_part": 1,
+            "feature_fold_size": 1
         }
 
 

@@ -20,6 +20,7 @@ public:
 		const std::vector<size_t>& chosen, 
 		const pytensorY& yTrain,
 		const std::vector<GBHist>& hists,
+		const std::vector<size_t>& featureSubset,
 		TreeHolder* treeHolder);
 
 private:

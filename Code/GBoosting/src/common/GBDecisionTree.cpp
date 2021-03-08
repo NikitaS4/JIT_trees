@@ -31,6 +31,7 @@ void GBDecisionTree::growTree(const pytensor2& xTrain,
 	const std::vector<size_t>& chosen, 
 	const pytensorY& yTrain,
 	const std::vector<GBHist>& hists,
+	const std::vector<size_t>& featureSubset,
 	TreeHolder* treeHolder) {
 	if (!depthAssigned)
 		throw std::runtime_error("Tree depth was not assigned");
@@ -48,6 +49,7 @@ void GBDecisionTree::growTree(const pytensor2& xTrain,
 	xt::row(intermediateLabels, 0) = yTrain;
 
 	featureCount = xTrain.shape(1);
+	size_t featureSubCount = featureSubset.size();
 
 	size_t broCount = 1;
 	std::vector<FVal_t> bestThreshold;
@@ -60,8 +62,9 @@ void GBDecisionTree::growTree(const pytensor2& xTrain,
 	for (size_t h = 0; h < treeDepth; ++h) {
 		// find best split
 		size_t firstBroNum = (1 << h) - 1;
-		for (size_t feature = 0; feature < featureCount; ++feature) {
+		for (size_t curFeature = 0; curFeature < featureSubCount; ++curFeature) {
 			// for all nodes look for the best split of the feature
+			size_t feature = featureSubset[curFeature]; // get current feature from subset
 
 			curScore = 0;
 			for (size_t node = 0; node < broCount; ++node) {

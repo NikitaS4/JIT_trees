@@ -36,8 +36,10 @@ class TestHelper:
             model = JITtrees.Boosting(model_options['bins'], model_options['patience'])
             start_time = time.time() # get start time to count the time of execution
             history = model.fit(x_train, y_train, x_valid, y_valid, model_options['tree_count'],
-                model_options['tree_depth'], model_options['learning_rate'], model_options['es_delta'],
-                model_options['batch_part'], model_options['use_jit'], out_options['jit_type'])
+                model_options['tree_depth'], int(np.ceil(x_train.shape[1] * model_options['feature_fold_size'])), 
+                model_options['learning_rate'], model_options['es_delta'],
+                model_options['batch_part'], model_options['use_jit'], 
+                out_options['jit_type'])
             exec_time = time.time() - start_time
             if out_options['verbose'] >= 1:
                 print("Fit time (" + ("JIT" if JIT_option else "no JIT") + f") = {exec_time} seconds")
@@ -215,7 +217,8 @@ def check_all_test():
     out_options = {
         "verbose": 1,
         "sklearn": False,
-        "compare_jit": True
+        "compare_jit": True,
+        "jit_type": 0
     }
 
     plot_options = {
@@ -256,9 +259,10 @@ def check_all_test():
 
 def check_fast_test():
     out_options = {
-        "verbose": 1,
+        "verbose": 3,
         "sklearn": False,
-        "compare_jit": True
+        "compare_jit": True,
+        "jit_type": 0
     }
 
     plot_options = {
@@ -367,8 +371,8 @@ def entry_point():
 
     # target options, comment unneeded
     target_options_list = [
-        #TargetOptionsHelper.linear(),
-        #TargetOptionsHelper.poly(),
+        TargetOptionsHelper.linear(),
+        TargetOptionsHelper.poly(),
         #TargetOptionsHelper.cos(),
         #TargetOptionsHelper.sin(),
         #TargetOptionsHelper.squared_form(),
@@ -383,6 +387,7 @@ def entry_point():
             print(f"Do test {i * len(model_options_list) + j} of {tests_cnt}")
             TestHelper.test_pipeline(target_opts, data_options, model_opts, out_options, 
                 plot_options)
+    print("Tests finish")
 
 
 if __name__ == "__main__":
