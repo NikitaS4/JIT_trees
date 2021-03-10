@@ -11,12 +11,27 @@ set(CMAKE_BUILD_TYPE "Release")
 # include pybind11
 # this will also import pybind11_add_module function
 find_package(pybind11 REQUIRED)
+
 # include all directories needed to import xtensor
 # NOTE: theese paths are platform-specific
+# Windows
+
+# To find a path to numpy installation, You can launch in Python:
+# import numpy as np
+# print(np.get_include())
+
 include_directories(D:/anaconda3/lib/site-packages/numpy/core/include)
 include_directories(D:/anaconda3/lib/site-packages/pybind11/include)
 include_directories(D:/anaconda3/include)
 include_directories(D:/anaconda3/Library/include)
+
+# On Linux:
+
+#include_directories(/home/__user__/.local/lib/python3.8/site-packages/numpy/core/include)
+#include_directories(/home/__user__/.local/lib/python3.8/site-packages/pybind11/include)
+#include_directories(/home/__user__/include)
+
+
 # get all *.cpp files recursively
 file(GLOB_RECURSE SRC_FILES ${PROJECT_SOURCE_DIR}/*.cpp ${PROJECT_SOURCE_DIR}/*.h)
 # like add_executable but for pybind11 module
