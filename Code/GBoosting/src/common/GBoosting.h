@@ -29,7 +29,8 @@ public:
 				const Lab_t earlyStoppingDelta = defaultESDelta,
 				const float batchPart = 1.0f,
 				const bool useJIT = false,
-				const int JITedCodeType = int(SW_t::BASIC_FOR));
+				const int JITedCodeType = int(SW_t::BASIC_FOR),
+				const unsigned int randomState = defaultRandomState);
 	Lab_t predict(const pytensor1& xTest) const;
 	pytensorY predict(const pytensor2& xTest) const;
 
@@ -73,6 +74,7 @@ protected:
 	static const float defaultLR;
 	static const size_t defaultPatience = 3;
 	static constexpr Lab_t defaultESDelta = 0; // for early stopping
+	static const unsigned int defaultRandomState;
 };
 
 #endif // GBOOSTING_H

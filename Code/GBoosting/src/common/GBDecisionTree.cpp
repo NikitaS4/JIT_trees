@@ -2,6 +2,7 @@
 #include "StatisticsHelper.h"
 
 #include <stdexcept>
+#include <cstdlib>
 
 
 // static initializations
@@ -12,6 +13,7 @@ size_t GBDecisionTree::innerNodes = 0;
 size_t GBDecisionTree::leafCnt = 0;
 float GBDecisionTree::learningRate = 1;
 std::vector<std::vector<size_t>> GBDecisionTree::subset;
+const float GBDecisionTree::scoreInRandNoiseMult = 0.3f;
 
 
 void GBDecisionTree::initStaticMembers(const float learnRate,
@@ -27,6 +29,35 @@ void GBDecisionTree::initStaticMembers(const float learnRate,
 	learningRate = learnRate;
 }
 
+
+GBDecisionTree::GBDecisionTree(size_t treesInEnsemble, 
+	unsigned int randomState): randWeight(1.0f),
+	weightDelta(2.0f / float(treesInEnsemble)) {
+		std::srand(randomState); // set random seed
+		// init memory for the buffers
+		features = features = new size_t[treeDepth];
+		thresholds = new FVal_t[innerNodes];
+		leaves = new Lab_t[leafCnt];
+}
+
+
+GBDecisionTree::~GBDecisionTree() {
+	// free memory
+	if (features) {
+		delete[] features;
+		features = nullptr;
+	}
+	if (thresholds) {
+		delete[] thresholds;
+		thresholds = nullptr;
+	}
+	if (leaves) {
+		delete[] leaves;
+		leaves = nullptr;
+	}
+}
+
+
 void GBDecisionTree::growTree(const pytensor2& xTrain,
 	const std::vector<size_t>& chosen, 
 	const pytensorY& yTrain,
@@ -35,11 +66,8 @@ void GBDecisionTree::growTree(const pytensor2& xTrain,
 	TreeHolder* treeHolder) {
 	if (!depthAssigned)
 		throw std::runtime_error("Tree depth was not assigned");
-	size_t* features = new size_t[treeDepth];
-	FVal_t* thresholds = new FVal_t[innerNodes];
 	for (size_t i = 0; i < innerNodes; ++i)
 		thresholds[i] = 0;
-	Lab_t* leaves = new Lab_t[leafCnt];
 	for (size_t i = 0; i < leafCnt; ++i)
 		leaves[i] = 0;
 	pytensor2Y intermediateLabels = xt::zeros<Lab_t>({innerNodes + leafCnt, xTrain.shape(0)});
@@ -74,6 +102,11 @@ void GBDecisionTree::growTree(const pytensor2& xTrain,
 					xt::row(intermediateLabels, firstBroNum + node), atomicThreshold);
 				curThreshold[node] = atomicThreshold;
 			}
+			// add random noise to the score
+			// this will make the chosen tree split to be
+			// not as optimal as it could be
+			// this diminishes overfitiing of the ensemble
+			curScore = getSpoiledScore(curScore);
 			if (!firstSplitFound || curScore < bestScore) {
 				bestScore = curScore;
 				bestThreshold = curThreshold;
@@ -125,17 +158,15 @@ void GBDecisionTree::growTree(const pytensor2& xTrain,
 	// remember or compile tree (in case of JIT compilation enabled)
 	treeHolder->newTree(features, thresholds, leaves);
 
-	// free memory
-	if (features) {
-		delete[] features;
-		features = nullptr;
-	}
-	if (thresholds) {
-		delete[] thresholds;
-		thresholds = nullptr;
-	}
-	if (leaves) {
-		delete[] leaves;
-		leaves = nullptr;
-	}
+	// update randWeight (for the next tree)
+	randWeight -= weightDelta;
+}
+
+
+FVal_t GBDecisionTree::getSpoiledScore(const FVal_t splitScore) const {
+	// generate random value in [0; 1)
+	float noise = float(std::rand()) / (float(1) + RAND_MAX);
+	// rescale
+	noise *= scoreInRandNoiseMult * splitScore * randWeight;
+	return splitScore + noise;
 }

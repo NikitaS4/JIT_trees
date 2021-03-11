@@ -10,6 +10,7 @@
 
 // static members initialization
 const float GradientBoosting::defaultLR = 0.4f;
+const unsigned int GradientBoosting::defaultRandomState = 12;
 
 GradientBoosting::GradientBoosting(const size_t binCount,
 	const size_t patience): featureCount(1), 
@@ -35,7 +36,8 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 	const Lab_t earlyStoppingDelta,
 	const float batchPart,
 	const bool useJIT,
-	const int JITedCodeType) {
+	const int JITedCodeType,
+	const unsigned int randomState) {
 	// Prepare data	
 	trainLen = xTrain.shape(0);
 	featureCount = xTrain.shape(1);
@@ -117,6 +119,7 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 		featureSubset[i] = i;
 	
 	GBDecisionTree::initStaticMembers(learningRate, trainLen, treeDepth);
+	GBDecisionTree treeFitter(treeCount, randomState);
 	bool stop = false;
 
 	for (size_t treeNum = 0; treeNum < treeCount && !stop; ++treeNum) {
@@ -126,7 +129,7 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 		nextFeatureSubset(featureSubsetSize, featureCount,
 			featureSubset);
 		// grow & compile tree
-		GBDecisionTree::growTree(xTrain, subset, residuals, hists, featureSubset,
+		treeFitter.growTree(xTrain, subset, residuals, hists, featureSubset,
 			treeHolder);
 		// update residuals
 		for (size_t sample = 0; sample < trainLen; ++sample) {

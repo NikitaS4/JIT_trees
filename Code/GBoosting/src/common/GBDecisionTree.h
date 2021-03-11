@@ -11,12 +11,17 @@
 // the class is helper (no instances needed)
 class GBDecisionTree {
 public:
+	GBDecisionTree(size_t treesInEnsemble,
+		unsigned int randomState);
+
+	~GBDecisionTree();
+
 	static void initStaticMembers(const float learnRate, 
 		const size_t trainLen,
 		const size_t depth = defaultTreeDepth);
 	
 	// growTree == FIT
-	static void growTree(const pytensor2& xTrain,
+	void growTree(const pytensor2& xTrain,
 		const std::vector<size_t>& chosen, 
 		const pytensorY& yTrain,
 		const std::vector<GBHist>& hists,
@@ -27,6 +32,16 @@ private:
 	// tree with depth 1 is node with 2 children
 	// leaves = 2 ** height
 	// internal nodes = 2 ** (height + 1) - leaves	
+
+	// fields
+	float randWeight;
+	float weightDelta;
+	size_t* features = nullptr;
+	FVal_t* thresholds = nullptr;
+	Lab_t* leaves = nullptr;
+
+	// methods
+	inline FVal_t getSpoiledScore(const FVal_t splitScore) const;
 
 	// static
 	static size_t featureCount;
@@ -39,10 +54,7 @@ private:
 
 	// constants
 	static const size_t defaultTreeDepth = 6;
-
-	// helper - no constructors
-	GBDecisionTree() = delete;
-	~GBDecisionTree() = delete;
+	static const float scoreInRandNoiseMult;
 };
 
 #endif // GBDECISION_TREE_H
