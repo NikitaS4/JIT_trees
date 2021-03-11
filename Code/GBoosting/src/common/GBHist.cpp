@@ -36,6 +36,7 @@ Lab_t GBHist::findBestSplit(const pytensor1& xData,
 	size_t nSub = subset.size(); // size of the subset
 
 	// compute histograms
+	std::vector<FVal_t> thresholdCandidates(binCount, 0);
 	std::vector<Lab_t> binValue(binCount, 0);
 	std::vector<size_t> binSize(binCount, 0);
 	size_t currentBin = 0;
@@ -48,6 +49,8 @@ Lab_t GBHist::findBestSplit(const pytensor1& xData,
 		currentBin = whichBin(xData(curX)); // get bin number for the current sample		
 		binValue[currentBin] += labels(curX); // add value (compute sum)
 		++binSize[currentBin]; // to compute avg later
+		// get "real" feature value from the bucket for the threshold
+		thresholdCandidates[currentBin] = xData(curX);
 		rightValue += labels(curX); // prepare for the best split searching
 	}
 
@@ -105,7 +108,8 @@ Lab_t GBHist::findBestSplit(const pytensor1& xData,
 		}
 	}
 	// return answers
-	threshold = thresholds[bestBinNumber];
+	//threshold = thresholds[bestBinNumber]; // old version - fixed threshold
+	threshold = thresholdCandidates[bestBinNumber];
 	return bestScore;
 }
 
