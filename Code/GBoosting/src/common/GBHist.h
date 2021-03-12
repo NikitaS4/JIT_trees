@@ -23,6 +23,8 @@ private:
 
 	// functions
 	static inline Lab_t square(const Lab_t arg);
+	static inline FVal_t randomFromInterval(const FVal_t from,
+		const FVal_t to);
 	inline size_t whichBin(const FVal_t& sample) const;
 };
 

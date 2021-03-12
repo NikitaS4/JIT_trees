@@ -2,6 +2,7 @@
 #include "StatisticsHelper.h"
 
 #include <cmath>
+#include <cstdlib>
 
 
 GBHist::GBHist(const size_t binCount, 
@@ -104,8 +105,19 @@ Lab_t GBHist::findBestSplit(const pytensor1& xData,
 			bestBinNumber = leftLastBin;
 		}
 	}
+
+	if (bestBinNumber != 0 && bestBinNumber != binCount - 1) {
+		// the bucket is somwhere in the middle on the histogram
+		// get random threshold from the interval <a, b>, where
+		// a - it the left border of the left bucket and
+		// b - the right border of the right bucket
+		threshold = randomFromInterval(thresholds[bestBinNumber - 1],
+			thresholds[bestBinNumber + 1]);
+	} else
+		// it's the leftmost or the rightmost bucket
+		threshold = thresholds[bestBinNumber];
+	
 	// return answers
-	threshold = thresholds[bestBinNumber];
 	return bestScore;
 }
 
@@ -136,4 +148,10 @@ size_t GBHist::whichBin(const FVal_t& sample) const {
 		++bin;
 	} while (bin < binCount && sample > thresholds[bin]);
 	return bin - 1;
+}
+
+
+FVal_t GBHist::randomFromInterval(const FVal_t from,
+		const FVal_t to) {
+	return FVal_t(to - from) * FVal_t(rand()) / (FVal_t(1) + RAND_MAX) + from;
 }
