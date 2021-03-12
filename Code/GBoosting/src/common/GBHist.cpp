@@ -2,6 +2,7 @@
 #include "StatisticsHelper.h"
 
 #include <cmath>
+#include <cstdlib>
 
 
 GBHist::GBHist(const size_t binCount, 
@@ -36,7 +37,6 @@ Lab_t GBHist::findBestSplit(const pytensor1& xData,
 	size_t nSub = subset.size(); // size of the subset
 
 	// compute histograms
-	std::vector<FVal_t> thresholdCandidates(binCount, 0);
 	std::vector<Lab_t> binValue(binCount, 0);
 	std::vector<size_t> binSize(binCount, 0);
 	size_t currentBin = 0;
@@ -49,8 +49,6 @@ Lab_t GBHist::findBestSplit(const pytensor1& xData,
 		currentBin = whichBin(xData(curX)); // get bin number for the current sample		
 		binValue[currentBin] += labels(curX); // add value (compute sum)
 		++binSize[currentBin]; // to compute avg later
-		// get "real" feature value from the bucket for the threshold
-		thresholdCandidates[currentBin] = xData(curX);
 		rightValue += labels(curX); // prepare for the best split searching
 	}
 
@@ -107,9 +105,19 @@ Lab_t GBHist::findBestSplit(const pytensor1& xData,
 			bestBinNumber = leftLastBin;
 		}
 	}
+
+	if (bestBinNumber != 0 && bestBinNumber != binCount - 1) {
+		// the bucket is somwhere in the middle on the histogram
+		// get random threshold from the interval <a, b>, where
+		// a - it the left border of the left bucket and
+		// b - the right border of the right bucket
+		threshold = randomFromInterval(thresholds[bestBinNumber - 1],
+			thresholds[bestBinNumber + 1]);
+	} else
+		// it's the leftmost or the rightmost bucket
+		threshold = thresholds[bestBinNumber];
+	
 	// return answers
-	//threshold = thresholds[bestBinNumber]; // old version - fixed threshold
-	threshold = thresholdCandidates[bestBinNumber];
 	return bestScore;
 }
 
@@ -140,4 +148,10 @@ size_t GBHist::whichBin(const FVal_t& sample) const {
 		++bin;
 	} while (bin < binCount && sample > thresholds[bin]);
 	return bin - 1;
+}
+
+
+FVal_t GBHist::randomFromInterval(const FVal_t from,
+		const FVal_t to) {
+	return FVal_t(to - from) * FVal_t(rand()) / (FVal_t(1) + RAND_MAX) + from;
 }
