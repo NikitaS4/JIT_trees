@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <functional>
 #include <iostream>
+#include <cstdlib>
 
 
 // static members initialization
@@ -38,6 +39,8 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 	const bool useJIT,
 	const int JITedCodeType,
 	const unsigned int randomState) {
+	// Set random seed
+	std::srand(randomState);
 	// Prepare data	
 	trainLen = xTrain.shape(0);
 	featureCount = xTrain.shape(1);
@@ -119,7 +122,7 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 		featureSubset[i] = i;
 	
 	GBDecisionTree::initStaticMembers(learningRate, trainLen, treeDepth);
-	GBDecisionTree treeFitter(treeCount, randomState);
+	GBDecisionTree treeFitter(treeCount);
 	bool stop = false;
 
 	for (size_t treeNum = 0; treeNum < treeCount && !stop; ++treeNum) {

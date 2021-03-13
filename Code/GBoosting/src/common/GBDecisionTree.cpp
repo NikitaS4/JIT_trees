@@ -30,10 +30,9 @@ void GBDecisionTree::initStaticMembers(const float learnRate,
 }
 
 
-GBDecisionTree::GBDecisionTree(size_t treesInEnsemble, 
-	unsigned int randomState): randWeight(1.0f),
+GBDecisionTree::GBDecisionTree(size_t treesInEnsemble): 
+	randWeight(1.0f),
 	weightDelta(2.0f / float(treesInEnsemble)) {
-		std::srand(randomState); // set random seed
 		// init memory for the buffers
 		features = features = new size_t[treeDepth];
 		thresholds = new FVal_t[innerNodes];

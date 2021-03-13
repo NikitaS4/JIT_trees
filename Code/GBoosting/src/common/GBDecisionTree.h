@@ -11,8 +11,7 @@
 // the class is helper (no instances needed)
 class GBDecisionTree {
 public:
-	GBDecisionTree(size_t treesInEnsemble,
-		unsigned int randomState);
+	GBDecisionTree(size_t treesInEnsemble);
 
 	~GBDecisionTree();
 
