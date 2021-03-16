@@ -58,3 +58,9 @@ __pycache__
 # CMake files
 cmake/
 
+# CatBoost metafiles
+catboost_info/
+
+# Extra datasets
+datasets/
+
