@@ -38,7 +38,8 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 	const float batchPart,
 	const bool useJIT,
 	const int JITedCodeType,
-	const unsigned int randomState) {
+	const unsigned int randomState,
+	const bool shuffledBatches) {
 	// Set random seed
 	std::srand(randomState);
 	// Prepare data	
@@ -112,10 +113,8 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 	validLosses(0) = validLoss;
 
 	// default subset: all data
-	const size_t batchSize = size_t(batchPart * trainLen);
-	std::vector<size_t> subset(batchSize, 0);
-	for (size_t i = 0; i < batchSize; ++i)
-		subset[i] = i;
+	batchSize = size_t(batchPart * trainLen);
+	std::vector<size_t> subset = getOrderedIndexes(batchSize);
 	// defalt feature subset: all features
 	std::vector<size_t> featureSubset(featureSubsetSize, 0);
 	for (size_t i = 0; i < featureSubsetSize; ++i)
@@ -125,9 +124,16 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 	GBDecisionTree treeFitter(treeCount);
 	bool stop = false;
 
+	initForRandomBatches(randomState);
+
 	for (size_t treeNum = 0; treeNum < treeCount && !stop; ++treeNum) {
 		// take the next batch (updates subset)
-		nextBatch(batchSize, subset);
+		if (shuffledBatches)
+			// get the next fold
+			nextBatch(subset);
+		else
+			// get random indexes
+			nextBatchRandom(subset);
 		// take the next feature subset (updates feature subset)
 		nextFeatureSubset(featureSubsetSize, featureCount,
 			featureSubset);
@@ -248,11 +254,30 @@ SW_t GradientBoosting::codeTypeToEnum(const int JITedCodeType) {
 }
 
 
-void GradientBoosting::nextBatch(const size_t batchSize,
-	std::vector<size_t>& allocatedSubset) const {
+void GradientBoosting::nextBatch(std::vector<size_t>& allocatedSubset) const {
 	// take the next fold
 	for (auto & curIdx: allocatedSubset) {
 		curIdx = (curIdx + batchSize) % trainLen;
+	}
+}
+
+
+void GradientBoosting::nextBatchRandom(std::vector<size_t>& allocatedSubset) {
+	// all indexes are splitted into M folds
+	// we need to take only one sample from each fold
+	// to have subset of size equals batchSize
+	// foldCount == batchSize
+	
+	// shuffle indexes
+	std::shuffle(std::begin(shuffledIndexes), 
+		std::end(shuffledIndexes), randGenerator);
+	
+	size_t chosenIdx = 0; // init
+	for (size_t fold = 0; fold < batchSize; ++fold) {
+		// for each fold get one sample to form a batch
+		chosenIdx = randomFromInterval(0, randomFoldLength);
+		// get chosenIdx from the current fold from the shuffledIndexes
+		allocatedSubset[fold] = shuffledIndexes[fold * randomFoldLength + chosenIdx];
 	}
 }
 
@@ -264,4 +289,33 @@ void GradientBoosting::nextFeatureSubset(const size_t featureSubsetSize,
 	for (auto & curIdx: allocatedFeatureSubset) {
 		curIdx = (curIdx + featureSubsetSize) % featureCount;
 	}
+}
+
+
+size_t GradientBoosting::randomFromInterval(const size_t left,
+		const size_t right) {
+	// get random number in [left; right)
+	return (right - left) * size_t(rand() / (size_t(RAND_MAX) + 1)) + left;
+}
+
+
+std::vector<size_t> GradientBoosting::getOrderedIndexes(const size_t length) {
+	// for length N get std::vector<size_t> = {0, 1, 2, ..., N - 1}
+	std::vector<size_t> indexes(length, 0); // init vector
+	// fill with indexes
+	for (size_t i = 0; i < length; ++i) {
+		indexes[i] = i;
+	}
+	return indexes;
+}
+
+
+void GradientBoosting::initForRandomBatches(const int randomSeed) {
+	randGenerator = std::default_random_engine(randomSeed);
+	// init array for the indexes that we will shuffle
+	shuffledIndexes = getOrderedIndexes(trainLen);
+	// all indexes will be splitted into M folds
+	// M == batchSize
+	// so we will take randomly one index from each fold
+	randomFoldLength = size_t(trainLen / batchSize);
 }

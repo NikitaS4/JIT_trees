@@ -12,4 +12,5 @@ namespace defaultParams {
     const int JITedCodeType = 0; // SW_t::BASIC_FOR
     const float batchPart = 1.0f;
     const unsigned int randomState = 12;
+    const bool randomBatches = false;
 };
