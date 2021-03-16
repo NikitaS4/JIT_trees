@@ -9,6 +9,7 @@
 #include "../TreeHolders/TreeHolder.h"
 #include "../TreeHolders/SWTypes.h"
 #include <vector>
+#include <random>
 
 
 class GradientBoosting {
@@ -30,7 +31,8 @@ public:
 				const float batchPart = 1.0f,
 				const bool useJIT = false,
 				const int JITedCodeType = int(SW_t::BASIC_FOR),
-				const unsigned int randomState = defaultRandomState);
+				const unsigned int randomState = defaultRandomState,
+				const bool shuffledBatches = false);
 	Lab_t predict(const pytensor1& xTest) const;
 	pytensorY predict(const pytensor2& xTest) const;
 
@@ -47,14 +49,23 @@ protected:
 					  const pytensorY& truth);
 	inline bool canStop(const size_t stepNum, 
 						const Lab_t earlyStoppingDelta) const;
+
 	static inline SW_t codeTypeToEnum(const int JITedCodeType);
  
-	inline void nextBatch(const size_t batchSize, 
-		std::vector<size_t>& allocatedSubset) const;
+	static inline size_t randomFromInterval(const size_t left,
+		const size_t right);
+
+	static inline std::vector<size_t> getOrderedIndexes(const size_t length);
+
+	inline void nextBatch(std::vector<size_t>& allocatedSubset) const;
+
+	inline void nextBatchRandom(std::vector<size_t>& allocatedSubset);
 
 	inline void nextFeatureSubset(const size_t featureSubsetSize,
 		const size_t featureCount,
 		std::vector<size_t>& allocatedFeatureSubset) const;
+
+	inline void initForRandomBatches(const int randomSeed);
 
 	// fields
 	size_t featureCount;
@@ -62,6 +73,10 @@ protected:
 	size_t realTreeCount;
 	size_t binCount;
 	size_t patience;
+	size_t randomFoldLength; // it's needed to form random batches
+	std::vector<size_t> shuffledIndexes; // it's needed to form random batches
+	std::default_random_engine randGenerator;
+	size_t batchSize;
 	Lab_t zeroPredictor; // constant model
 	std::vector<GBHist> hists; // histogram for each feature
 	//std::vector<GBDecisionTree> trees;

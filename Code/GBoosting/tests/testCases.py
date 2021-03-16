@@ -13,7 +13,8 @@ class ModelOptionsHelper:
             "es_delta": 0,
             "use_jit": use_JIT,
             "batch_part": 1,
-            "feature_fold_size": 1
+            "feature_fold_size": 1,
+            "random_batches": False
         }
     
     @staticmethod
@@ -27,7 +28,8 @@ class ModelOptionsHelper:
             "es_delta": 0,
             "use_jit": use_JIT,
             "batch_part": 1,
-            "feature_fold_size": 1
+            "feature_fold_size": 1,
+            "random_batches": False
         }
     
     @staticmethod
@@ -41,7 +43,8 @@ class ModelOptionsHelper:
             "es_delta": 1e-5,
             "use_jit": use_JIT,
             "batch_part": 0.7,
-            "feature_fold_size": 0.6
+            "feature_fold_size": 0.6,
+            "random_batches": True
         }
     
     @staticmethod
@@ -55,7 +58,8 @@ class ModelOptionsHelper:
             "es_delta": 0,
             "use_jit": use_JIT,
             "batch_part": 1,
-            "feature_fold_size": 1
+            "feature_fold_size": 1,
+            "random_batches": True
         }
 
 
