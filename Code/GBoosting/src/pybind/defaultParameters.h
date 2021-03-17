@@ -2,7 +2,8 @@
 
 
 namespace defaultParams {
-    const size_t bins = 256;
+    const size_t binsMin = 8;
+    const size_t binsMax = 512;
     const size_t patience = 3;
     const size_t treeCount = 1000;
     const size_t treeDepth = 7;

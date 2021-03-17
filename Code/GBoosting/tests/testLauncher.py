@@ -33,7 +33,8 @@ class TestHelper:
 
         # fit model
         def fit_wrapper(JIT_option=model_options['use_jit']):
-            model = JITtrees.Boosting(model_options['bins'], model_options['patience'])
+            model = JITtrees.Boosting(model_options['min_bins'], 
+                model_options['max_bins'], model_options['patience'])
             start_time = time.time() # get start time to count the time of execution
             history = model.fit(x_train, y_train, x_valid, y_valid, model_options['tree_count'],
                 model_options['tree_depth'], int(np.ceil(x_train.shape[1] * model_options['feature_fold_size'])), 
@@ -116,7 +117,7 @@ class TestHelper:
     @staticmethod
     def __print_conditions(model_options, data_options, feature_cnt):
         print("Hyperparameters:")
-        print(f"Bin count: {model_options['bins']}; Patience: {model_options['patience']}; Tree count: {model_options['tree_count']}")
+        print(f"Bin count: {model_options['max_bins']}; Patience: {model_options['patience']}; Tree count: {model_options['tree_count']}")
         print(f"Learning rate: {model_options['learning_rate']}; Tree depth: {model_options['tree_depth']}")
         print("Dataset:")
         print(f"Size: train = {data_options['train_cnt']}; validation = {data_options['valid_cnt']}")
@@ -126,7 +127,7 @@ class TestHelper:
     @staticmethod
     def __get_model_name(target_options, model_options):
         jit_str = "JIT" if model_options['use_jit'] else "noJIT"
-        return target_options['short_name'] + "_" + jit_str + "_b" + str(model_options['bins']) + "_lr" + str(model_options['learning_rate']) + "_d" + str(model_options['tree_depth'])
+        return target_options['short_name'] + "_" + jit_str + "_b" + str(model_options['max_bins']) + "_lr" + str(model_options['learning_rate']) + "_d" + str(model_options['tree_depth'])
 
     @staticmethod
     def __plot_losses(history, filename, dir="images"):

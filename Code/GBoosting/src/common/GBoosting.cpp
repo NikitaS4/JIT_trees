@@ -13,11 +13,13 @@
 const float GradientBoosting::defaultLR = 0.4f;
 const unsigned int GradientBoosting::defaultRandomState = 12;
 
-GradientBoosting::GradientBoosting(const size_t binCount,
-	const size_t patience): featureCount(1), 
-	trainLen(0), realTreeCount(0), binCount(binCount), 
-	patience(patience), zeroPredictor(0) {
+GradientBoosting::GradientBoosting(const size_t binCountMin,
+	const size_t binCountMax, const size_t patience): featureCount(1), 
+	trainLen(0), realTreeCount(0), binCountMin(binCountMin),
+	binCountMax(binCountMax), patience(patience), zeroPredictor(0) {
 	// ctor
+	if (binCountMax < binCountMin)
+		throw std::runtime_error("Max bin count was less than min bin count");
 }
 
 GradientBoosting::~GradientBoosting() {
@@ -76,7 +78,8 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 
 	// Histogram init (compute and remember thresholds)
 	for (size_t featureSlice = 0; featureSlice < featureCount; ++featureSlice)
-		hists.push_back(GBHist(binCount, xt::col(xTrain, featureSlice)));
+		hists.push_back(GBHist(binCountMin, binCountMax, 
+			treeCount, xt::col(xTrain, featureSlice)));
 	// fit ensemble
 
 	// fit the constant model
@@ -169,6 +172,10 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 		if (stop) {
 			break;  // stop fit
 		}
+
+		// update historgrams' nets (bin counts)
+		for (auto & curHist : hists)
+			curHist.updateNet();
 	}
 	if (stop) {
 		// need delete the last overfitted estimators

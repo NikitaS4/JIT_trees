@@ -5,7 +5,8 @@ class ModelOptionsHelper:
     @staticmethod
     def single_tree(use_JIT=True):
         return {
-            "bins": 1024,
+            "min_bins": 1024,
+            "max_bins": 1024,
             "patience": 1,
             "tree_count": 1,
             "tree_depth": 8,
@@ -20,7 +21,8 @@ class ModelOptionsHelper:
     @staticmethod
     def single_split(use_JIT=True):
         return {
-            "bins": 256,
+            "min_bins": 256,
+            "max_bins": 256,
             "patience": 4,
             "tree_count": 100,
             "tree_depth": 1,
@@ -35,7 +37,8 @@ class ModelOptionsHelper:
     @staticmethod
     def ensemble(use_JIT=True):
         return {
-            "bins": 256,
+            "min_bins": 16,
+            "max_bins": 256,
             "patience": 4,
             "tree_count": 100,
             "tree_depth": 4,
@@ -50,7 +53,8 @@ class ModelOptionsHelper:
     @staticmethod
     def hard_model(use_JIT=True):
         return {
-            "bins": 1024,
+            "min_bins": 128,
+            "max_bins": 1024,
             "patience": 10,
             "tree_count": 500,
             "tree_depth": 5,
