@@ -5,11 +5,13 @@
 #include <cstdlib>
 
 
-GBHist::GBHist(const size_t binCount, 
-	const pytensor1& xFeature): binCount(binCount) {
+GBHist::GBHist(const size_t binCountMin, const size_t binCountMax, 
+	const size_t treesInEnsemble, const pytensor1& xFeature): 
+	binCount(binCountMin), binCountMin(binCountMin), 
+	binCountMax(binCountMax), itersGone(0) {
 	size_t n = xFeature.shape(0); // data size
-	FVal_t featureMin = xFeature(0); // at start
-	FVal_t featureMax = featureMin;
+	featureMin = xFeature(0); // at start
+	featureMax = featureMin;
 	for (size_t i = 1; i < n; ++i) { // find min and max
 		if (xFeature(i) < featureMin)
 			featureMin = xFeature(i);
@@ -23,6 +25,26 @@ GBHist::GBHist(const size_t binCount,
 		curThreshold = (i + 1) * binWidth + featureMin; // compute threshold
 		thresholds.push_back(curThreshold); // remember threshold
 	}
+	// Static bin count in histograms
+	if (binCountMin == binCountMax) {
+		itersToStopUpdate = 0; // don't update at all
+		return;
+	}
+
+	// Dynamic bin count in histograms
+	// Compute itersToUpdate
+	const float fitPartWhenBinsMax = 0.7f;
+	float itersPerBinIncrement = fitPartWhenBinsMax * treesInEnsemble / float(binCountMax - binCountMin);
+	if (itersPerBinIncrement < 1.0f) {
+		// binDiff > 1
+		binDiff = size_t(1 / itersPerBinIncrement);
+		itersToUpdate = 1;
+	} else {
+		// binDiff == 1 for each itersToUpdate iterations
+		binDiff = 1;
+		itersToUpdate = size_t(itersPerBinIncrement);
+	}
+	itersToStopUpdate = binDiff * (binCountMax - binCountMin) / itersToUpdate;
 }
 
 
@@ -154,4 +176,34 @@ size_t GBHist::whichBin(const FVal_t& sample) const {
 FVal_t GBHist::randomFromInterval(const FVal_t from,
 		const FVal_t to) {
 	return FVal_t(to - from) * FVal_t(rand()) / (FVal_t(1) + RAND_MAX) + from;
+}
+
+
+void GBHist::updateThresholds() {
+	if (binCount >= binCountMax)
+		return; // don't need recomputing
+	// recompute bin count
+	binCount += binDiff;
+	const size_t currentLength = thresholds.size();
+	const size_t tail = binCount - currentLength;
+	const FVal_t binWidth = (featureMax - featureMin) / binCount;
+	// update thresholds for the allocated part
+	for (size_t i = 0; i < currentLength; ++i) {
+		thresholds[i] = (i + 1) * binWidth + featureMin;
+	}
+	// add new thresholds
+	for (size_t i = 0; i < tail; ++i) {
+		thresholds.push_back((i + currentLength + 1) * binWidth + featureMin);
+	}
+}
+
+
+void GBHist::updateNet() {
+	++itersGone;
+	if (itersGone > itersToStopUpdate) {
+		return;
+	}
+	if (itersGone % itersToUpdate == 0) {
+		updateThresholds();
+	}
 }

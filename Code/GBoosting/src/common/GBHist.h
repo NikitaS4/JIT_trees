@@ -8,7 +8,8 @@
 
 class GBHist {
 public:
-	GBHist(const size_t binCount, const pytensor1& xFeature);
+	GBHist(const size_t binCountMin, const size_t binCountMax,
+		const size_t treesInEnsemble, const pytensor1& xFeature);
 
 	size_t getBinCount() const;
 	Lab_t findBestSplit(const pytensor1& xData,
@@ -17,8 +18,17 @@ public:
 	std::vector<size_t> performSplit(const pytensor1& xData,
 	const std::vector<size_t>& subset, const FVal_t threshold, 
 	std::vector<size_t>& rightSubset) const;
+	void updateNet(); // add 1 bin each M iterations
 private:
 	size_t binCount;
+	size_t binCountMin;
+	size_t binCountMax;
+	size_t binDiff; // how many bins to add
+	size_t itersToUpdate; // how many trees will be built with the current hist net
+	size_t itersToStopUpdate; // how many trees will be built until updates stop
+	size_t itersGone; // the current number of trees
+	FVal_t featureMin;
+	FVal_t featureMax;
 	std::vector<FVal_t> thresholds;
 
 	// functions
@@ -26,6 +36,7 @@ private:
 	static inline FVal_t randomFromInterval(const FVal_t from,
 		const FVal_t to);
 	inline size_t whichBin(const FVal_t& sample) const;
+	inline void updateThresholds();
 };
 
 #endif // GBHIST_H

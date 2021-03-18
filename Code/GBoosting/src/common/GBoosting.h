@@ -14,7 +14,8 @@
 
 class GradientBoosting {
 public:
-	GradientBoosting(const size_t binCount = defaultBinCount,
+	GradientBoosting(const size_t binCountMin,
+					 const size_t binCountMax,
 					 const size_t patience = defaultPatience);
 	virtual ~GradientBoosting();
 	// 1st dim - object number, 2nd dim - feature number
@@ -71,7 +72,8 @@ protected:
 	size_t featureCount;
 	size_t trainLen;
 	size_t realTreeCount;
-	size_t binCount;
+	size_t binCountMin;
+	size_t binCountMax;
 	size_t patience;
 	size_t randomFoldLength; // it's needed to form random batches
 	std::vector<size_t> shuffledIndexes; // it's needed to form random batches
@@ -85,7 +87,6 @@ protected:
 	TreeHolder* treeHolder = nullptr;
 
 	// constants
-	static const size_t defaultBinCount = 128;
 	static const float defaultLR;
 	static const size_t defaultPatience = 3;
 	static constexpr Lab_t defaultESDelta = 0; // for early stopping
