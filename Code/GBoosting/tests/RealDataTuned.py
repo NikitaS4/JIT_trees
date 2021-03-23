@@ -82,7 +82,7 @@ def tune_JIT_trees(x_tr_val, y_tr_val, options_grid, random_state=12):
         
         # update options' indexes
         while cur_prop_to_change < options_count and cur_idx_each_option[cur_prop_to_change] + 1 >= len(options_grid[keys_list[cur_prop_to_change]]):
-            # update the next changable option
+            # find the next changable option
             cur_prop_to_change += 1
         if cur_prop_to_change >= options_count:
             # we have seen all the options, can finish
@@ -91,6 +91,8 @@ def tune_JIT_trees(x_tr_val, y_tr_val, options_grid, random_state=12):
             # set all previous options to 0
             cur_idx_each_option[prev_prop] = 0
         cur_idx_each_option[cur_prop_to_change] += 1  # increment the current option
+        # reduce index to the start (lexicographic order)
+        cur_prop_to_change = 0
 
     # return the resulting data frame
     tuning_df = pd.DataFrame(tuning_df)  # convert to DF
@@ -448,10 +450,10 @@ def main():
     try:
         for cur_tuner in [
                           tune_boston, 
-                          #tune_diabetes,
-                          #tune_regression_100,
-                          #tune_regression_200, 
-                          #tune_supercond
+                          tune_diabetes,
+                          tune_regression_100,
+                          tune_regression_200, 
+                          tune_supercond
                         ]:
             cur_tuner('tuning', 12)
     except Exception as ex:
