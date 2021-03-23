@@ -7,6 +7,7 @@ from sklearn.metrics import mean_absolute_error as mae_score
 from sklearn.experimental import enable_hist_gradient_boosting
 from sklearn.ensemble import HistGradientBoostingRegressor as SkBoosting
 from catboost import Pool, CatBoostRegressor
+import traceback
 import os, sys
 import time
 
@@ -35,7 +36,7 @@ def split_options(model_options):
 
 def get_fit_steps(options_grid):
     # for KFold CV
-    return sum([len(param_list) for param_list in options_grid.values()])
+    return int(np.prod(np.array([len(param_list) for param_list in options_grid.values()])))
 
 
 def tune_JIT_trees(x_tr_val, y_tr_val, options_grid, random_state=12):
@@ -55,7 +56,7 @@ def tune_JIT_trees(x_tr_val, y_tr_val, options_grid, random_state=12):
     # we have set split count to the number of iterations needed to check all the parameters
     for train_idxs, valid_idxs in kf_cv.split(x_tr_val):
         # get current options
-        model_options = {keys_list[i]: cur_idx_each_option[i] for i in range(options_count)}
+        model_options = {keys_list[i]: options_grid[keys_list[i]][cur_idx_each_option[i]] for i in range(options_count)}
         
         # get train and test sets
         x_train, x_valid = x_tr_val[train_idxs], x_tr_val[valid_idxs]
@@ -80,9 +81,12 @@ def tune_JIT_trees(x_tr_val, y_tr_val, options_grid, random_state=12):
         tuning_df['time'].append(exec_time)
         
         # update options' indexes
-        if cur_idx_each_option[cur_prop_to_change] + 1 >= len(options_grid[cur_prop_to_change]):
-            # update the next option
+        while cur_prop_to_change < options_count and cur_idx_each_option[cur_prop_to_change] + 1 >= len(options_grid[keys_list[cur_prop_to_change]]):
+            # update the next changable option
             cur_prop_to_change += 1
+        if cur_prop_to_change >= options_count:
+            # we have seen all the options, can finish
+            break
         for prev_prop in range(cur_prop_to_change):
             # set all previous options to 0
             cur_idx_each_option[prev_prop] = 0
@@ -91,8 +95,12 @@ def tune_JIT_trees(x_tr_val, y_tr_val, options_grid, random_state=12):
     # return the resulting data frame
     tuning_df = pd.DataFrame(tuning_df)  # convert to DF
     best_idx = tuning_df['MAE'].idxmin()  # get minimum by MAE score
+    best_params = tuning_df.iloc[[best_idx]].to_dict()
+    for key in best_params.keys():
+        # convert dictionaries to params (forget indexes)
+        best_params[key] = list(best_params[key].values())[0]
     # return the data frame (protocol) and the best parameters dictionary (with mae and exec time)
-    return tuning_df, tuning_df.iloc[[best_idx]].to_dict(orient='records')
+    return tuning_df, best_params
 
 
 def tune_CatBoost(x_tr_val, y_tr_val, options_grid, random_state=12):
@@ -449,6 +457,12 @@ def main():
     except Exception as ex:
         print("An exception was raised")
         print(ex)
+        # print traceback
+        try:  # need try-finally to delete ex_info
+            ex_info = sys.exc_info()
+        finally:
+            traceback.print_exception(*ex_info)
+            del ex_info
     finally:
         print("Finish")
 

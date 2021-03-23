@@ -64,3 +64,6 @@ catboost_info/
 # Extra datasets
 datasets/
 
+# Tuning results
+tuning/
+
