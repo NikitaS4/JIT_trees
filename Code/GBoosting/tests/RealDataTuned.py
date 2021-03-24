@@ -197,7 +197,7 @@ def tune_boston(folder, random_state=12):
         'tree_depth': [2, 4, 6],
         'feature_fold_size': [10, 13],
         'learning_rate': [0.2, 0.4],
-        'regularization_param': [0, 0.1, 1, 10]
+        'regularization_param': [0, 0.1, 1, 10],
         'es_delta': [1e-5],
         'batch_part': [0.8, 1],
         'use_jit': [False],
