@@ -36,6 +36,7 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 	const pytensorY& yValid, const size_t treeCount,
 	const size_t treeDepth, const size_t featureSubsetSize,
 	const float learningRate,
+	const Lab_t regularizationParam,
 	const Lab_t earlyStoppingDelta,
 	const float batchPart,
 	const bool useJIT,
@@ -68,6 +69,8 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 		throw std::runtime_error("batch part was out of [0; 1] interval");
 	if (featureSubsetSize <= 0)
 		throw std::runtime_error("feature fold size was less or equal zero");
+	if (regularizationParam < 0)
+		throw std::runtime_error("regularization param was less zero (must be greater or equal)");
 
 	// init tree holder
 	// firstly, convert JITed code type to SW_t enum
@@ -124,7 +127,7 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 		featureSubset[i] = i;
 	
 	GBDecisionTree::initStaticMembers(learningRate, trainLen, treeDepth);
-	GBDecisionTree treeFitter(treeCount);
+	GBDecisionTree treeFitter(treeCount, regularizationParam);
 	bool stop = false;
 
 	initForRandomBatches(randomState);

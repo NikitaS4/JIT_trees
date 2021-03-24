@@ -40,6 +40,7 @@ PYBIND11_MODULE(JITtrees, m) {
             py::arg("tree_depth")=dp::treeDepth,
             py::arg("feature_fold_size"),
             py::arg("learning_rate")=dp::learningRate,
+            py::arg("regularization_param")=dp::regParam,
             py::arg("early_stopping_delta")=dp::earlyStoppingDelta,
             py::arg("batch_part")=dp::batchPart,
             py::arg("JIT")=dp::useJIT,
