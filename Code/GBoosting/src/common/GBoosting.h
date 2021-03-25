@@ -27,7 +27,7 @@ public:
 				const pytensorY& yValid,
 				const size_t treeCount,
 				const size_t treeDepth,
-				const size_t featureSubsetSize,
+				const float featureSubsetPart,
 				const float learningRate = defaultLR,
 				const Lab_t regularizationParam = defaultReg,
 				const Lab_t earlyStoppingDelta = defaultESDelta,
