@@ -29,7 +29,8 @@ PYBIND11_MODULE(JITtrees, m) {
         "Get validation losses array");
     
     py::class_<GradientBoosting>(m, "Boosting")
-        .def(py::init<const size_t, const size_t, const size_t>(), 
+        .def(py::init<const size_t, const size_t, const size_t,
+             const bool>(), 
             "Gradient boosting model constructor",
             py::arg("min_bins")=dp::binsMin, 
             py::arg("max_bins")=dp::binsMax,
