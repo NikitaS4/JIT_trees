@@ -6,9 +6,11 @@
 
 
 GBHist::GBHist(const size_t binCountMin, const size_t binCountMax, 
-	const size_t treesInEnsemble, const pytensor1& xFeature): 
+	const size_t treesInEnsemble, const pytensor1& xFeature,
+	const Lab_t regularizationParam): 
 	binCount(binCountMin), binCountMin(binCountMin), 
-	binCountMax(binCountMax), itersGone(0) {
+	binCountMax(binCountMax), itersGone(0),
+	regularizationParam(regularizationParam) {
 	size_t n = xFeature.shape(0); // data size
 	featureMin = xFeature(0); // at start
 	featureMax = featureMin;
@@ -100,9 +102,15 @@ Lab_t GBHist::findBestSplit(const pytensor1& xData,
 
 		// compute current score in several steps
 		// step 1: compute leaves
-		Lab_t leftAvg = leftValue / leftSize;
-		Lab_t rightAvg = rightValue / rightSize;
-		
+		// We use regularized MSE/2 as the loss function
+		// gradients are f(x_i) - y_i
+		// hessians are 1 (const)
+		// leftSize (rightSize) is the sum of the hessians
+		// leftValue (rightValue) is the sum of the gradients
+		Lab_t leftAvg = leftValue / (leftSize + regularizationParam);
+		Lab_t rightAvg = rightValue / (rightSize + regularizationParam);
+		// now leftAvg (rightAvg) is the leaf weight corresponding to the current node
+
 		// step 2: calculate RSS
 		FVal_t curThreshold = thresholds[leftLastBin];
 		leftScore = rightScore = 0; // init scores for sum

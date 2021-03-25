@@ -9,7 +9,8 @@
 class GBHist {
 public:
 	GBHist(const size_t binCountMin, const size_t binCountMax,
-		const size_t treesInEnsemble, const pytensor1& xFeature);
+		const size_t treesInEnsemble, const pytensor1& xFeature,
+		const Lab_t regularizationParam);
 
 	size_t getBinCount() const;
 	Lab_t findBestSplit(const pytensor1& xData,
@@ -29,6 +30,7 @@ private:
 	size_t itersGone; // the current number of trees
 	FVal_t featureMin;
 	FVal_t featureMax;
+	Lab_t regularizationParam;
 	std::vector<FVal_t> thresholds;
 
 	// functions

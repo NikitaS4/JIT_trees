@@ -36,7 +36,7 @@ private:
 	// fields
 	float randWeight;
 	float weightDelta;
-	Lab_t regLeafUnit; // multiplier for the leaves (depends on regularization)
+	Lab_t regParam; // regularization parameter
 	size_t* features = nullptr;
 	FVal_t* thresholds = nullptr;
 	Lab_t* leaves = nullptr;
