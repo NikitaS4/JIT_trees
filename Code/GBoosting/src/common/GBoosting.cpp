@@ -14,9 +14,11 @@ const float GradientBoosting::defaultLR = 0.4f;
 const unsigned int GradientBoosting::defaultRandomState = 12;
 
 GradientBoosting::GradientBoosting(const size_t binCountMin,
-	const size_t binCountMax, const size_t patience): featureCount(1), 
+	const size_t binCountMax, const size_t patience,
+	const bool dontUseEarlyStopping): featureCount(1), 
 	trainLen(0), realTreeCount(0), binCountMin(binCountMin),
-	binCountMax(binCountMax), patience(patience), zeroPredictor(0) {
+	binCountMax(binCountMax), patience(patience), zeroPredictor(0),
+	dontUseEarlyStopping(dontUseEarlyStopping) {
 	// ctor
 	if (binCountMax < binCountMin)
 		throw std::runtime_error("Max bin count was less than min bin count");
@@ -171,16 +173,18 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 		validLosses(treeNum + 1) = validLoss;
 
 		// update losses difference
-		stop = canStop(treeNum, earlyStoppingDelta);
-		if (stop) {
-			break;  // stop fit
+		if (!dontUseEarlyStopping) {
+			stop = canStop(treeNum, earlyStoppingDelta);
+			if (stop) {
+				break;  // stop fit
+			}
 		}
 
 		// update historgrams' nets (bin counts)
 		for (auto & curHist : hists)
 			curHist.updateNet();
 	}
-	if (stop) {
+	if (!dontUseEarlyStopping && stop) {
 		// need delete the last overfitted estimators
 		for (size_t i = 0; i < patience; ++i) {
 			treeHolder->popTree();

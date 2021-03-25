@@ -15,4 +15,5 @@ namespace defaultParams {
     const unsigned int randomState = 12;
     const bool randomBatches = false;
     const Lab_t regParam = 0; // no regularization
+    const bool noEs = false; // use early stopping by default
 };

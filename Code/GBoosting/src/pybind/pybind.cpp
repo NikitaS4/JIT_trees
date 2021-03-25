@@ -33,7 +33,8 @@ PYBIND11_MODULE(JITtrees, m) {
             "Gradient boosting model constructor",
             py::arg("min_bins")=dp::binsMin, 
             py::arg("max_bins")=dp::binsMax,
-            py::arg("patience")=dp::patience)
+            py::arg("patience")=dp::patience,
+            py::arg("no_early_stopping")=dp::noEs)
         .def("fit", &GradientBoosting::fit, "Fit regression model", py::arg("x_train"),
             py::arg("y_train"), py::arg("x_valid"), py::arg("y_valid"),
             py::arg("tree_count")=dp::treeCount, 
