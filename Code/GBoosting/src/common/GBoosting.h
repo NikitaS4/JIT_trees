@@ -28,6 +28,7 @@ public:
 				const size_t treeDepth,
 				const size_t featureSubsetSize,
 				const float learningRate = defaultLR,
+				const Lab_t regularizationParam = defaultReg,
 				const Lab_t earlyStoppingDelta = defaultESDelta,
 				const float batchPart = 1.0f,
 				const bool useJIT = false,
@@ -90,6 +91,7 @@ protected:
 	static const float defaultLR;
 	static const size_t defaultPatience = 3;
 	static constexpr Lab_t defaultESDelta = 0; // for early stopping
+	static constexpr Lab_t defaultReg = 0; // no reg
 	static const unsigned int defaultRandomState;
 };
 

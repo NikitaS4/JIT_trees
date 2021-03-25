@@ -11,7 +11,8 @@
 // the class is helper (no instances needed)
 class GBDecisionTree {
 public:
-	GBDecisionTree(size_t treesInEnsemble);
+	GBDecisionTree(const size_t treesInEnsemble,
+		const Lab_t regularizationParam);
 
 	~GBDecisionTree();
 
@@ -35,6 +36,7 @@ private:
 	// fields
 	float randWeight;
 	float weightDelta;
+	Lab_t regParam; // regularization parameter
 	size_t* features = nullptr;
 	FVal_t* thresholds = nullptr;
 	Lab_t* leaves = nullptr;

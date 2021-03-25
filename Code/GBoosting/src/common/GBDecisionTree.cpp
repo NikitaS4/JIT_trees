@@ -30,9 +30,11 @@ void GBDecisionTree::initStaticMembers(const float learnRate,
 }
 
 
-GBDecisionTree::GBDecisionTree(size_t treesInEnsemble): 
+GBDecisionTree::GBDecisionTree(const size_t treesInEnsemble,
+	const Lab_t regularizationParam): 
 	randWeight(1.0f),
-	weightDelta(2.0f / float(treesInEnsemble)) {
+	weightDelta(2.0f / float(treesInEnsemble)),
+	regParam(regularizationParam) {
 		// init memory for the buffers
 		features = features = new size_t[treeDepth];
 		thresholds = new FVal_t[innerNodes];
@@ -144,6 +146,7 @@ void GBDecisionTree::growTree(const pytensor2& xTrain,
 	// all internal nodes created
 	Lab_t curSum;
 	size_t curCnt;
+	// each leaf will be multiplied onto learning rate and regLeafUnit
 	for (size_t leaf = 0; leaf < leafCnt; ++leaf) {
 		curSum = 0;
 		curCnt = 0;
@@ -152,7 +155,7 @@ void GBDecisionTree::growTree(const pytensor2& xTrain,
 		}
 		curCnt = subset[innerNodes + leaf].size();
 		if (curCnt != 0)
-			leaves[leaf] = learningRate * curSum / curCnt;  // mean leaf residual
+			leaves[leaf] = learningRate * curSum / (regParam + curCnt);  // mean leaf residual
 	}
 	// remember or compile tree (in case of JIT compilation enabled)
 	treeHolder->newTree(features, thresholds, leaves);

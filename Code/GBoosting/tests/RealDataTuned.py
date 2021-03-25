@@ -23,7 +23,7 @@ def split_options(model_options):
                 'feature_fold_size', 'learning_rate',
                 'early_stopping_delta', 'batch_part',
                 'JIT', 'JITedCodeType', 'random_state',
-                'random_batches']
+                'random_batches', 'regularization_param']
     ctor_options = {}
     fit_options = {}
     for key in model_options.keys():
@@ -197,6 +197,7 @@ def tune_boston(folder, random_state=12):
         'tree_depth': [2, 4, 6],
         'feature_fold_size': [10, 13],
         'learning_rate': [0.2, 0.4],
+        'regularization_param': [0, 0.1, 1, 10],
         'es_delta': [1e-5],
         'batch_part': [0.8, 1],
         'use_jit': [False],
@@ -253,6 +254,7 @@ def tune_diabetes(folder, random_state=12):
         'tree_depth': [2, 4, 6],
         'feature_fold_size': [8, 10],
         'learning_rate': [0.2, 0.4],
+        'regularization_param': [0, 0.1, 1, 10],
         'es_delta': [1e-5],
         'batch_part': [0.8, 1],
         'use_jit': [False],
@@ -310,6 +312,7 @@ def tune_regression_100(folder, random_state=12):
         'tree_depth': [2, 4, 6],
         'feature_fold_size': [80, 100],
         'learning_rate': [0.2, 0.4],
+        'regularization_param': [0, 0.1, 1, 10],
         'es_delta': [1e-5],
         'batch_part': [80, 100],
         'use_jit': [False],
@@ -367,6 +370,7 @@ def tune_regression_200(folder, random_state=12):
         'tree_depth': [2, 4, 6],
         'feature_fold_size': [160, 200],
         'learning_rate': [0.2, 0.4],
+        'regularization_param': [0, 0.1, 1, 10],
         'es_delta': [1e-5],
         'batch_part': [160, 200],
         'use_jit': [False],
@@ -433,6 +437,7 @@ def tune_supercond(folder, random_state=12):
         'tree_depth': [2, 4, 7, 8],
         'feature_fold_size': [81],
         'learning_rate': [0.1, 0.15, 0.2],
+        'regularization_param': [0, 0.1, 1, 10, 100],
         'es_delta': [1e-6],
         'batch_part': [0.6],
         'use_jit': [False],

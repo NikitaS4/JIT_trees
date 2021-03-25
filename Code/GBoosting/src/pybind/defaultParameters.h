@@ -14,4 +14,5 @@ namespace defaultParams {
     const float batchPart = 1.0f;
     const unsigned int randomState = 12;
     const bool randomBatches = false;
+    const Lab_t regParam = 0; // no regularization
 };
