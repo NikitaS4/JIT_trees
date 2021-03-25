@@ -15,7 +15,7 @@ class ModelOptionsHelper:
             "es_delta": 0,
             "use_jit": use_JIT,
             "batch_part": 1,
-            "feature_fold_size": 1,
+            "feature_fold_size": 1.0,
             "random_batches": False
         }
     
@@ -32,7 +32,7 @@ class ModelOptionsHelper:
             "es_delta": 0,
             "use_jit": use_JIT,
             "batch_part": 1,
-            "feature_fold_size": 1,
+            "feature_fold_size": 1.0,
             "random_batches": False
         }
     
@@ -66,7 +66,7 @@ class ModelOptionsHelper:
             "es_delta": 0,
             "use_jit": use_JIT,
             "batch_part": 1,
-            "feature_fold_size": 1,
+            "feature_fold_size": 1.0,
             "random_batches": True
         }
 

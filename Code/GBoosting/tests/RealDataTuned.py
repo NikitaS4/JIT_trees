@@ -18,7 +18,8 @@ import JITtrees
 
 def split_options(model_options):
     # splits model options to the ctor and fit options (for JITtrees model)
-    ctor_keys = ['min_bins', 'max_bins', 'patience']
+    ctor_keys = ['min_bins', 'max_bins', 'patience',
+                 'no_early_stopping']
     fit_keys = ['tree_count', 'tree_depth',
                 'feature_fold_size', 'learning_rate',
                 'early_stopping_delta', 'batch_part',
@@ -192,10 +193,11 @@ def tune_boston(folder, random_state=12):
     JITtrees_grid = {
         'min_bins': [8, 16, 32, 64],
         'max_bins': [256],
+        'no_early_stopping': [False],
         'patience': [4],
         'tree_count': [200, 300],
         'tree_depth': [2, 4, 6],
-        'feature_fold_size': [10, 13],
+        'feature_fold_size': [0.8, 1.0],
         'learning_rate': [0.2, 0.4],
         'regularization_param': [0, 0.1, 1, 10],
         'es_delta': [1e-5],
@@ -249,10 +251,11 @@ def tune_diabetes(folder, random_state=12):
     JITtrees_grid = {
         'min_bins': [8, 16, 32, 64],
         'max_bins': [256],
+        'no_early_stopping': [False],
         'patience': [4],
         'tree_count': [200, 300],
         'tree_depth': [2, 4, 6],
-        'feature_fold_size': [8, 10],
+        'feature_fold_size': [0.8, 1.0],
         'learning_rate': [0.2, 0.4],
         'regularization_param': [0, 0.1, 1, 10],
         'es_delta': [1e-5],
@@ -307,10 +310,11 @@ def tune_regression_100(folder, random_state=12):
     JITtrees_grid = {
         'min_bins': [8, 16, 32, 64],
         'max_bins': [256],
+        'no_early_stopping': [False],
         'patience': [4],
         'tree_count': [200, 300],
         'tree_depth': [2, 4, 6],
-        'feature_fold_size': [80, 100],
+        'feature_fold_size': [0.8, 1.0],
         'learning_rate': [0.2, 0.4],
         'regularization_param': [0, 0.1, 1, 10],
         'es_delta': [1e-5],
@@ -365,10 +369,11 @@ def tune_regression_200(folder, random_state=12):
     JITtrees_grid = {
         'min_bins': [8, 16, 32, 64],
         'max_bins': [256],
+        'no_early_stopping': [False],
         'patience': [4],
         'tree_count': [200, 300],
         'tree_depth': [2, 4, 6],
-        'feature_fold_size': [160, 200],
+        'feature_fold_size': [0.8, 1.0],
         'learning_rate': [0.2, 0.4],
         'regularization_param': [0, 0.1, 1, 10],
         'es_delta': [1e-5],
@@ -432,10 +437,11 @@ def tune_supercond(folder, random_state=12):
     JITtrees_grid = {
         'min_bins': [128, 256],
         'max_bins': [256],
+        'no_early_stopping': [False],
         'patience': [4],
         'tree_count': [500, 600],
         'tree_depth': [2, 4, 7, 8],
-        'feature_fold_size': [81],
+        'feature_fold_size': [1.0],
         'learning_rate': [0.1, 0.15, 0.2],
         'regularization_param': [0, 0.1, 1, 10, 100],
         'es_delta': [1e-6],

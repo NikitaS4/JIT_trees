@@ -16,7 +16,8 @@ class GradientBoosting {
 public:
 	GradientBoosting(const size_t binCountMin,
 					 const size_t binCountMax,
-					 const size_t patience = defaultPatience);
+					 const size_t patience = defaultPatience,
+					 const bool dontUseEarlyStopping = defaultDontUseES);
 	virtual ~GradientBoosting();
 	// 1st dim - object number, 2nd dim - feature number
 	// fit return the number of estimators (include constant estim)
@@ -26,7 +27,7 @@ public:
 				const pytensorY& yValid,
 				const size_t treeCount,
 				const size_t treeDepth,
-				const size_t featureSubsetSize,
+				const float featureSubsetPart,
 				const float learningRate = defaultLR,
 				const Lab_t regularizationParam = defaultReg,
 				const Lab_t earlyStoppingDelta = defaultESDelta,
@@ -85,6 +86,7 @@ protected:
 	//std::vector<GBDecisionTree> trees;
 	pytensorY trainLosses;
 	pytensorY validLosses;
+	bool dontUseEarlyStopping; // switch off early stopping
 	TreeHolder* treeHolder = nullptr;
 
 	// constants
@@ -93,6 +95,7 @@ protected:
 	static constexpr Lab_t defaultESDelta = 0; // for early stopping
 	static constexpr Lab_t defaultReg = 0; // no reg
 	static const unsigned int defaultRandomState;
+	static constexpr bool defaultDontUseES = false; // use early stopping by default
 };
 
 #endif // GBOOSTING_H

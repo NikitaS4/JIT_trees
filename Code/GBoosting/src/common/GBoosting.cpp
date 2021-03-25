@@ -7,6 +7,7 @@
 #include <functional>
 #include <iostream>
 #include <cstdlib>
+#include <cmath>
 
 
 // static members initialization
@@ -14,9 +15,11 @@ const float GradientBoosting::defaultLR = 0.4f;
 const unsigned int GradientBoosting::defaultRandomState = 12;
 
 GradientBoosting::GradientBoosting(const size_t binCountMin,
-	const size_t binCountMax, const size_t patience): featureCount(1), 
+	const size_t binCountMax, const size_t patience,
+	const bool dontUseEarlyStopping): featureCount(1), 
 	trainLen(0), realTreeCount(0), binCountMin(binCountMin),
-	binCountMax(binCountMax), patience(patience), zeroPredictor(0) {
+	binCountMax(binCountMax), patience(patience), zeroPredictor(0),
+	dontUseEarlyStopping(dontUseEarlyStopping) {
 	// ctor
 	if (binCountMax < binCountMin)
 		throw std::runtime_error("Max bin count was less than min bin count");
@@ -34,7 +37,7 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 	const pytensorY& yTrain, 
 	const pytensor2& xValid,
 	const pytensorY& yValid, const size_t treeCount,
-	const size_t treeDepth, const size_t featureSubsetSize,
+	const size_t treeDepth, const float featureSubsetPart,
 	const float learningRate,
 	const Lab_t regularizationParam,
 	const Lab_t earlyStoppingDelta,
@@ -67,8 +70,8 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 		throw std::runtime_error("early stopping delta was negative");
 	if (batchPart < 0 || batchPart > 1)
 		throw std::runtime_error("batch part was out of [0; 1] interval");
-	if (featureSubsetSize <= 0)
-		throw std::runtime_error("feature fold size was less or equal zero");
+	if (featureSubsetPart <= 0 || featureSubsetPart > 1 )
+		throw std::runtime_error("feature fold size was wrong (not in the (0; 1] interval)");
 	if (regularizationParam < 0)
 		throw std::runtime_error("regularization param was less zero (must be greater or equal)");
 
@@ -122,6 +125,7 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 	batchSize = size_t(batchPart * trainLen);
 	std::vector<size_t> subset = getOrderedIndexes(batchSize);
 	// defalt feature subset: all features
+	size_t featureSubsetSize = (size_t)round(featureSubsetPart * float(featureCount));
 	std::vector<size_t> featureSubset(featureSubsetSize, 0);
 	for (size_t i = 0; i < featureSubsetSize; ++i)
 		featureSubset[i] = i;
@@ -171,16 +175,18 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 		validLosses(treeNum + 1) = validLoss;
 
 		// update losses difference
-		stop = canStop(treeNum, earlyStoppingDelta);
-		if (stop) {
-			break;  // stop fit
+		if (!dontUseEarlyStopping) {
+			stop = canStop(treeNum, earlyStoppingDelta);
+			if (stop) {
+				break;  // stop fit
+			}
 		}
 
 		// update historgrams' nets (bin counts)
 		for (auto & curHist : hists)
 			curHist.updateNet();
 	}
-	if (stop) {
+	if (!dontUseEarlyStopping && stop) {
 		// need delete the last overfitted estimators
 		for (size_t i = 0; i < patience; ++i) {
 			treeHolder->popTree();

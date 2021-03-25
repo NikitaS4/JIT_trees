@@ -29,16 +29,18 @@ PYBIND11_MODULE(JITtrees, m) {
         "Get validation losses array");
     
     py::class_<GradientBoosting>(m, "Boosting")
-        .def(py::init<const size_t, const size_t, const size_t>(), 
+        .def(py::init<const size_t, const size_t, const size_t,
+             const bool>(), 
             "Gradient boosting model constructor",
             py::arg("min_bins")=dp::binsMin, 
             py::arg("max_bins")=dp::binsMax,
-            py::arg("patience")=dp::patience)
+            py::arg("patience")=dp::patience,
+            py::arg("no_early_stopping")=dp::noEs)
         .def("fit", &GradientBoosting::fit, "Fit regression model", py::arg("x_train"),
             py::arg("y_train"), py::arg("x_valid"), py::arg("y_valid"),
             py::arg("tree_count")=dp::treeCount, 
             py::arg("tree_depth")=dp::treeDepth,
-            py::arg("feature_fold_size"),
+            py::arg("feature_fold_size")=dp::featureFoldSize,
             py::arg("learning_rate")=dp::learningRate,
             py::arg("regularization_param")=dp::regParam,
             py::arg("early_stopping_delta")=dp::earlyStoppingDelta,
