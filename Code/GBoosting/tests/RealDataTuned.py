@@ -18,7 +18,8 @@ import JITtrees
 
 def split_options(model_options):
     # splits model options to the ctor and fit options (for JITtrees model)
-    ctor_keys = ['min_bins', 'max_bins', 'patience']
+    ctor_keys = ['min_bins', 'max_bins', 'patience',
+                 'no_early_stopping']
     fit_keys = ['tree_count', 'tree_depth',
                 'feature_fold_size', 'learning_rate',
                 'early_stopping_delta', 'batch_part',
@@ -192,6 +193,7 @@ def tune_boston(folder, random_state=12):
     JITtrees_grid = {
         'min_bins': [8, 16, 32, 64],
         'max_bins': [256],
+        'no_early_stopping': [False],
         'patience': [4],
         'tree_count': [200, 300],
         'tree_depth': [2, 4, 6],
@@ -249,6 +251,7 @@ def tune_diabetes(folder, random_state=12):
     JITtrees_grid = {
         'min_bins': [8, 16, 32, 64],
         'max_bins': [256],
+        'no_early_stopping': [False],
         'patience': [4],
         'tree_count': [200, 300],
         'tree_depth': [2, 4, 6],
@@ -307,6 +310,7 @@ def tune_regression_100(folder, random_state=12):
     JITtrees_grid = {
         'min_bins': [8, 16, 32, 64],
         'max_bins': [256],
+        'no_early_stopping': [False],
         'patience': [4],
         'tree_count': [200, 300],
         'tree_depth': [2, 4, 6],
@@ -365,6 +369,7 @@ def tune_regression_200(folder, random_state=12):
     JITtrees_grid = {
         'min_bins': [8, 16, 32, 64],
         'max_bins': [256],
+        'no_early_stopping': [False],
         'patience': [4],
         'tree_count': [200, 300],
         'tree_depth': [2, 4, 6],
@@ -432,6 +437,7 @@ def tune_supercond(folder, random_state=12):
     JITtrees_grid = {
         'min_bins': [128, 256],
         'max_bins': [256],
+        'no_early_stopping': [False],
         'patience': [4],
         'tree_count': [500, 600],
         'tree_depth': [2, 4, 7, 8],
