@@ -34,10 +34,11 @@ class TestHelper:
         # fit model
         def fit_wrapper(JIT_option=model_options['use_jit']):
             model = JITtrees.Boosting(model_options['min_bins'], 
-                model_options['max_bins'], model_options['patience'])
+                model_options['max_bins'], model_options['patience'],
+                False)
             start_time = time.time() # get start time to count the time of execution
             history = model.fit(x_train, y_train, x_valid, y_valid, model_options['tree_count'],
-                model_options['tree_depth'], int(np.ceil(x_train.shape[1] * model_options['feature_fold_size'])), 
+                model_options['tree_depth'], model_options['feature_fold_size'], 
                 model_options['learning_rate'], model_options['reg'], model_options['es_delta'],
                 model_options['batch_part'], model_options['use_jit'], 
                 out_options['jit_type'], model_options['random_batches'])
