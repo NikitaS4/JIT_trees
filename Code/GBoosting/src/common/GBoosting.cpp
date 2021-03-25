@@ -7,6 +7,7 @@
 #include <functional>
 #include <iostream>
 #include <cstdlib>
+#include <cmath>
 
 
 // static members initialization
@@ -124,7 +125,7 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 	batchSize = size_t(batchPart * trainLen);
 	std::vector<size_t> subset = getOrderedIndexes(batchSize);
 	// defalt feature subset: all features
-	size_t featureSubsetSize = size_t(featureSubsetPart * featureCount);
+	size_t featureSubsetSize = (size_t)round(featureSubsetPart * float(featureCount));
 	std::vector<size_t> featureSubset(featureSubsetSize, 0);
 	for (size_t i = 0; i < featureSubsetSize; ++i)
 		featureSubset[i] = i;
