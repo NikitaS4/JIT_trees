@@ -147,7 +147,6 @@ void GBDecisionTree::growTree(const pytensor2& xTrain,
 	Lab_t curSum;
 	size_t curCnt;
 	// each leaf will be multiplied onto learning rate and regLeafUnit
-	Lab_t regLearningRate = learningRate * regLeafUnit;
 	for (size_t leaf = 0; leaf < leafCnt; ++leaf) {
 		curSum = 0;
 		curCnt = 0;
@@ -156,7 +155,7 @@ void GBDecisionTree::growTree(const pytensor2& xTrain,
 		}
 		curCnt = subset[innerNodes + leaf].size();
 		if (curCnt != 0)
-			leaves[leaf] = regLearningRate * curSum / (regParam + curCnt);  // mean leaf residual
+			leaves[leaf] = learningRate * curSum / (regParam + curCnt);  // mean leaf residual
 	}
 	// remember or compile tree (in case of JIT compilation enabled)
 	treeHolder->newTree(features, thresholds, leaves);

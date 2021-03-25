@@ -82,7 +82,7 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 	// Histogram init (compute and remember thresholds)
 	for (size_t featureSlice = 0; featureSlice < featureCount; ++featureSlice)
 		hists.push_back(GBHist(binCountMin, binCountMax, 
-			treeCount, xt::col(xTrain, featureSlice)));
+			treeCount, xt::col(xTrain, featureSlice), regularizationParam));
 	// fit ensemble
 
 	// fit the constant model
