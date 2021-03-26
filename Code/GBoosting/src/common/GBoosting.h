@@ -35,7 +35,8 @@ public:
 				const bool useJIT = false,
 				const int JITedCodeType = int(SW_t::BASIC_FOR),
 				const unsigned int randomState = defaultRandomState,
-				const bool shuffledBatches = false);
+				const bool shuffledBatches = false,
+				const bool randomThresholds = true);
 	Lab_t predict(const pytensor1& xTest) const;
 	pytensorY predict(const pytensor2& xTest) const;
 

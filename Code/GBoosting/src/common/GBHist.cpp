@@ -7,10 +7,11 @@
 
 GBHist::GBHist(const size_t binCountMin, const size_t binCountMax, 
 	const size_t treesInEnsemble, const pytensor1& xFeature,
-	const Lab_t regularizationParam): 
+	const Lab_t regularizationParam, const bool randThreshold): 
 	binCount(binCountMin), binCountMin(binCountMin), 
 	binCountMax(binCountMax), itersGone(0),
-	regularizationParam(regularizationParam) {
+	regularizationParam(regularizationParam),
+	randThreshold(randThreshold) {
 	size_t n = xFeature.shape(0); // data size
 	featureMin = xFeature(0); // at start
 	featureMax = featureMin;
@@ -141,8 +142,14 @@ Lab_t GBHist::findBestSplit(const pytensor1& xData,
 		// get random threshold from the interval <a, b>, where
 		// a - it the left border of the left bucket and
 		// b - the right border of the right bucket
-		threshold = randomFromInterval(thresholds[bestBinNumber - 1],
-			thresholds[bestBinNumber + 1]);
+		if (randThreshold) {
+			// random threshold
+			threshold = randomFromInterval(thresholds[bestBinNumber - 1],
+				thresholds[bestBinNumber + 1]);
+		} else {
+			// deterministic threshold
+			threshold = thresholds[bestBinNumber];
+		}
 	} else
 		// it's the leftmost or the rightmost bucket
 		threshold = thresholds[bestBinNumber];

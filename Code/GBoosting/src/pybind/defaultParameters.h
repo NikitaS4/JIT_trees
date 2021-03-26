@@ -17,4 +17,5 @@ namespace defaultParams {
     const Lab_t regParam = 0; // no regularization
     const bool noEs = false; // use early stopping by default
     const float featureFoldSize = 1.0f; // use all features
+    const bool randThresholds = true;
 };

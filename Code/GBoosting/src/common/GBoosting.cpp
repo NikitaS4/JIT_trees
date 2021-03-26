@@ -45,7 +45,8 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 	const bool useJIT,
 	const int JITedCodeType,
 	const unsigned int randomState,
-	const bool shuffledBatches) {
+	const bool shuffledBatches,
+	const bool randomThresholds) {
 	// Set random seed
 	std::srand(randomState);
 	// Prepare data	
@@ -85,7 +86,8 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 	// Histogram init (compute and remember thresholds)
 	for (size_t featureSlice = 0; featureSlice < featureCount; ++featureSlice)
 		hists.push_back(GBHist(binCountMin, binCountMax, 
-			treeCount, xt::col(xTrain, featureSlice), regularizationParam));
+			treeCount, xt::col(xTrain, featureSlice), 
+			regularizationParam, randomThresholds));
 	// fit ensemble
 
 	// fit the constant model
