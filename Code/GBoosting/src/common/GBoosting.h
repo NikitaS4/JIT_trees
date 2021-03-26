@@ -36,7 +36,8 @@ public:
 				const int JITedCodeType = int(SW_t::BASIC_FOR),
 				const unsigned int randomState = defaultRandomState,
 				const bool shuffledBatches = false,
-				const bool randomThresholds = true);
+				const bool randomThresholds = true,
+				const bool removeRegularizationLater = false);
 	Lab_t predict(const pytensor1& xTest) const;
 	pytensorY predict(const pytensor2& xTest) const;
 
@@ -97,6 +98,8 @@ protected:
 	static constexpr Lab_t defaultReg = 0; // no reg
 	static const unsigned int defaultRandomState;
 	static constexpr bool defaultDontUseES = false; // use early stopping by default
+
+	static constexpr float whenRemoveRegularization = 0.8f; // the part of iterations with regularization
 };
 
 #endif // GBOOSTING_H

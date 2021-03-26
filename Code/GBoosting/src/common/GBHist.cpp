@@ -222,3 +222,8 @@ void GBHist::updateNet() {
 		updateThresholds();
 	}
 }
+
+
+void GBHist::removeRegularization() {
+	regularizationParam = 0;
+}

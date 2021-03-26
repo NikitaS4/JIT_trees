@@ -46,7 +46,8 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 	const int JITedCodeType,
 	const unsigned int randomState,
 	const bool shuffledBatches,
-	const bool randomThresholds) {
+	const bool randomThresholds,
+	const bool removeRegularizationLater) {
 	// Set random seed
 	std::srand(randomState);
 	// Prepare data	
@@ -138,7 +139,18 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 
 	initForRandomBatches(randomState);
 
+	// calculate when remove regularization
+	const size_t regularizationKillIter = (size_t)round(float(treeCount) * whenRemoveRegularization);
+
 	for (size_t treeNum = 0; treeNum < treeCount && !stop; ++treeNum) {
+		if (removeRegularizationLater && regularizationKillIter == treeNum) {
+			// this is the epoch when regularization will be removed
+			treeFitter.removeRegularization();
+			for (auto & curHist : hists) {
+				curHist.removeRegularization();
+			}
+		}
+		
 		// take the next batch (updates subset)
 		if (shuffledBatches)
 			// get the next fold

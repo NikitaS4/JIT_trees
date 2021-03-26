@@ -28,6 +28,8 @@ public:
 		const std::vector<size_t>& featureSubset,
 		TreeHolder* treeHolder);
 
+	void removeRegularization();
+
 private:
 	// tree with depth 1 is node with 2 children
 	// leaves = 2 ** height
