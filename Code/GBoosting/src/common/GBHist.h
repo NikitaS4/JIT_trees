@@ -20,6 +20,7 @@ public:
 	const std::vector<size_t>& subset, const FVal_t threshold, 
 	std::vector<size_t>& rightSubset) const;
 	void updateNet(); // add 1 bin each M iterations
+	void removeRegularization();
 private:
 	size_t binCount;
 	size_t binCountMin;

@@ -49,7 +49,8 @@ PYBIND11_MODULE(JITtrees, m) {
             py::arg("JITedCodeType")=dp::JITedCodeType,
             py::arg("random_state")=dp::randomState,
             py::arg("random_batches")=dp::randomBatches,
-            py::arg("random_hist_thresholds")=dp::randThresholds)
+            py::arg("random_hist_thresholds")=dp::randThresholds,
+            py::arg("remove_regularization_later")=dp::removeReg)
         .def("predict", static_cast<Lab_t (GradientBoosting::*)(const pytensor1&)const>(&GradientBoosting::predict), "Predict labels for a single sample",
             py::arg("x_test"))
         .def("predict", static_cast<pytensorY (GradientBoosting::*)(const pytensor2&)const>(&GradientBoosting::predict), "Predict labels for batch",

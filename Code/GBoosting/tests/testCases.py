@@ -17,7 +17,8 @@ class ModelOptionsHelper:
             "batch_part": 1,
             "feature_fold_size": 1.0,
             "random_batches": False,
-            "random_hist_thresholds": False
+            "random_hist_thresholds": False,
+            "remove_regularization_later": False
         }
     
     @staticmethod
@@ -35,7 +36,8 @@ class ModelOptionsHelper:
             "batch_part": 1,
             "feature_fold_size": 1.0,
             "random_batches": False,
-            "random_hist_thresholds": False
+            "random_hist_thresholds": False,
+            "remove_regularization_later": False
         }
     
     @staticmethod
@@ -53,7 +55,8 @@ class ModelOptionsHelper:
             "batch_part": 0.7,
             "feature_fold_size": 0.6,
             "random_batches": True,
-            "random_hist_thresholds": True
+            "random_hist_thresholds": True,
+            "remove_regularization_later": True
         }
     
     @staticmethod
@@ -71,7 +74,8 @@ class ModelOptionsHelper:
             "batch_part": 1,
             "feature_fold_size": 1.0,
             "random_batches": True,
-            "random_hist_thresholds": True
+            "random_hist_thresholds": True,
+            "remove_regularization_later": False
         }
 
 

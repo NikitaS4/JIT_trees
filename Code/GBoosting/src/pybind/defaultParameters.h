@@ -18,4 +18,5 @@ namespace defaultParams {
     const bool noEs = false; // use early stopping by default
     const float featureFoldSize = 1.0f; // use all features
     const bool randThresholds = true;
+    const bool removeReg = false;
 };

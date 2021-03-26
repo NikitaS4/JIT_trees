@@ -165,6 +165,11 @@ void GBDecisionTree::growTree(const pytensor2& xTrain,
 }
 
 
+void GBDecisionTree::removeRegularization() {
+	regParam = 0;
+}
+
+
 FVal_t GBDecisionTree::getSpoiledScore(const FVal_t splitScore) const {
 	// generate random value in [0; 1)
 	float noise = float(std::rand()) / (float(1) + RAND_MAX);
