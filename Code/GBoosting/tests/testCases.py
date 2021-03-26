@@ -16,7 +16,8 @@ class ModelOptionsHelper:
             "use_jit": use_JIT,
             "batch_part": 1,
             "feature_fold_size": 1.0,
-            "random_batches": False
+            "random_batches": False,
+            "random_hist_thresholds": False
         }
     
     @staticmethod
@@ -33,7 +34,8 @@ class ModelOptionsHelper:
             "use_jit": use_JIT,
             "batch_part": 1,
             "feature_fold_size": 1.0,
-            "random_batches": False
+            "random_batches": False,
+            "random_hist_thresholds": False
         }
     
     @staticmethod
@@ -50,7 +52,8 @@ class ModelOptionsHelper:
             "use_jit": use_JIT,
             "batch_part": 0.7,
             "feature_fold_size": 0.6,
-            "random_batches": True
+            "random_batches": True,
+            "random_hist_thresholds": True
         }
     
     @staticmethod
@@ -67,7 +70,8 @@ class ModelOptionsHelper:
             "use_jit": use_JIT,
             "batch_part": 1,
             "feature_fold_size": 1.0,
-            "random_batches": True
+            "random_batches": True,
+            "random_hist_thresholds": True
         }
 
 
