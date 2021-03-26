@@ -42,7 +42,7 @@ class TestHelper:
                 model_options['learning_rate'], model_options['reg'], model_options['es_delta'],
                 model_options['batch_part'], model_options['use_jit'], 
                 out_options['jit_type'], model_options['random_batches'],
-                model_options['random_hist_thresholds'])
+                model_options['random_hist_thresholds'], model_options['remove_regularization_later'])
             exec_time = time.time() - start_time
             if out_options['verbose'] >= 1:
                 print("Fit time (" + ("JIT" if JIT_option else "no JIT") + f") = {exec_time} seconds")
