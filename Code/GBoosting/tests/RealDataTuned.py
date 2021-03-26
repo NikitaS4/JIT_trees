@@ -24,7 +24,8 @@ def split_options(model_options):
                 'feature_fold_size', 'learning_rate',
                 'early_stopping_delta', 'batch_part',
                 'JIT', 'JITedCodeType', 'random_state',
-                'random_batches', 'regularization_param']
+                'random_batches', 'regularization_param',
+                'random_hist_thresholds']
     ctor_options = {}
     fit_options = {}
     for key in model_options.keys():
@@ -204,7 +205,8 @@ def tune_boston(folder, random_state=12):
         'batch_part': [0.8, 1],
         'use_jit': [False],
         'jit_type': [0],
-        'random_batches': [True]
+        'random_batches': [True],
+        'random_hist_thresholds': [True]
     }
     jt_prot, best_params = tune_JIT_trees(x_tr_val, y_tr_val, JITtrees_grid, random_state)
     df_res["MAE"].append(JITtrees_tuned_mae(x_tr_val, y_tr_val, x_test, y_test, best_params))
@@ -262,7 +264,8 @@ def tune_diabetes(folder, random_state=12):
         'batch_part': [0.8, 1],
         'use_jit': [False],
         'jit_type': [0],
-        'random_batches': [True]
+        'random_batches': [True],
+        'random_hist_thresholds': [True]
     }
     jt_prot, best_params = tune_JIT_trees(x_tr_val, y_tr_val, JITtrees_grid, random_state)
     df_res["MAE"].append(JITtrees_tuned_mae(x_tr_val, y_tr_val, x_test, y_test, best_params))
@@ -321,7 +324,8 @@ def tune_regression_100(folder, random_state=12):
         'batch_part': [80, 100],
         'use_jit': [False],
         'jit_type': [0],
-        'random_batches': [True]
+        'random_batches': [True],
+        'random_hist_thresholds': [True]
     }
     jt_prot, best_params = tune_JIT_trees(x_tr_val, y_tr_val, JITtrees_grid, random_state)
     df_res["MAE"].append(JITtrees_tuned_mae(x_tr_val, y_tr_val, x_test, y_test, best_params))
@@ -380,7 +384,8 @@ def tune_regression_200(folder, random_state=12):
         'batch_part': [160, 200],
         'use_jit': [False],
         'jit_type': [0],
-        'random_batches': [True]
+        'random_batches': [True],
+        'random_hist_thresholds': [True]
     }
     jt_prot, best_params = tune_JIT_trees(x_tr_val, y_tr_val, JITtrees_grid, random_state)
     df_res["MAE"].append(JITtrees_tuned_mae(x_tr_val, y_tr_val, x_test, y_test, best_params))
@@ -448,7 +453,8 @@ def tune_supercond(folder, random_state=12):
         'batch_part': [0.6],
         'use_jit': [False],
         'jit_type': [0],
-        'random_batches': [True]
+        'random_batches': [True],
+        'random_hist_thresholds': [True]
     }
     jt_prot, best_params = tune_JIT_trees(x_tr_val, y_tr_val, JITtrees_grid, random_state)
     df_res["MAE"].append(JITtrees_tuned_mae(x_tr_val, y_tr_val, x_test, y_test, best_params))
