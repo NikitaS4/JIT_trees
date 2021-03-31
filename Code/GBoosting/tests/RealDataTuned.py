@@ -133,16 +133,18 @@ def JITtrees_tuned_mae(x_tr_val, y_tr_val, x_test, y_test, best_params):
     history = model.fit(x_train=x_tr_val, y_train=y_tr_val,
         x_valid=x_test, y_valid=y_test, **fit_options)
     preds = model.predict(x_test)
-    mae = mae_score(y_test, preds)
-    return mae
+    mae_array = mae_score(y_test, preds, multioutput='raw_values')
+    return np.mean(mae_array), np.std(mae_array)
 
 
 def Sklearn_tuned_mae(model, x_test, y_test):
-    return mae_score(y_test, model.predict(x_test))
+    mae_array = mae_score(y_test, model.predict(x_test))
+    return np.mean(mae_array), np.std(mae_array)
 
 
 def CatBoost_tuned_mae(model, x_test, y_test):
-    return mae_score(y_test, model.predict(x_test))
+    mae_array = mae_score(y_test, model.predict(x_test))
+    return np.np.mean(mae_array), np.std(mae_array)
 
 
 def save_res(folder, res_name, prot_name, df_res, df_prot):
@@ -164,7 +166,8 @@ def tune_boston(folder, random_state=12):
     
     # dict to form the data frame later
     df_res = {"Models": ["CatBoost", "Sklearn", "JITtrees"],
-              "MAE": []}
+              "MAE": [],
+              "std": []}
 
     # fit models
     # CatBoost
@@ -177,7 +180,9 @@ def tune_boston(folder, random_state=12):
         "feature_border_type": ["GreedyLogSum"]
     }
     _, model = tune_CatBoost(x_tr_val, y_tr_val, CatBoost_grid, random_state)
-    df_res["MAE"].append(CatBoost_tuned_mae(model, x_test, y_test))
+    cb_mae, cb_sd = CatBoost_tuned_mae(model, x_test, y_test)
+    df_res["MAE"].append(cb_mae)
+    df_res["std"].append(cb_sd)
 
     # Sklearn
     print(f"Tune Sklearn model")
@@ -187,7 +192,9 @@ def tune_boston(folder, random_state=12):
         'max_depth': [2, 4, 6]
     }
     _, model = tune_Sklearn(x_tr_val, y_tr_val, Sklearn_grid)
-    df_res["MAE"].append(Sklearn_tuned_mae(model, x_test, y_test))
+    sk_mae, sk_sd = Sklearn_tuned_mae(model, x_test, y_test)
+    df_res["MAE"].append(sk_mae)
+    df_res["std"].append(sk_sd)
 
     # JITtrees
     print(f"Tune JITtrees model")
@@ -210,7 +217,9 @@ def tune_boston(folder, random_state=12):
         'remove_regularization_later': [False, True]
     }
     jt_prot, best_params = tune_JIT_trees(x_tr_val, y_tr_val, JITtrees_grid, random_state)
-    df_res["MAE"].append(JITtrees_tuned_mae(x_tr_val, y_tr_val, x_test, y_test, best_params))
+    jt_mae, jt_sd = JITtrees_tuned_mae(x_tr_val, y_tr_val, x_test, y_test, best_params)
+    df_res["MAE"].append(jt_mae)
+    df_res["MAE"].append(jt_sd)
 
     # save results
     save_res(folder, 'boston.csv', 'boston_prot.csv', df_res, jt_prot)
@@ -224,7 +233,8 @@ def tune_diabetes(folder, random_state=12):
     
     # dict to form the data frame later
     df_res = {"Models": ["CatBoost", "Sklearn", "JITtrees"],
-              "MAE": []}
+              "MAE": [],
+              "std": []}
 
     # fit models
     # CatBoost
@@ -237,7 +247,9 @@ def tune_diabetes(folder, random_state=12):
         "feature_border_type": ["GreedyLogSum"]
     }
     _, model = tune_CatBoost(x_tr_val, y_tr_val, CatBoost_grid, random_state)
-    df_res["MAE"].append(CatBoost_tuned_mae(model, x_test, y_test))
+    cb_mae, cb_sd = CatBoost_tuned_mae(model, x_test, y_test)
+    df_res["MAE"].append(cb_mae)
+    df_res["std"].append(cb_sd)
 
     # Sklearn
     print(f"Tune Sklearn model")
@@ -247,7 +259,9 @@ def tune_diabetes(folder, random_state=12):
         'max_depth': [2, 4, 6]
     }
     _, model = tune_Sklearn(x_tr_val, y_tr_val, Sklearn_grid)
-    df_res["MAE"].append(Sklearn_tuned_mae(model, x_test, y_test))
+    sk_mae, sk_sd = Sklearn_tuned_mae(model, x_test, y_test)
+    df_res["MAE"].append(sk_mae)
+    df_res["std"].append(sk_sd)
 
     # JITtrees
     print(f"Tune JITtrees model")
@@ -270,7 +284,9 @@ def tune_diabetes(folder, random_state=12):
         'remove_regularization_later': [False, True]
     }
     jt_prot, best_params = tune_JIT_trees(x_tr_val, y_tr_val, JITtrees_grid, random_state)
-    df_res["MAE"].append(JITtrees_tuned_mae(x_tr_val, y_tr_val, x_test, y_test, best_params))
+    jt_mae, jt_sd = JITtrees_tuned_mae(x_tr_val, y_tr_val, x_test, y_test, best_params)
+    df_res["MAE"].append(jt_mae)
+    df_res["MAE"].append(jt_sd)
 
     # save results
     save_res(folder, 'diabetes.csv', 'diabetes_prot.csv', df_res, jt_prot)
@@ -285,7 +301,8 @@ def tune_regression_100(folder, random_state=12):
     
     # dict to form the data frame later
     df_res = {"Models": ["CatBoost", "Sklearn", "JITtrees"],
-              "MAE": []}
+              "MAE": [],
+              "std": []}
 
     # fit models
     # CatBoost
@@ -298,7 +315,9 @@ def tune_regression_100(folder, random_state=12):
         "feature_border_type": ["GreedyLogSum"]
     }
     _, model = tune_CatBoost(x_tr_val, y_tr_val, CatBoost_grid, random_state)
-    df_res["MAE"].append(CatBoost_tuned_mae(model, x_test, y_test))
+    cb_mae, cb_sd = CatBoost_tuned_mae(model, x_test, y_test)
+    df_res["MAE"].append(cb_mae)
+    df_res["std"].append(cb_sd)
 
     # Sklearn
     print(f"Tune Sklearn model")
@@ -308,7 +327,9 @@ def tune_regression_100(folder, random_state=12):
         'max_depth': [2, 4, 6]
     }
     _, model = tune_Sklearn(x_tr_val, y_tr_val, Sklearn_grid)
-    df_res["MAE"].append(Sklearn_tuned_mae(model, x_test, y_test))
+    sk_mae, sk_sd = Sklearn_tuned_mae(model, x_test, y_test)
+    df_res["MAE"].append(sk_mae)
+    df_res["std"].append(sk_sd)
 
     # JITtrees
     print(f"Tune JITtrees model")
@@ -331,7 +352,9 @@ def tune_regression_100(folder, random_state=12):
         'remove_regularization_later': [False, True]
     }
     jt_prot, best_params = tune_JIT_trees(x_tr_val, y_tr_val, JITtrees_grid, random_state)
-    df_res["MAE"].append(JITtrees_tuned_mae(x_tr_val, y_tr_val, x_test, y_test, best_params))
+    jt_mae, jt_sd = JITtrees_tuned_mae(x_tr_val, y_tr_val, x_test, y_test, best_params)
+    df_res["MAE"].append(jt_mae)
+    df_res["MAE"].append(jt_sd)
 
     # save results
     save_res(folder, 'regr_100.csv', 'regr_100_prot.csv', df_res, jt_prot)
@@ -346,7 +369,8 @@ def tune_regression_200(folder, random_state=12):
     
     # dict to form the data frame later
     df_res = {"Models": ["CatBoost", "Sklearn", "JITtrees"],
-              "MAE": []}
+              "MAE": [],
+              "std": []}
 
     # fit models
     # CatBoost
@@ -359,7 +383,9 @@ def tune_regression_200(folder, random_state=12):
         "feature_border_type": ["GreedyLogSum"]
     }
     _, model = tune_CatBoost(x_tr_val, y_tr_val, CatBoost_grid, random_state)
-    df_res["MAE"].append(CatBoost_tuned_mae(model, x_test, y_test))
+    cb_mae, cb_sd = CatBoost_tuned_mae(model, x_test, y_test)
+    df_res["MAE"].append(cb_mae)
+    df_res["std"].append(cb_sd)
 
     # Sklearn
     print(f"Tune Sklearn model")
@@ -369,7 +395,9 @@ def tune_regression_200(folder, random_state=12):
         'max_depth': [2, 4, 6]
     }
     _, model = tune_Sklearn(x_tr_val, y_tr_val, Sklearn_grid)
-    df_res["MAE"].append(Sklearn_tuned_mae(model, x_test, y_test))
+    sk_mae, sk_sd = Sklearn_tuned_mae(model, x_test, y_test)
+    df_res["MAE"].append(sk_mae)
+    df_res["std"].append(sk_sd)
 
     # JITtrees
     print(f"Tune JITtrees model")
@@ -392,7 +420,9 @@ def tune_regression_200(folder, random_state=12):
         'remove_regularization_later': [False, True]
     }
     jt_prot, best_params = tune_JIT_trees(x_tr_val, y_tr_val, JITtrees_grid, random_state)
-    df_res["MAE"].append(JITtrees_tuned_mae(x_tr_val, y_tr_val, x_test, y_test, best_params))
+    jt_mae, jt_sd = JITtrees_tuned_mae(x_tr_val, y_tr_val, x_test, y_test, best_params)
+    df_res["MAE"].append(jt_mae)
+    df_res["MAE"].append(jt_sd)
 
     # save results
     save_res(folder, 'regr_200.csv', 'regr_200_prot.csv', df_res, jt_prot)
@@ -416,7 +446,8 @@ def tune_supercond(folder, random_state=12):
     
     # dict to form the data frame later
     df_res = {"Models": ["CatBoost", "Sklearn", "JITtrees"],
-              "MAE": []}
+              "MAE": [],
+              "std": []}
 
     # fit models
     # CatBoost
@@ -429,7 +460,9 @@ def tune_supercond(folder, random_state=12):
         "feature_border_type": ["GreedyLogSum"]
     }
     _, model = tune_CatBoost(x_tr_val, y_tr_val, CatBoost_grid, random_state)
-    df_res["MAE"].append(CatBoost_tuned_mae(model, x_test, y_test))
+    cb_mae, cb_sd = CatBoost_tuned_mae(model, x_test, y_test)
+    df_res["MAE"].append(cb_mae)
+    df_res["std"].append(cb_sd)
 
     # Sklearn
     print(f"Tune Sklearn model")
@@ -439,7 +472,9 @@ def tune_supercond(folder, random_state=12):
         'max_depth': [2, 4, 7, 8]
     }
     _, model = tune_Sklearn(x_tr_val, y_tr_val, Sklearn_grid)
-    df_res["MAE"].append(Sklearn_tuned_mae(model, x_test, y_test))
+    sk_mae, sk_sd = Sklearn_tuned_mae(model, x_test, y_test)
+    df_res["MAE"].append(sk_mae)
+    df_res["std"].append(sk_sd)
 
     # JITtrees
     print(f"Tune JITtrees model")
@@ -462,7 +497,9 @@ def tune_supercond(folder, random_state=12):
         'remove_regularization_later': [False, True]
     }
     jt_prot, best_params = tune_JIT_trees(x_tr_val, y_tr_val, JITtrees_grid, random_state)
-    df_res["MAE"].append(JITtrees_tuned_mae(x_tr_val, y_tr_val, x_test, y_test, best_params))
+    jt_mae, jt_sd = JITtrees_tuned_mae(x_tr_val, y_tr_val, x_test, y_test, best_params)
+    df_res["MAE"].append(jt_mae)
+    df_res["MAE"].append(jt_sd)
 
     # save results
     save_res(folder, 'supercond.csv', 'supercond_prot.csv', df_res, jt_prot)
