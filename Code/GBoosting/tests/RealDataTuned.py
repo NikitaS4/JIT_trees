@@ -133,18 +133,18 @@ def JITtrees_tuned_mae(x_tr_val, y_tr_val, x_test, y_test, best_params):
     history = model.fit(x_train=x_tr_val, y_train=y_tr_val,
         x_valid=x_test, y_valid=y_test, **fit_options)
     preds = model.predict(x_test)
-    mae_array = mae_score(y_test, preds, multioutput='raw_values')
-    return np.mean(mae_array), np.std(mae_array)
+    mae = mae_score(y_test, preds)
+    return mae, np.std(np.abs(preds - y_test))
 
 
 def Sklearn_tuned_mae(model, x_test, y_test):
-    mae_array = mae_score(y_test, model.predict(x_test), multioutput='raw_values')
-    return np.mean(mae_array), np.std(mae_array)
+    mae = mae_score(y_test, model.predict(x_test))
+    return mae, np.std(np.abs(preds - y_test))
 
 
 def CatBoost_tuned_mae(model, x_test, y_test):
-    mae_array = mae_score(y_test, model.predict(x_test), multioutput='raw_values')
-    return np.mean(mae_array), np.std(mae_array)
+    mae = mae_score(y_test, model.predict(x_test))
+    return mae, np.std(np.abs(preds - y_test))
 
 
 def save_res(folder, res_name, prot_name, df_res, df_prot):
