@@ -144,7 +144,7 @@ def Sklearn_tuned_mae(model, x_test, y_test):
 
 def CatBoost_tuned_mae(model, x_test, y_test):
     mae_array = mae_score(y_test, model.predict(x_test))
-    return np.np.mean(mae_array), np.std(mae_array)
+    return np.mean(mae_array), np.std(mae_array)
 
 
 def save_res(folder, res_name, prot_name, df_res, df_prot):
@@ -219,7 +219,7 @@ def tune_boston(folder, random_state=12):
     jt_prot, best_params = tune_JIT_trees(x_tr_val, y_tr_val, JITtrees_grid, random_state)
     jt_mae, jt_sd = JITtrees_tuned_mae(x_tr_val, y_tr_val, x_test, y_test, best_params)
     df_res["MAE"].append(jt_mae)
-    df_res["MAE"].append(jt_sd)
+    df_res["std"].append(jt_sd)
 
     # save results
     save_res(folder, 'boston.csv', 'boston_prot.csv', df_res, jt_prot)
@@ -286,7 +286,7 @@ def tune_diabetes(folder, random_state=12):
     jt_prot, best_params = tune_JIT_trees(x_tr_val, y_tr_val, JITtrees_grid, random_state)
     jt_mae, jt_sd = JITtrees_tuned_mae(x_tr_val, y_tr_val, x_test, y_test, best_params)
     df_res["MAE"].append(jt_mae)
-    df_res["MAE"].append(jt_sd)
+    df_res["std"].append(jt_sd)
 
     # save results
     save_res(folder, 'diabetes.csv', 'diabetes_prot.csv', df_res, jt_prot)
@@ -354,7 +354,7 @@ def tune_regression_100(folder, random_state=12):
     jt_prot, best_params = tune_JIT_trees(x_tr_val, y_tr_val, JITtrees_grid, random_state)
     jt_mae, jt_sd = JITtrees_tuned_mae(x_tr_val, y_tr_val, x_test, y_test, best_params)
     df_res["MAE"].append(jt_mae)
-    df_res["MAE"].append(jt_sd)
+    df_res["std"].append(jt_sd)
 
     # save results
     save_res(folder, 'regr_100.csv', 'regr_100_prot.csv', df_res, jt_prot)
@@ -422,7 +422,7 @@ def tune_regression_200(folder, random_state=12):
     jt_prot, best_params = tune_JIT_trees(x_tr_val, y_tr_val, JITtrees_grid, random_state)
     jt_mae, jt_sd = JITtrees_tuned_mae(x_tr_val, y_tr_val, x_test, y_test, best_params)
     df_res["MAE"].append(jt_mae)
-    df_res["MAE"].append(jt_sd)
+    df_res["std"].append(jt_sd)
 
     # save results
     save_res(folder, 'regr_200.csv', 'regr_200_prot.csv', df_res, jt_prot)
@@ -499,7 +499,7 @@ def tune_supercond(folder, random_state=12):
     jt_prot, best_params = tune_JIT_trees(x_tr_val, y_tr_val, JITtrees_grid, random_state)
     jt_mae, jt_sd = JITtrees_tuned_mae(x_tr_val, y_tr_val, x_test, y_test, best_params)
     df_res["MAE"].append(jt_mae)
-    df_res["MAE"].append(jt_sd)
+    df_res["std"].append(jt_sd)
 
     # save results
     save_res(folder, 'supercond.csv', 'supercond_prot.csv', df_res, jt_prot)
