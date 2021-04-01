@@ -24,8 +24,8 @@ public:
 	void growTree(const pytensor2& xTrain,
 		const std::vector<size_t>& chosen, 
 		const pytensorY& yTrain,
-		const std::vector<GBHist>& hists,
 		const std::vector<size_t>& featureSubset,
+		std::vector<GBHist>& hists,
 		TreeHolder* treeHolder);
 
 	void removeRegularization();
@@ -39,12 +39,15 @@ private:
 	float randWeight;
 	float weightDelta;
 	Lab_t regParam; // regularization parameter
+	std::vector<FVal_t> curThreshold;
+	std::vector<FVal_t> bestThreshold;
 	size_t* features = nullptr;
 	FVal_t* thresholds = nullptr;
 	Lab_t* leaves = nullptr;
 
 	// methods
 	inline FVal_t getSpoiledScore(const FVal_t splitScore) const;
+	inline void cpyThresholds(); // copy curThreshold to the bestThreshold
 
 	// static
 	static size_t featureCount;

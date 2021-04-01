@@ -39,6 +39,9 @@ GBDecisionTree::GBDecisionTree(const size_t treesInEnsemble,
 		features = features = new size_t[treeDepth];
 		thresholds = new FVal_t[innerNodes];
 		leaves = new Lab_t[leafCnt];
+		// allocate memory for the thresholds array
+		curThreshold = std::vector<FVal_t>(leafCnt, 0);
+		bestThreshold = std::vector<FVal_t>(leafCnt, 0);
 }
 
 
@@ -62,8 +65,8 @@ GBDecisionTree::~GBDecisionTree() {
 void GBDecisionTree::growTree(const pytensor2& xTrain,
 	const std::vector<size_t>& chosen, 
 	const pytensorY& yTrain,
-	const std::vector<GBHist>& hists,
 	const std::vector<size_t>& featureSubset,
+	std::vector<GBHist>& hists,
 	TreeHolder* treeHolder) {
 	if (!depthAssigned)
 		throw std::runtime_error("Tree depth was not assigned");
@@ -81,11 +84,9 @@ void GBDecisionTree::growTree(const pytensor2& xTrain,
 	size_t featureSubCount = featureSubset.size();
 
 	size_t broCount = 1;
-	std::vector<FVal_t> bestThreshold;
 	Lab_t bestScore;
 	bool firstSplitFound = false;
 	Lab_t curScore;
-	std::vector<FVal_t> curThreshold(leafCnt, 0);
 	FVal_t atomicThreshold;
 	size_t bestFeature = 0;
 	for (size_t h = 0; h < treeDepth; ++h) {
@@ -110,7 +111,7 @@ void GBDecisionTree::growTree(const pytensor2& xTrain,
 			curScore = getSpoiledScore(curScore);
 			if (!firstSplitFound || curScore < bestScore) {
 				bestScore = curScore;
-				bestThreshold = curThreshold;
+				cpyThresholds(); // bestThreshold = curThreshold
 				bestFeature = feature;
 				firstSplitFound = true;
 			}
@@ -176,4 +177,12 @@ FVal_t GBDecisionTree::getSpoiledScore(const FVal_t splitScore) const {
 	// rescale
 	noise *= scoreInRandNoiseMult * splitScore * randWeight;
 	return splitScore + noise;
+}
+
+
+void GBDecisionTree::cpyThresholds() {
+	// copy curThreshold to the bestThreshold
+	for (size_t i = 0; i < leafCnt; ++i) {
+		bestThreshold[i] = curThreshold[i];
+	}
 }

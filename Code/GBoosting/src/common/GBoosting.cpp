@@ -162,8 +162,8 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 		nextFeatureSubset(featureSubsetSize, featureCount,
 			featureSubset);
 		// grow & compile tree
-		treeFitter.growTree(xTrain, subset, residuals, hists, featureSubset,
-			treeHolder);
+		treeFitter.growTree(xTrain, subset, residuals, featureSubset,
+			hists, treeHolder);
 		// update residuals
 		for (size_t sample = 0; sample < trainLen; ++sample) {
 			Lab_t prediction = treeHolder->predictTree(xt::row(xTrain, sample), 

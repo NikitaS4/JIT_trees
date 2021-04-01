@@ -15,7 +15,7 @@ public:
 	size_t getBinCount() const;
 	Lab_t findBestSplit(const pytensor1& xData,
 		const std::vector<size_t>& subset, 
-		const pytensorY& labels, FVal_t& threshold) const;
+		const pytensorY& labels, FVal_t& threshold);
 	std::vector<size_t> performSplit(const pytensor1& xData,
 	const std::vector<size_t>& subset, const FVal_t threshold, 
 	std::vector<size_t>& rightSubset) const;
@@ -34,6 +34,8 @@ private:
 	Lab_t regularizationParam;
 	bool randThreshold;
 	std::vector<FVal_t> thresholds;
+	std::vector<Lab_t> binValue;
+	std::vector<size_t> binSize;
 
 	// functions
 	static inline Lab_t square(const Lab_t arg);
@@ -41,6 +43,7 @@ private:
 		const FVal_t to);
 	inline size_t whichBin(const FVal_t& sample) const;
 	inline void updateThresholds();
+	inline void fillArraysWithNulls();
 };
 
 #endif // GBHIST_H
