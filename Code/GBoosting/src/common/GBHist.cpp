@@ -48,6 +48,10 @@ GBHist::GBHist(const size_t binCountMin, const size_t binCountMax,
 		itersToUpdate = size_t(itersPerBinIncrement);
 	}
 	itersToStopUpdate = binDiff * (binCountMax - binCountMin) / itersToUpdate;
+	
+	// init helper arrays to find the optimal splits
+	binValue = std::vector<Lab_t>(binCount, 0);
+	binSize = std::vector<size_t>(binCount, 0);
 }
 
 
@@ -58,12 +62,11 @@ size_t GBHist::getBinCount() const {
 
 Lab_t GBHist::findBestSplit(const pytensor1& xData,
 	const std::vector<size_t>& subset, 
-	const pytensorY& labels, FVal_t& threshold) const {
+	const pytensorY& labels, FVal_t& threshold) {
 	size_t nSub = subset.size(); // size of the subset
 
 	// compute histograms
-	std::vector<Lab_t> binValue(binCount, 0);
-	std::vector<size_t> binSize(binCount, 0);
+	fillArraysWithNulls(); // use allocated arrays, but need to clean them first
 	size_t currentBin = 0;
 
 	Lab_t leftValue = 0;
@@ -210,6 +213,9 @@ void GBHist::updateThresholds() {
 	for (size_t i = 0; i < tail; ++i) {
 		thresholds.push_back((i + currentLength + 1) * binWidth + featureMin);
 	}
+	// update helper arrays (they have to grow)
+	binValue = std::vector<Lab_t>(binCount, 0);
+	binSize = std::vector<size_t>(binCount, 0);
 }
 
 
@@ -226,4 +232,12 @@ void GBHist::updateNet() {
 
 void GBHist::removeRegularization() {
 	regularizationParam = 0;
+}
+
+
+void GBHist::fillArraysWithNulls() {
+	for (size_t i = 0; i < binCount; ++i) {
+		binValue[i] = 0;
+		binSize[i] = 0;
+	}
 }
