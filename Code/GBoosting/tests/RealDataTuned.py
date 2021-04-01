@@ -138,12 +138,12 @@ def JITtrees_tuned_mae(x_tr_val, y_tr_val, x_test, y_test, best_params):
 
 
 def Sklearn_tuned_mae(model, x_test, y_test):
-    mae_array = mae_score(y_test, model.predict(x_test))
+    mae_array = mae_score(y_test, model.predict(x_test), multioutput='raw_values')
     return np.mean(mae_array), np.std(mae_array)
 
 
 def CatBoost_tuned_mae(model, x_test, y_test):
-    mae_array = mae_score(y_test, model.predict(x_test))
+    mae_array = mae_score(y_test, model.predict(x_test), multioutput='raw_values')
     return np.mean(mae_array), np.std(mae_array)
 
 
