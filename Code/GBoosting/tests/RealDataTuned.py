@@ -158,11 +158,13 @@ def save_res(folder, res_name, prot_name, df_res, df_prot):
     df_prot.to_csv(target_path)
 
 
-def tune_boston(folder, random_state=12):
+def tune_dataset(cb_grid, sk_grid, jt_grid,
+    dataset_loader, folder, dataset_name, random_state=12):
     # get data
-    x_all, y_all = load_boston(return_X_y=True)
+    x_all, y_all = dataset_loader()
     # split into [train + validation] and test
-    x_tr_val, x_test, y_tr_val, y_test = train_test_split(x_all, y_all, test_size=0.2, random_state=random_state)
+    x_tr_val, x_test, y_tr_val, y_test = train_test_split(x_all, y_all, 
+        test_size=0.2, random_state=random_state)
     
     # dict to form the data frame later
     df_res = {"Models": ["CatBoost", "Sklearn", "JITtrees"],
@@ -172,6 +174,31 @@ def tune_boston(folder, random_state=12):
     # fit models
     # CatBoost
     print(f"Tune CatBoost model")
+    _, model = tune_CatBoost(x_tr_val, y_tr_val, cb_grid, random_state)
+    cb_mae, cb_sd = CatBoost_tuned_mae(model, x_test, y_test)
+    df_res["MAE"].append(cb_mae)
+    df_res["std"].append(cb_sd)
+
+    # Sklearn
+    print(f"Tune Sklearn model")
+    _, model = tune_Sklearn(x_tr_val, y_tr_val, sk_grid)
+    sk_mae, sk_sd = Sklearn_tuned_mae(model, x_test, y_test)
+    df_res["MAE"].append(sk_mae)
+    df_res["std"].append(sk_sd)
+
+    # JITtrees
+    print(f"Tune JITtrees model")
+    jt_prot, best_params = tune_JIT_trees(x_tr_val, y_tr_val, jt_grid, random_state)
+    jt_mae, jt_sd = JITtrees_tuned_mae(x_tr_val, y_tr_val, x_test, y_test, best_params)
+    df_res["MAE"].append(jt_mae)
+    df_res["std"].append(jt_sd)
+
+    # save results
+    save_res(folder, dataset_name + '.csv', dataset_name + '_prot.csv', df_res, jt_prot)
+
+
+def tune_boston(folder, random_state=12):
+    # CatBoost
     CatBoost_grid = {
         "iterations": [250],
         "learning_rate": [0.1, 0.2],
@@ -179,25 +206,15 @@ def tune_boston(folder, random_state=12):
         "random_state": [random_state],
         "feature_border_type": ["GreedyLogSum"]
     }
-    _, model = tune_CatBoost(x_tr_val, y_tr_val, CatBoost_grid, random_state)
-    cb_mae, cb_sd = CatBoost_tuned_mae(model, x_test, y_test)
-    df_res["MAE"].append(cb_mae)
-    df_res["std"].append(cb_sd)
 
     # Sklearn
-    print(f"Tune Sklearn model")
     Sklearn_grid = {
         'learning_rate': [0.1, 0.2],
         'max_iter': [200, 300],
         'max_depth': [2, 4, 6]
     }
-    _, model = tune_Sklearn(x_tr_val, y_tr_val, Sklearn_grid)
-    sk_mae, sk_sd = Sklearn_tuned_mae(model, x_test, y_test)
-    df_res["MAE"].append(sk_mae)
-    df_res["std"].append(sk_sd)
 
     # JITtrees
-    print(f"Tune JITtrees model")
     JITtrees_grid = {
         'min_bins': [8, 16, 32, 64],
         'max_bins': [256],
@@ -216,29 +233,21 @@ def tune_boston(folder, random_state=12):
         'random_hist_thresholds': [True],
         'remove_regularization_later': [False, True]
     }
-    jt_prot, best_params = tune_JIT_trees(x_tr_val, y_tr_val, JITtrees_grid, random_state)
-    jt_mae, jt_sd = JITtrees_tuned_mae(x_tr_val, y_tr_val, x_test, y_test, best_params)
-    df_res["MAE"].append(jt_mae)
-    df_res["std"].append(jt_sd)
 
-    # save results
-    save_res(folder, 'boston.csv', 'boston_prot.csv', df_res, jt_prot)
+    tuning_params = {
+        'cb_grid': CatBoost_grid, 
+        'sk_grid': Sklearn_grid,
+        'jt_grid': JITtrees_grid,
+        'dataset_loader': lambda: load_boston(return_X_y=True),
+        'folder': folder,
+        'dataset_name': 'boston', 
+        'random_state': 12
+    }
+    tune_dataset(**tuning_params)
 
 
 def tune_diabetes(folder, random_state=12):
-    # get data
-    x_all, y_all = load_diabetes(return_X_y=True)
-    # split into [train + validation] and test
-    x_tr_val, x_test, y_tr_val, y_test = train_test_split(x_all, y_all, test_size=0.2, random_state=random_state)
-    
-    # dict to form the data frame later
-    df_res = {"Models": ["CatBoost", "Sklearn", "JITtrees"],
-              "MAE": [],
-              "std": []}
-
-    # fit models
     # CatBoost
-    print(f"Tune CatBoost model")
     CatBoost_grid = {
         "iterations": [250],
         "learning_rate": [0.1, 0.2],
@@ -246,25 +255,15 @@ def tune_diabetes(folder, random_state=12):
         "random_state": [random_state],
         "feature_border_type": ["GreedyLogSum"]
     }
-    _, model = tune_CatBoost(x_tr_val, y_tr_val, CatBoost_grid, random_state)
-    cb_mae, cb_sd = CatBoost_tuned_mae(model, x_test, y_test)
-    df_res["MAE"].append(cb_mae)
-    df_res["std"].append(cb_sd)
 
     # Sklearn
-    print(f"Tune Sklearn model")
     Sklearn_grid = {
         'learning_rate': [0.1, 0.2],
         'max_iter': [200, 300],
         'max_depth': [2, 4, 6]
     }
-    _, model = tune_Sklearn(x_tr_val, y_tr_val, Sklearn_grid)
-    sk_mae, sk_sd = Sklearn_tuned_mae(model, x_test, y_test)
-    df_res["MAE"].append(sk_mae)
-    df_res["std"].append(sk_sd)
 
     # JITtrees
-    print(f"Tune JITtrees model")
     JITtrees_grid = {
         'min_bins': [8, 16, 32, 64],
         'max_bins': [256],
@@ -283,30 +282,21 @@ def tune_diabetes(folder, random_state=12):
         'random_hist_thresholds': [True],
         'remove_regularization_later': [False, True]
     }
-    jt_prot, best_params = tune_JIT_trees(x_tr_val, y_tr_val, JITtrees_grid, random_state)
-    jt_mae, jt_sd = JITtrees_tuned_mae(x_tr_val, y_tr_val, x_test, y_test, best_params)
-    df_res["MAE"].append(jt_mae)
-    df_res["std"].append(jt_sd)
 
-    # save results
-    save_res(folder, 'diabetes.csv', 'diabetes_prot.csv', df_res, jt_prot)
+    tuning_params = {
+        'cb_grid': CatBoost_grid, 
+        'sk_grid': Sklearn_grid,
+        'jt_grid': JITtrees_grid,
+        'dataset_loader': lambda: load_diabetes(return_X_y=True),
+        'folder': folder,
+        'dataset_name': 'diabetes', 
+        'random_state': 12
+    }
+    tune_dataset(**tuning_params)
 
 
 def tune_regression_100(folder, random_state=12):
-    # get data
-    x_all, y_all = make_regression(n_samples=1000, n_features=100, n_informative=80, 
-        n_targets=1, bias=10.0, noise=3.0, shuffle=True, random_state=random_state)
-    # split into [train + validation] and test
-    x_tr_val, x_test, y_tr_val, y_test = train_test_split(x_all, y_all, test_size=0.2, random_state=random_state)
-    
-    # dict to form the data frame later
-    df_res = {"Models": ["CatBoost", "Sklearn", "JITtrees"],
-              "MAE": [],
-              "std": []}
-
-    # fit models
     # CatBoost
-    print(f"Tune CatBoost model")
     CatBoost_grid = {
         "iterations": [250],
         "learning_rate": [0.1, 0.2],
@@ -314,25 +304,15 @@ def tune_regression_100(folder, random_state=12):
         "random_state": [random_state],
         "feature_border_type": ["GreedyLogSum"]
     }
-    _, model = tune_CatBoost(x_tr_val, y_tr_val, CatBoost_grid, random_state)
-    cb_mae, cb_sd = CatBoost_tuned_mae(model, x_test, y_test)
-    df_res["MAE"].append(cb_mae)
-    df_res["std"].append(cb_sd)
 
     # Sklearn
-    print(f"Tune Sklearn model")
     Sklearn_grid = {
         'learning_rate': [0.1, 0.2],
         'max_iter': [200, 300],
         'max_depth': [2, 4, 6]
     }
-    _, model = tune_Sklearn(x_tr_val, y_tr_val, Sklearn_grid)
-    sk_mae, sk_sd = Sklearn_tuned_mae(model, x_test, y_test)
-    df_res["MAE"].append(sk_mae)
-    df_res["std"].append(sk_sd)
 
     # JITtrees
-    print(f"Tune JITtrees model")
     JITtrees_grid = {
         'min_bins': [8, 16, 32, 64],
         'max_bins': [256],
@@ -351,30 +331,23 @@ def tune_regression_100(folder, random_state=12):
         'random_hist_thresholds': [True],
         'remove_regularization_later': [False, True]
     }
-    jt_prot, best_params = tune_JIT_trees(x_tr_val, y_tr_val, JITtrees_grid, random_state)
-    jt_mae, jt_sd = JITtrees_tuned_mae(x_tr_val, y_tr_val, x_test, y_test, best_params)
-    df_res["MAE"].append(jt_mae)
-    df_res["std"].append(jt_sd)
 
-    # save results
-    save_res(folder, 'regr_100.csv', 'regr_100_prot.csv', df_res, jt_prot)
+    tuning_params = {
+        'cb_grid': CatBoost_grid, 
+        'sk_grid': Sklearn_grid,
+        'jt_grid': JITtrees_grid,
+        'dataset_loader': lambda: make_regression(n_samples=1000, n_features=100, 
+            n_informative=80, n_targets=1, bias=10.0, noise=3.0, shuffle=True, 
+            random_state=random_state),
+        'folder': folder,
+        'dataset_name': 'regr_100', 
+        'random_state': 12
+    }
+    tune_dataset(**tuning_params)
 
 
 def tune_regression_200(folder, random_state=12):
-    # get data
-    x_all, y_all = make_regression(n_samples=1000, n_features=200, n_informative=150, n_targets=1, 
-        bias=10.0, noise=3.0, shuffle=True, random_state=random_state)
-    # split into [train + validation] and test
-    x_tr_val, x_test, y_tr_val, y_test = train_test_split(x_all, y_all, test_size=0.2, random_state=random_state)
-    
-    # dict to form the data frame later
-    df_res = {"Models": ["CatBoost", "Sklearn", "JITtrees"],
-              "MAE": [],
-              "std": []}
-
-    # fit models
     # CatBoost
-    print(f"Tune CatBoost model")
     CatBoost_grid = {
         "iterations": [250],
         "learning_rate": [0.1, 0.2],
@@ -382,25 +355,15 @@ def tune_regression_200(folder, random_state=12):
         "random_state": [random_state],
         "feature_border_type": ["GreedyLogSum"]
     }
-    _, model = tune_CatBoost(x_tr_val, y_tr_val, CatBoost_grid, random_state)
-    cb_mae, cb_sd = CatBoost_tuned_mae(model, x_test, y_test)
-    df_res["MAE"].append(cb_mae)
-    df_res["std"].append(cb_sd)
 
     # Sklearn
-    print(f"Tune Sklearn model")
     Sklearn_grid = {
         'learning_rate': [0.1, 0.2],
         'max_iter': [200, 300],
         'max_depth': [2, 4, 6]
     }
-    _, model = tune_Sklearn(x_tr_val, y_tr_val, Sklearn_grid)
-    sk_mae, sk_sd = Sklearn_tuned_mae(model, x_test, y_test)
-    df_res["MAE"].append(sk_mae)
-    df_res["std"].append(sk_sd)
 
     # JITtrees
-    print(f"Tune JITtrees model")
     JITtrees_grid = {
         'min_bins': [8, 16, 32, 64],
         'max_bins': [256],
@@ -419,39 +382,36 @@ def tune_regression_200(folder, random_state=12):
         'random_hist_thresholds': [True],
         'remove_regularization_later': [False, True]
     }
-    jt_prot, best_params = tune_JIT_trees(x_tr_val, y_tr_val, JITtrees_grid, random_state)
-    jt_mae, jt_sd = JITtrees_tuned_mae(x_tr_val, y_tr_val, x_test, y_test, best_params)
-    df_res["MAE"].append(jt_mae)
-    df_res["std"].append(jt_sd)
-
-    # save results
-    save_res(folder, 'regr_200.csv', 'regr_200_prot.csv', df_res, jt_prot)
+    tuning_params = {
+        'cb_grid': CatBoost_grid, 
+        'sk_grid': Sklearn_grid,
+        'jt_grid': JITtrees_grid,
+        'dataset_loader': lambda: make_regression(n_samples=1000, n_features=200, 
+            n_informative=150, n_targets=1, bias=10.0, noise=3.0, shuffle=True, 
+            random_state=random_state),
+        'folder': folder,
+        'dataset_name': 'regr_200', 
+        'random_state': 12
+    }
+    tune_dataset(**tuning_params)
 
 
 def tune_supercond(folder, random_state=12):
-    # get data
-    data_dir = os.path.join('datasets', 'superconduct')
-    data_csv = 'train.csv'
-    all_data = pd.read_csv(os.path.join(data_dir, data_csv))
-    # split into target and features
-    label_name = 'critical_temp'
-    labels_df = all_data[label_name]  # target df
-    features_df = all_data.drop(label_name, axis=1)  # featrues df
-    # convert to numpy arrays
-    y_all = labels_df.to_numpy()
-    x_all = features_df.to_numpy()
-    
-    # split into [train + validation] and test
-    x_tr_val, x_test, y_tr_val, y_test = train_test_split(x_all, y_all, test_size=0.2, random_state=random_state)
-    
-    # dict to form the data frame later
-    df_res = {"Models": ["CatBoost", "Sklearn", "JITtrees"],
-              "MAE": [],
-              "std": []}
+    # a bit more complex function to get the data
+    def dataset_loader():
+        data_dir = os.path.join('datasets', 'superconduct')
+        data_csv = 'train.csv'
+        all_data = pd.read_csv(os.path.join(data_dir, data_csv))
+        # split into target and features
+        label_name = 'critical_temp'
+        labels_df = all_data[label_name]  # target df
+        features_df = all_data.drop(label_name, axis=1)  # featrues df
+        # convert to numpy arrays
+        y_all = labels_df.to_numpy()
+        x_all = features_df.to_numpy()
+        return x_all, y_all
 
-    # fit models
     # CatBoost
-    print(f"Tune CatBoost model")
     CatBoost_grid = {
         "iterations": [300, 500],
         "learning_rate": [0.1, 0.2],
@@ -459,25 +419,15 @@ def tune_supercond(folder, random_state=12):
         "random_state": [random_state],
         "feature_border_type": ["GreedyLogSum"]
     }
-    _, model = tune_CatBoost(x_tr_val, y_tr_val, CatBoost_grid, random_state)
-    cb_mae, cb_sd = CatBoost_tuned_mae(model, x_test, y_test)
-    df_res["MAE"].append(cb_mae)
-    df_res["std"].append(cb_sd)
 
     # Sklearn
-    print(f"Tune Sklearn model")
     Sklearn_grid = {
         'learning_rate': [0.1, 0.2],
         'max_iter': [300, 500],
         'max_depth': [2, 4, 7, 8]
     }
-    _, model = tune_Sklearn(x_tr_val, y_tr_val, Sklearn_grid)
-    sk_mae, sk_sd = Sklearn_tuned_mae(model, x_test, y_test)
-    df_res["MAE"].append(sk_mae)
-    df_res["std"].append(sk_sd)
 
     # JITtrees
-    print(f"Tune JITtrees model")
     JITtrees_grid = {
         'min_bins': [128, 256],
         'max_bins': [256],
@@ -496,13 +446,16 @@ def tune_supercond(folder, random_state=12):
         'random_hist_thresholds': [True],
         'remove_regularization_later': [False, True]
     }
-    jt_prot, best_params = tune_JIT_trees(x_tr_val, y_tr_val, JITtrees_grid, random_state)
-    jt_mae, jt_sd = JITtrees_tuned_mae(x_tr_val, y_tr_val, x_test, y_test, best_params)
-    df_res["MAE"].append(jt_mae)
-    df_res["std"].append(jt_sd)
 
-    # save results
-    save_res(folder, 'supercond.csv', 'supercond_prot.csv', df_res, jt_prot)
+    tuning_params = {
+        'cb_grid': CatBoost_grid, 
+        'sk_grid': Sklearn_grid,
+        'jt_grid': JITtrees_grid,
+        'dataset_loader': dataset_loader,
+        'dataset_name': 'supercond', 
+        'random_state': 12
+    }
+    tune_dataset(**tuning_params)
 
 
 def main():
