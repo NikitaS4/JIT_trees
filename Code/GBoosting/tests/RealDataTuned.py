@@ -146,12 +146,14 @@ def JITtrees_tuned_mae(x_tr_val, y_tr_val, x_test, y_test, best_params):
 
 
 def Sklearn_tuned_mae(model, x_test, y_test):
-    mae = mae_score(y_test, model.predict(x_test))
+    preds = model.predict(x_test)
+    mae = mae_score(y_test, preds)
     return mae, np.std(np.abs(preds - y_test))
 
 
 def CatBoost_tuned_mae(model, x_test, y_test):
-    mae = mae_score(y_test, model.predict(x_test))
+    preds = model.predict(x_test)
+    mae = mae_score(y_test, preds)
     return mae, np.std(np.abs(preds - y_test))
 
 
