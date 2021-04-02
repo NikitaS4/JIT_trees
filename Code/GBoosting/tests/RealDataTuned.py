@@ -225,22 +225,22 @@ def tune_boston(folder, random_state=12):
 
     # JITtrees
     JITtrees_grid = {
-        'min_bins': [8, 16, 32, 64],
+        'min_bins': [8, 16, 64],
         'max_bins': [256],
         'no_early_stopping': [False],
         'patience': [4],
-        'tree_count': [200, 300],
+        'tree_count': [300],
         'tree_depth': [2, 4, 6],
         'feature_fold_size': [0.8, 1.0],
-        'learning_rate': [0.2, 0.4],
-        'regularization_param': [0, 0.1, 1, 10],
+        'learning_rate': [0.1, 0.2, 0.4],
+        'regularization_param': [0, 1, 10],
         'es_delta': [1e-5],
-        'batch_part': [0.8, 1],
+        'batch_part': [1],
         'use_jit': [False],
         'jit_type': [0],
-        'random_batches': [True],
+        'random_batches': [False],
         'random_hist_thresholds': [True],
-        'remove_regularization_later': [False, True]
+        'remove_regularization_later': [True]
     }
 
     tuning_params = {
@@ -274,22 +274,22 @@ def tune_diabetes(folder, random_state=12):
 
     # JITtrees
     JITtrees_grid = {
-        'min_bins': [8, 16, 32, 64],
+        'min_bins': [16, 32],
         'max_bins': [256],
         'no_early_stopping': [False],
         'patience': [4],
-        'tree_count': [200, 300],
-        'tree_depth': [2, 4, 6],
+        'tree_count': [330],
+        'tree_depth': [4, 5],
         'feature_fold_size': [0.8, 1.0],
-        'learning_rate': [0.2, 0.4],
-        'regularization_param': [0, 0.1, 1, 10],
+        'learning_rate': [0.15],
+        'regularization_param': [1],
         'es_delta': [1e-5],
-        'batch_part': [0.8, 1],
+        'batch_part': [1],
         'use_jit': [False],
         'jit_type': [0],
         'random_batches': [True],
         'random_hist_thresholds': [True],
-        'remove_regularization_later': [False, True]
+        'remove_regularization_later': [True]
     }
 
     tuning_params = {
@@ -323,22 +323,22 @@ def tune_regression_100(folder, random_state=12):
 
     # JITtrees
     JITtrees_grid = {
-        'min_bins': [8, 16, 32, 64],
+        'min_bins': [64, 128],
         'max_bins': [256],
         'no_early_stopping': [False],
         'patience': [4],
-        'tree_count': [200, 300],
-        'tree_depth': [2, 4, 6],
+        'tree_count': [500],
+        'tree_depth': [3, 4, 5],
         'feature_fold_size': [0.8, 1.0],
-        'learning_rate': [0.2, 0.4],
-        'regularization_param': [0, 0.1, 1, 10],
+        'learning_rate': [0.4],
+        'regularization_param': [0.6, 0.7, 0.8],
         'es_delta': [1e-5],
-        'batch_part': [80, 100],
+        'batch_part': [1],
         'use_jit': [False],
         'jit_type': [0],
         'random_batches': [True],
         'random_hist_thresholds': [True],
-        'remove_regularization_later': [False, True]
+        'remove_regularization_later': [True]
     }
 
     tuning_params = {
@@ -374,22 +374,22 @@ def tune_regression_200(folder, random_state=12):
 
     # JITtrees
     JITtrees_grid = {
-        'min_bins': [8, 16, 32, 64],
+        'min_bins': [8, 10, 16],
         'max_bins': [256],
         'no_early_stopping': [False],
         'patience': [4],
-        'tree_count': [200, 300],
-        'tree_depth': [2, 4, 6],
-        'feature_fold_size': [0.8, 1.0],
-        'learning_rate': [0.2, 0.4],
-        'regularization_param': [0, 0.1, 1, 10],
+        'tree_count': [1000],
+        'tree_depth': [3, 4, 5],
+        'feature_fold_size': [1.0],
+        'learning_rate': [0.06],
+        'regularization_param': [0.17, 0.18, 0.19],
         'es_delta': [1e-5],
-        'batch_part': [160, 200],
+        'batch_part': [1],
         'use_jit': [False],
         'jit_type': [0],
         'random_batches': [True],
         'random_hist_thresholds': [True],
-        'remove_regularization_later': [False, True]
+        'remove_regularization_later': [True]
     }
     tuning_params = {
         'cb_grid': CatBoost_grid, 
