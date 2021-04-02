@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
-from sklearn.model_selection import train_test_split, KFold, GridSearchCV
+from sklearn.model_selection import train_test_split, KFold, RepeatedKFold, GridSearchCV
 from sklearn.datasets import load_boston, load_diabetes, make_regression
 from sklearn.metrics import mean_absolute_error as mae_score
 from sklearn.experimental import enable_hist_gradient_boosting
@@ -54,10 +54,13 @@ def tune_JIT_trees(x_tr_val, y_tr_val, options_grid, random_state=12):
     tuning_df['time'] = []
     cv_fit_number = get_fit_steps(options_grid)
     print(f"The number of iterations to tune JIT trees model: {cv_fit_number}")
-    kf_cv = KFold(n_splits=cv_fit_number)  # init CV
-    # iterate over all splits
-    # we have set split count to the number of iterations needed to check all the parameters
+    split_cnt_limit = 5  # K < 5 (in K Fold) => #valid < 0.2 #tr_val
+    repeats_cnt = cv_fit_number // split_cnt_limit + 1  # repeats * splits >= cv_fit_number
+    kf_cv = RepeatedKFold(n_splits=split_cnt_limit, n_repeats=repeats_cnt, random_state=random_state)  # init CV
+    # iterate over splits, but stop when the whole grid will be studied
+    iters_gone = 0
     for train_idxs, valid_idxs in kf_cv.split(x_tr_val):
+        print(f"Current tuning iteration: {iters_gone + 1} / {cv_fit_number}")
         # get current options
         model_options = {keys_list[i]: options_grid[keys_list[i]][cur_idx_each_option[i]] for i in range(options_count)}
         
@@ -96,6 +99,10 @@ def tune_JIT_trees(x_tr_val, y_tr_val, options_grid, random_state=12):
         cur_idx_each_option[cur_prop_to_change] += 1  # increment the current option
         # reduce index to the start (lexicographic order)
         cur_prop_to_change = 0
+        # update iterations counter
+        iters_gone += 1
+        if iters_gone >= cv_fit_number:
+            break  # can finish tuning
 
     # return the resulting data frame
     tuning_df = pd.DataFrame(tuning_df)  # convert to DF
