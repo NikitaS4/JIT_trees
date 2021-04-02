@@ -10,6 +10,7 @@ from catboost import Pool, CatBoostRegressor
 import traceback
 import os, sys
 import time
+import json
 
 # as the module is created in the upper directory
 sys.path.append('..')  
@@ -158,6 +159,12 @@ def save_res(folder, res_name, prot_name, df_res, df_prot):
     df_prot.to_csv(target_path)
 
 
+def save_best_params(best_params_dict, folder, res_name):
+    target_path = os.path.join(folder, res_name)
+    with open(target_path, 'w') as file:
+        json.dump(best_params_dict, file)
+
+
 def tune_dataset(cb_grid, sk_grid, jt_grid,
     dataset_loader, folder, dataset_name, random_state=12):
     # get data
@@ -195,6 +202,8 @@ def tune_dataset(cb_grid, sk_grid, jt_grid,
 
     # save results
     save_res(folder, dataset_name + '.csv', dataset_name + '_prot.csv', df_res, jt_prot)
+    # save the best parameters
+    save_best_params(best_params, folder, dataset_name + '_best_params.json')
 
 
 def tune_boston(folder, random_state=12):
