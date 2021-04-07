@@ -27,6 +27,7 @@ private:
 
     // methods
     inline Lab_t predictTreeRaw(const FVal_t* sample, const size_t treeNum) const;
+    inline void validateFeatures();
 };
 
 #endif // REGULAR_TREE_INCLUDED

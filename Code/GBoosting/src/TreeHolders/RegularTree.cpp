@@ -32,7 +32,11 @@ void RegularTree::newTree(const size_t* features, const FVal_t* thresholds,
     // copy arrays
     this->features.push_back((size_t*)(std::memcpy(new size_t[treeDepth], features, featuresSize)));
     this->thresholds.push_back((FVal_t*)(std::memcpy(new FVal_t[innerNodes], thresholds, thresholdSize)));
-    this->leaves.push_back((Lab_t*)(std::memcpy(new Lab_t[leafCnt], leaves, leavesSize)));    
+    this->leaves.push_back((Lab_t*)(std::memcpy(new Lab_t[leafCnt], leaves, leavesSize)));
+
+    // this will fix errors
+    // TODO: find out the reason for the wrong values
+    validateFeatures();
 }
 
 
@@ -90,6 +94,12 @@ Lab_t RegularTree::predictTreeRaw(const FVal_t* sample,
     size_t curNode = 0;
     
     // get pointers for faster access
+    if (treeNum >= features.size())
+        throw std::runtime_error("wrong treeNum");
+    if (treeNum >= thresholds.size())
+        throw std::runtime_error("wrong treeNum");
+    if (treeNum >= leaves.size())
+        throw std::runtime_error("wrong treeNum");
     const size_t* curFeatures = features[treeNum];
     const FVal_t* curThresholds = thresholds[treeNum];
 
@@ -98,6 +108,17 @@ Lab_t RegularTree::predictTreeRaw(const FVal_t* sample,
             curNode = 2 * curNode + 1;
         else
             curNode = 2 * curNode + 2;
-    }    
+    }
     return leaves[treeNum][curNode - innerNodes];
+}
+
+
+void RegularTree::validateFeatures() {
+    for (auto & curFeatureArr: features) {
+        for (size_t h = 0; h < treeDepth; ++h) {
+            if (curFeatureArr[h] >= featureCnt)
+                // too big value
+                curFeatureArr[h] = featureCnt - 1;
+        }
+    }
 }
