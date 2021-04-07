@@ -470,6 +470,7 @@ def tune_supercond(folder, random_state=12):
         'sk_grid': Sklearn_grid,
         'jt_grid': JITtrees_grid,
         'dataset_loader': dataset_loader,
+        'folder': folder,
         'dataset_name': 'supercond', 
         'random_state': 12
     }
