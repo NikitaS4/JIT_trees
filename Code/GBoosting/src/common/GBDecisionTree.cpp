@@ -3,6 +3,7 @@
 
 #include <stdexcept>
 #include <cstdlib>
+#include <cmath>
 
 
 // static initializations
@@ -158,6 +159,7 @@ void GBDecisionTree::growTree(const pytensor2& xTrain,
 		if (curCnt != 0)
 			leaves[leaf] = learningRate * curSum / (regParam + curCnt);  // mean leaf residual
 	}
+	validateTree();
 	// remember or compile tree (in case of JIT compilation enabled)
 	treeHolder->newTree(features, thresholds, leaves);
 
@@ -184,5 +186,29 @@ void GBDecisionTree::cpyThresholds() {
 	// copy curThreshold to the bestThreshold
 	for (size_t i = 0; i < leafCnt; ++i) {
 		bestThreshold[i] = curThreshold[i];
+	}
+}
+
+
+void GBDecisionTree::validateTree() {
+	// NaNs
+	for (size_t i = 0; i < leafCnt; ++i) {
+		if (isnan(leaves[i])) {
+			leaves[i] = 0;
+		}
+	}
+
+	// check features indexes
+	for (size_t i = 0; i < treeDepth; ++i) {
+		if (features[i] >= featureCount) {
+			features[i] = 0;
+		}
+	}
+
+	// NaNs
+	for (size_t i = 0; i < innerNodes; ++i) {
+		if (isnan(thresholds[i])) {
+			thresholds[i] = 0;
+		}
 	}
 }

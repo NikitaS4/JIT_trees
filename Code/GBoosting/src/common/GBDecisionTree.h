@@ -48,6 +48,7 @@ private:
 	// methods
 	inline FVal_t getSpoiledScore(const FVal_t splitScore) const;
 	inline void cpyThresholds(); // copy curThreshold to the bestThreshold
+	inline void validateTree();
 
 	// static
 	static size_t featureCount;

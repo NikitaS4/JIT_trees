@@ -156,7 +156,6 @@ Lab_t GBHist::findBestSplit(const pytensor1& xData,
 	} else
 		// it's the leftmost or the rightmost bucket
 		threshold = thresholds[bestBinNumber];
-	
 	// return answers
 	return bestScore;
 }
@@ -236,8 +235,16 @@ void GBHist::removeRegularization() {
 
 
 void GBHist::fillArraysWithNulls() {
-	for (size_t i = 0; i < binCount; ++i) {
-		binValue[i] = 0;
-		binSize[i] = 0;
+	if (binCount == binValue.size() &&
+		binCount == binSize.size()) {
+		for (size_t i = 0; i < binCount; ++i) {
+			binValue[i] = 0;
+			binSize[i] = 0;
+		}
+	}
+	else {
+		// TODO: use push_back instead
+		binValue = std::vector<Lab_t>(binCount, 0);
+		binSize = std::vector<size_t>(binCount, 0);
 	}
 }
