@@ -8,6 +8,7 @@
 #include "History.h"
 #include "../TreeHolders/TreeHolder.h"
 #include "../TreeHolders/SWTypes.h"
+#include "GBPredictor.h"
 #include <vector>
 #include <random>
 
@@ -85,11 +86,11 @@ protected:
 	size_t batchSize;
 	Lab_t zeroPredictor; // constant model
 	std::vector<GBHist> hists; // histogram for each feature
-	//std::vector<GBDecisionTree> trees;
 	pytensorY trainLosses;
 	pytensorY validLosses;
 	bool dontUseEarlyStopping; // switch off early stopping
 	TreeHolder* treeHolder = nullptr;
+	GBPredcitor* predictor = nullptr;
 
 	// constants
 	static const float defaultLR;

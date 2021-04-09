@@ -27,6 +27,11 @@ GradientBoosting::GradientBoosting(const size_t binCountMin,
 
 GradientBoosting::~GradientBoosting() {
 	// dtor
+	if (predictor) {
+		delete predictor;
+		predictor = nullptr;
+	}
+
 	if (treeHolder) {
 		delete treeHolder;
 		treeHolder = nullptr;
@@ -117,6 +122,15 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 	}
 	validLoss = loss(validPreds, yValid);  // update loss
 	
+	// create predictor
+	size_t threadCnt = 1;
+	predictor = GBPredcitor::create(threadCnt,
+		zeroPredictor, *treeHolder, xTrain,
+		xValid, residuals, preds, validRes,
+		validPreds);
+	if (predictor == nullptr)
+		throw std::runtime_error("Can't fit: not enough memory");
+
 	// remember losses
 	// treeCount + 1 -- to include zero predictor
 	trainLosses = xt::zeros<Lab_t>({treeCount + 1});
@@ -165,23 +179,10 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 		treeFitter.growTree(xTrain, subset, residuals, featureSubset,
 			hists, treeHolder);
 		// update residuals
-		for (size_t sample = 0; sample < trainLen; ++sample) {
-			Lab_t prediction = treeHolder->predictTree(xt::row(xTrain, sample), 
-				treeNum);
-			residuals(sample) -= prediction;
-			preds(sample) += prediction;
-		}
-		// update loss
+		predictor->predictTreeTrain(treeNum);
+		
+		// update losses
 		trainLoss = loss(preds, yTrain);
-
-		// update validation residuals
-		for (size_t sample = 0; sample < validLen; ++sample) {
-			Lab_t prediction = treeHolder->predictTree(xt::row(xValid, sample),
-				treeNum);
-			validRes(sample) -= prediction;
-			validPreds(sample) += prediction;
-		}
-		// update validation loss
 		validLoss = loss(validPreds, yValid);
 		
 		// remember losses
@@ -211,25 +212,16 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 }
 
 Lab_t GradientBoosting::predict(const pytensor1& xTest) const {
-	if (xTest.shape(0) != featureCount)
-		throw std::runtime_error("Wrong feature count in x_test");
-	return zeroPredictor + treeHolder->predictAllTrees(xTest);
+	return predictor->predict1d(xTest);
 }
 
 pytensorY GradientBoosting::predict(const pytensor2& xTest) const {
-	size_t predCount = xTest.shape(0);
-	size_t features = xTest.shape(1);
-	if (features != featureCount)
-		throw std::runtime_error("Wrong feature count in x_test"); 
-	pytensorY preds = xt::zeros<Lab_t>({predCount});
-	for (size_t i = 0; i < predCount; ++i) {		
-		preds(i) = zeroPredictor + treeHolder->predictAllTrees(xt::row(xTest, i));
-	}
-	return preds;
+	return predictor->predict2d(xTest);
 }
 
 
 Lab_t GradientBoosting::predictFromTo(const pytensor1& xTest, 
+	// TODO: use predictor instead
 	const size_t firstEstimator, const size_t lastEstimator) const {
 	Lab_t curPred = 0;
 	size_t from = firstEstimator;
