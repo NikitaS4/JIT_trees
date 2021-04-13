@@ -188,7 +188,7 @@ pytensorY RegularTree::predictTree2dMutlithreaded(const pytensor2& xPred,
     std::vector<std::thread> threads;
     // init "semaphore" with the max value
     // each thread will decrement the semaphore before finish
-    size_t semThreadsFinish = threadCnt - 1;
+    size_t semThreadsFinish = threadCnt;
     static const size_t semUnlocked = 0;
 
     // each thread will predict on it's own batch
@@ -212,18 +212,9 @@ pytensorY RegularTree::predictTree2dMutlithreaded(const pytensor2& xPred,
     }
     // the last batch will be processed in this thread (main)
     bias = (threadCnt - 1) * batchSize;
-    const size_t upperLimit = lastBatchSize + bias;
-    size_t curNode = 0;
-    for (size_t j = bias; j < upperLimit; ++j) {
-        for (size_t h = 0; h < treeDepth; ++h) {
-            if (xPred(j, curFeatures[h]) < curThresholds[curNode])
-                curNode = 2 * curNode + 1;
-            else
-                curNode = 2 * curNode + 2;
-        }
-        answers(j) = leaves[treeNum][curNode - innerNodes];
-        curNode = 0;
-    }
+    auto callbackForMe = getCallback(bias, lastBatchSize, treeNum,
+        xPred, semThreadsFinish, answers);
+    callbackForMe();
 
     while (semThreadsFinish > semUnlocked) {
         // busy wait (until threads finishes predictions)
@@ -251,7 +242,7 @@ void RegularTree::predictFitMultithreaded(const pytensor2& xTrain, const pytenso
     size_t threadsForTrain = threadCnt - threadsForValid;
 
     // semaphore (to wait until threads finish)
-    size_t semThreadsFinish = threadCnt - 1;
+    size_t semThreadsFinish = threadCnt;
     const size_t semUnlocked = 0;
 
     // get pointers for faster access
@@ -296,18 +287,9 @@ void RegularTree::predictFitMultithreaded(const pytensor2& xTrain, const pytenso
     // predict on the last valid batch
     // we will process the last batch in this thread (main)
     biasValid = (threadsForValid - 1) * batchSizeValid;
-    const size_t upperLimit = lastBatchSizeVal + biasValid;
-    size_t curNode = 0;
-    for (size_t j = biasValid; j < upperLimit; ++j) {
-        for (size_t h = 0; h < treeDepth; ++h) {
-            if (xValid(j, curFeatures[h]) < curThresholds[curNode])
-                curNode = 2 * curNode + 1;
-            else
-                curNode = 2 * curNode + 2;
-        }
-        predsForValid(j) = leaves[treeNum][curNode - innerNodes];
-        curNode = 0;
-    }
+    auto callbackForMe = getCallback(biasValid, lastBatchSizeVal,
+        treeNum, xValid, semThreadsFinish, predsForValid);
+    callbackForMe(); // launch
 
     while (semThreadsFinish > semUnlocked) {
         // busy wait (until threads finishes predictions)
@@ -344,7 +326,15 @@ std::function<void()> RegularTree::getCallback(const size_t bias,
     // get pointers for faster access
     const size_t* curFeatures = features[treeNum];
     const FVal_t* curThresholds = thresholds[treeNum];
-    return [&, bias, batchSize]() mutable {
+    const Lab_t* curLeaves = leaves[treeNum];
+    // pass by values
+    const size_t treeDepth = this->treeDepth;
+    const size_t innerNodes = this->innerNodes;
+    // don't pass 'this' by reference, don't pass 'this' at all
+    // this is needed to avoid data races
+    return [curFeatures, curThresholds, curLeaves, treeDepth,
+        innerNodes, bias, batchSize, &xPred, &semThreadsFinish,
+        &answers]() mutable {
         // compute the end of the batch
         const size_t upperLimit = batchSize + bias;
         size_t curNode = 0; // current node in the decision tree
@@ -357,7 +347,7 @@ std::function<void()> RegularTree::getCallback(const size_t bias,
                 else
                     curNode = 2 * curNode + 2;
             }
-            answers(j) = leaves[treeNum][curNode - innerNodes];
+            answers(j) = curLeaves[curNode - innerNodes];
             // remember to set curNode to 0 before the next step
             curNode = 0;
         }
