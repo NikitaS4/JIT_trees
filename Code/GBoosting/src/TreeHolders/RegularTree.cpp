@@ -6,9 +6,6 @@
 #include <math.h>
 
 
-// TODO: make predictions on the last batch in the main thread
-
-
 RegularTree::RegularTree(const size_t treeDepth, const size_t featureCnt):
     TreeHolder(treeDepth, featureCnt), threadCnt(defaultThreadCnt) {
     // ctor
@@ -191,7 +188,7 @@ pytensorY RegularTree::predictTree2dMutlithreaded(const pytensor2& xPred,
     std::vector<std::thread> threads;
     // init "semaphore" with the max value
     // each thread will decrement the semaphore before finish
-    size_t semThreadsFinish = threadCnt;
+    size_t semThreadsFinish = threadCnt - 1;
     static const size_t semUnlocked = 0;
 
     // each thread will predict on it's own batch
@@ -234,23 +231,20 @@ pytensorY RegularTree::predictTree2dMutlithreaded(const pytensor2& xPred,
         threads.push_back(std::thread(threadCallback));
         threads[i].detach(); // launch the thread
     }
-    // prepare the last thread (it can have different batchSize)
+    // the last batch will be processed in this thread (main)
     bias = (threadCnt - 1) * batchSize;
-    threads.push_back(std::thread([&, bias, batchSize]() mutable {
-        const size_t upperLimit = lastBatchSize + bias;
-        size_t curNode = 0;
-        for (size_t j = bias; j < upperLimit; ++j) {
-            for (size_t h = 0; h < treeDepth; ++h) {
-                if (xPred(j, curFeatures[h]) < curThresholds[curNode])
-                    curNode = 2 * curNode + 1;
-                else
-                    curNode = 2 * curNode + 2;
-            }
-            answers(j) = leaves[treeNum][curNode - innerNodes];
-            curNode = 0;
+    const size_t upperLimit = lastBatchSize + bias;
+    size_t curNode = 0;
+    for (size_t j = bias; j < upperLimit; ++j) {
+        for (size_t h = 0; h < treeDepth; ++h) {
+            if (xPred(j, curFeatures[h]) < curThresholds[curNode])
+                curNode = 2 * curNode + 1;
+            else
+                curNode = 2 * curNode + 2;
         }
-        semThreadsFinish -= 1;
-    }));
+        answers(j) = leaves[treeNum][curNode - innerNodes];
+        curNode = 0;
+    }
     threads[threadCnt - 1].detach();
 
     while (semThreadsFinish > semUnlocked) {
@@ -279,7 +273,7 @@ void RegularTree::predictFitMultithreaded(const pytensor2& xTrain, const pytenso
     size_t threadsForTrain = threadCnt - threadsForValid;
 
     // semaphore (to wait until threads finish)
-    size_t semThreadsFinish = threadCnt;
+    size_t semThreadsFinish = threadCnt - 1;
     const size_t semUnlocked = 0;
 
     // get pointers for faster access
@@ -379,24 +373,21 @@ void RegularTree::predictFitMultithreaded(const pytensor2& xTrain, const pytenso
         threads.push_back(std::thread(threadCallback));
         threads[i + threadsForTrain].detach(); // launch the thread
     }
-    // predict on the last train batch
+    // predict on the last valid batch
+    // we will process the last batch in this thread (main)
     biasValid = (threadsForValid - 1) * batchSizeValid;
-    threads.push_back(std::thread([&, biasValid, batchSizeValid]() mutable {
-        const size_t upperLimit = lastBatchSizeVal + biasValid;
-        size_t curNode = 0;
-        for (size_t j = biasValid; j < upperLimit; ++j) {
-            for (size_t h = 0; h < treeDepth; ++h) {
-                if (xValid(j, curFeatures[h]) < curThresholds[curNode])
-                    curNode = 2 * curNode + 1;
-                else
-                    curNode = 2 * curNode + 2;
-            }
-            predsForValid(j) = leaves[treeNum][curNode - innerNodes];
-            curNode = 0;
+    const size_t upperLimit = lastBatchSizeVal + biasValid;
+    size_t curNode = 0;
+    for (size_t j = biasValid; j < upperLimit; ++j) {
+        for (size_t h = 0; h < treeDepth; ++h) {
+            if (xValid(j, curFeatures[h]) < curThresholds[curNode])
+                curNode = 2 * curNode + 1;
+            else
+                curNode = 2 * curNode + 2;
         }
-        semThreadsFinish -= 1;
-    }));
-    threads[threadsForTrain + threadsForValid - 1].detach();
+        predsForValid(j) = leaves[treeNum][curNode - innerNodes];
+        curNode = 0;
+    }
 
     while (semThreadsFinish > semUnlocked) {
         // busy wait (until threads finishes predictions)

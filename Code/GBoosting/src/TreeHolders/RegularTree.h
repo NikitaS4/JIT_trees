@@ -3,6 +3,7 @@
 
 #include "TreeHolder.h"
 #include <vector>
+#include <functional>
 
 
 class RegularTree: public TreeHolder {
@@ -47,7 +48,7 @@ private:
 
     // constants
     static const int busyWaitMs = 1;
-    static constexpr size_t defaultThreadCnt = 1;
+    static constexpr size_t defaultThreadCnt = 3;
 };
 
 #endif // REGULAR_TREE_INCLUDED
