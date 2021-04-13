@@ -198,9 +198,6 @@ pytensorY RegularTree::predictTree2dMutlithreaded(const pytensor2& xPred,
     size_t lastBatchSize = xPred.shape(0) - (threadCnt - 1) * batchSize;
     // tensor to store and return predictions
     pytensorY answers = xt::zeros<Lab_t>({xPred.shape(0)});
-    // get pointers for faster access
-    const size_t* curFeatures = features[treeNum];
-    const FVal_t* curThresholds = thresholds[treeNum];
     // create threads for prediction
     for (size_t i = 0; i < threadCnt - 1; ++i) {
         bias = i * batchSize; // compute batch bias
@@ -212,9 +209,8 @@ pytensorY RegularTree::predictTree2dMutlithreaded(const pytensor2& xPred,
     }
     // the last batch will be processed in this thread (main)
     bias = (threadCnt - 1) * batchSize;
-    auto callbackForMe = getCallback(bias, lastBatchSize, treeNum,
-        xPred, semThreadsFinish, answers);
-    callbackForMe();
+    getCallback(bias, lastBatchSize, treeNum, xPred,
+        semThreadsFinish, answers)(); // get & launch
 
     while (semThreadsFinish > semUnlocked) {
         // busy wait (until threads finishes predictions)
@@ -244,10 +240,6 @@ void RegularTree::predictFitMultithreaded(const pytensor2& xTrain, const pytenso
     // semaphore (to wait until threads finish)
     size_t semThreadsFinish = threadCnt;
     const size_t semUnlocked = 0;
-
-    // get pointers for faster access
-    const size_t* curFeatures = features[treeNum];
-    const FVal_t* curThresholds = thresholds[treeNum];
 
     // prepare train threads
     // each thread will predict on it's own batch
@@ -287,9 +279,8 @@ void RegularTree::predictFitMultithreaded(const pytensor2& xTrain, const pytenso
     // predict on the last valid batch
     // we will process the last batch in this thread (main)
     biasValid = (threadsForValid - 1) * batchSizeValid;
-    auto callbackForMe = getCallback(biasValid, lastBatchSizeVal,
-        treeNum, xValid, semThreadsFinish, predsForValid);
-    callbackForMe(); // launch
+    getCallback(biasValid, lastBatchSizeVal, treeNum, xValid,
+        semThreadsFinish, predsForValid)(); // get & launch
 
     while (semThreadsFinish > semUnlocked) {
         // busy wait (until threads finishes predictions)
