@@ -207,10 +207,9 @@ pytensorY RegularTree::predictTree2dMutlithreaded(const pytensor2& xPred,
         // define thread callback
         // each thread has it's own unique callback
         // (to avoid data races)
-        auto threadCallback = getCallback(bias, batchSize,
-            treeNum, xPred, semThreadsFinish, answers);
         // create a thread
-        threads.push_back(std::thread(threadCallback));
+        threads.push_back(std::thread(getCallback(bias, batchSize,
+            treeNum, xPred, semThreadsFinish, answers)));
         threads[i].detach(); // launch the thread
     }
     // the last batch will be processed in this thread (main)
@@ -275,10 +274,9 @@ void RegularTree::predictFitMultithreaded(const pytensor2& xTrain, const pytenso
         // define thread callback
         // each thread has it's own unique callback
         // (to avoid data races)
-        auto threadCallback = getCallback(bias, batchSize,
-            treeNum, xTrain, semThreadsFinish, trainPreds);
         // create a thread
-        threads.push_back(std::thread(threadCallback));
+        threads.push_back(std::thread(getCallback(bias, batchSize,
+            treeNum, xTrain, semThreadsFinish, trainPreds)));
         threads[i].detach(); // launch the thread
     }
     // predict on the last train batch
@@ -301,10 +299,9 @@ void RegularTree::predictFitMultithreaded(const pytensor2& xTrain, const pytenso
         // define thread callback
         // each thread has it's own unique callback
         // (to avoid data races)
-        auto threadCallback = getCallback(biasValid, batchSizeValid,
-            treeNum, xValid, semThreadsFinish, predsForValid);
         // create a thread
-        threads.push_back(std::thread(threadCallback));
+        threads.push_back(std::thread(getCallback(biasValid, batchSizeValid,
+            treeNum, xValid, semThreadsFinish, predsForValid)));
         threads[i + threadsForTrain].detach(); // launch the thread
     }
     // predict on the last valid batch
