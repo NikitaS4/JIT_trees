@@ -204,10 +204,8 @@ pytensorY RegularTree::predictTree2dMutlithreaded(const pytensor2& xPred,
     // create threads for prediction
     for (size_t i = 0; i < threadCnt - 1; ++i) {
         bias = i * batchSize; // compute batch bias
-        // define thread callback
         // each thread has it's own unique callback
         // (to avoid data races)
-        // create a thread
         threads.push_back(std::thread(getCallback(bias, batchSize,
             treeNum, xPred, semThreadsFinish, answers)));
         threads[i].detach(); // launch the thread
@@ -226,7 +224,6 @@ pytensorY RegularTree::predictTree2dMutlithreaded(const pytensor2& xPred,
         answers(j) = leaves[treeNum][curNode - innerNodes];
         curNode = 0;
     }
-    threads[threadCnt - 1].detach();
 
     while (semThreadsFinish > semUnlocked) {
         // busy wait (until threads finishes predictions)
@@ -271,10 +268,6 @@ void RegularTree::predictFitMultithreaded(const pytensor2& xTrain, const pytenso
     pytensorY trainPreds = xt::zeros<Lab_t>({trainLen});
     for (size_t i = 0; i < threadsForTrain - 1; ++i) {
         bias = i * batchSize; // compute batch bias
-        // define thread callback
-        // each thread has it's own unique callback
-        // (to avoid data races)
-        // create a thread
         threads.push_back(std::thread(getCallback(bias, batchSize,
             treeNum, xTrain, semThreadsFinish, trainPreds)));
         threads[i].detach(); // launch the thread
@@ -296,10 +289,6 @@ void RegularTree::predictFitMultithreaded(const pytensor2& xTrain, const pytenso
     pytensorY predsForValid = xt::zeros<Lab_t>({validLen});
     for (size_t i = 0; i < threadsForValid - 1; ++i) {
         biasValid = i * batchSizeValid; // compute batch bias
-        // define thread callback
-        // each thread has it's own unique callback
-        // (to avoid data races)
-        // create a thread
         threads.push_back(std::thread(getCallback(biasValid, batchSizeValid,
             treeNum, xValid, semThreadsFinish, predsForValid)));
         threads[i + threadsForTrain].detach(); // launch the thread
