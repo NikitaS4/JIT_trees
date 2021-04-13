@@ -65,16 +65,31 @@ void RegularTree::popTree() {
 
 Lab_t RegularTree::predictTree(const pytensor1& sample, 
     const size_t treeNum) const {
-    const FVal_t* samplePtr = sample.data(); // get data in array-pointer format
-    return predictTreeRaw(samplePtr, treeNum);
+    //const FVal_t* samplePtr = sample.data(); // get data in array-pointer format
+    //return predictTreeRaw(samplePtr, treeNum);
+
+    validateTreeNum(treeNum);
+    // get pointers for faster access
+    const size_t* curFeatures = features[treeNum];
+    const FVal_t* curThresholds = thresholds[treeNum];
+
+    size_t curNode = 0;
+    // tree traverse
+    for (size_t h = 0; h < treeDepth; ++h) {
+        if (sample(curFeatures[h]) < curThresholds[curNode])
+            curNode = 2 * curNode + 1;
+        else
+            curNode = 2 * curNode + 2;
+    }
+    return leaves[treeNum][curNode - innerNodes];
 }
 
 
 Lab_t RegularTree::predictAllTrees(const pytensor1& sample) const {
     Lab_t curSum = 0;
-    const FVal_t* samplePtr = sample.data(); // get data in array-pointer format
+    //const FVal_t* samplePtr = sample.data(); // get data in array-pointer format
     for (size_t i = 0; i < treeCnt; ++i)
-        curSum += predictTreeRaw(samplePtr, i);
+        curSum += predictTree(sample, i);
     return curSum;
 }
 
@@ -82,53 +97,20 @@ Lab_t RegularTree::predictAllTrees(const pytensor1& sample) const {
 Lab_t RegularTree::predictFromTo(const pytensor1& sample, const size_t from,
     const size_t to) const {
     Lab_t curSum = 0;
-    const FVal_t* samplePtr = sample.data(); // get data in array-pointer format
+    //const FVal_t* samplePtr = sample.data(); // get data in array-pointer format
     for (size_t i = from; i < to; ++i)
-        curSum += predictTreeRaw(samplePtr, i);
+        curSum += predictTree(sample, i);
     return curSum;
 }
 
 
 pytensorY RegularTree::predictTree2d(const pytensor2& xPred,
     const size_t treeNum) const {
-    // checks
-    if (treeNum >= features.size())
-        throw std::runtime_error("wrong treeNum");
-    if (treeNum >= thresholds.size())
-        throw std::runtime_error("wrong treeNum");
-    if (treeNum >= leaves.size())
-        throw std::runtime_error("wrong treeNum");
-
+    validateTreeNum(treeNum);
     if (threadCnt > 1)
         return predictTree2dMutlithreaded(xPred, treeNum);
     else
         return predictTree2dSingleThread(xPred, treeNum);
-}
-
-
-Lab_t RegularTree::predictTreeRaw(const FVal_t* sample, 
-    const size_t treeNum) const {
-    // use const double* as arg to call tensor's data() method only once
-    // in predictAllTrees or predictFromTo methods
-    size_t curNode = 0;
-    
-    // get pointers for faster access
-    if (treeNum >= features.size())
-        throw std::runtime_error("wrong treeNum");
-    if (treeNum >= thresholds.size())
-        throw std::runtime_error("wrong treeNum");
-    if (treeNum >= leaves.size())
-        throw std::runtime_error("wrong treeNum");
-    const size_t* curFeatures = features[treeNum];
-    const FVal_t* curThresholds = thresholds[treeNum];
-
-    for (size_t h = 0; h < treeDepth; ++h) {
-        if (sample[curFeatures[h]] < curThresholds[curNode])
-            curNode = 2 * curNode + 1;
-        else
-            curNode = 2 * curNode + 2;
-    }
-    return leaves[treeNum][curNode - innerNodes];
 }
 
 
@@ -140,6 +122,16 @@ void RegularTree::validateFeatures() {
                 curFeatureArr[h] = featureCnt - 1;
         }
     }
+}
+
+
+void RegularTree::validateTreeNum(const size_t treeNum) const {
+    if (treeNum >= features.size())
+        throw std::runtime_error("wrong treeNum");
+    if (treeNum >= thresholds.size())
+        throw std::runtime_error("wrong treeNum");
+    if (treeNum >= leaves.size())
+        throw std::runtime_error("wrong treeNum");
 }
 
 
