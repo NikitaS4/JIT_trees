@@ -22,7 +22,7 @@ public:
 
     Lab_t predict1d(const pytensor1& x) const;
 
-    virtual pytensorY predict2d(const pytensor2& x) const = 0;
+    virtual pytensorY predict2d(const pytensor2& x) = 0;
     virtual void predictTreeTrain(const size_t treeNum) = 0;
 protected:
     const size_t threadCnt;

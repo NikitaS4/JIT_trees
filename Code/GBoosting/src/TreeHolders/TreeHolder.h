@@ -4,6 +4,7 @@
 #include "../common/Structs.h"
 #include "SWTypes.h"
 #include <cstddef>
+#include <functional>
 
 
 class TreeHolder {
@@ -19,6 +20,8 @@ public:
     virtual Lab_t predictAllTrees(const pytensor1& sample) const = 0;
     virtual Lab_t predictFromTo(const pytensor1& sample, const size_t from,
         const size_t to) const = 0;
+
+    virtual pytensorY predictTree2d(const pytensor2& xPred, const size_t treeNum) const = 0;
 
     // create needed holder
     static TreeHolder* createHolder(const bool JITed, 

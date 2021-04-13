@@ -1,5 +1,6 @@
 #include "GBPredictor.h"
 #include "GBUsualPredictor.h"
+#include "GBMultiPredictor.h"
 #include <stdexcept>
 
 
@@ -42,8 +43,11 @@ GBPredcitor* GBPredcitor::create(const size_t threadCnt,
         return new GBUsualPredictor(threadCnt,
             zeroPredictor, treeHolder, xTrain, xValid,
             residuals, preds, validRes, validPreds);
+    } else {
+        return new GBMultiPredictor(threadCnt,
+            zeroPredictor, treeHolder, xTrain, xValid,
+            residuals, preds, validRes, validPreds);
     }
-    return nullptr;
 }
 
 

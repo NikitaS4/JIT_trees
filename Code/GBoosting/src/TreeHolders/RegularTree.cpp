@@ -1,10 +1,12 @@
 #include "RegularTree.h"
 #include <cstring>
 #include <iostream>
+#include <thread>
+#include <vector>
 
 
 RegularTree::RegularTree(const size_t treeDepth, const size_t featureCnt):
-    TreeHolder(treeDepth, featureCnt) {
+    TreeHolder(treeDepth, featureCnt), threadCnt(defaultThreadCnt) {
     // ctor
 }
 
@@ -87,6 +89,23 @@ Lab_t RegularTree::predictFromTo(const pytensor1& sample, const size_t from,
 }
 
 
+pytensorY RegularTree::predictTree2d(const pytensor2& xPred,
+    const size_t treeNum) const {
+    // checks
+    if (treeNum >= features.size())
+        throw std::runtime_error("wrong treeNum");
+    if (treeNum >= thresholds.size())
+        throw std::runtime_error("wrong treeNum");
+    if (treeNum >= leaves.size())
+        throw std::runtime_error("wrong treeNum");
+
+    if (threadCnt > 1)
+        return predictTree2dMutlithreaded(xPred, treeNum);
+    else
+        return predictTree2dSingleThread(xPred, treeNum);
+}
+
+
 Lab_t RegularTree::predictTreeRaw(const FVal_t* sample, 
     const size_t treeNum) const {
     // use const double* as arg to call tensor's data() method only once
@@ -121,4 +140,109 @@ void RegularTree::validateFeatures() {
                 curFeatureArr[h] = featureCnt - 1;
         }
     }
+}
+
+
+pytensorY RegularTree::predictTree2dSingleThread(const pytensor2& xPred,
+    const size_t treeNum) const {
+    // get pointers for faster access
+    const size_t* curFeatures = features[treeNum];
+    const FVal_t* curThresholds = thresholds[treeNum];
+    const size_t sampleCnt = xPred.shape(0);
+
+    // tensor to store and return predictions
+    pytensorY answers = xt::zeros<Lab_t>({sampleCnt});
+
+    size_t curNode = 0;
+    for (size_t i = 0; i < sampleCnt; ++i) {
+        // decision tree traverse
+        for (size_t h = 0; h < treeDepth; ++h) {
+            if (xPred(i, curFeatures[h]) < curThresholds[curNode])
+                curNode = 2 * curNode + 1;
+            else
+                curNode = 2 * curNode + 2;
+        }
+        answers(i) = leaves[treeNum][curNode - innerNodes];
+        // remember to set curNode to 0 before the next step
+        curNode = 0;
+    }
+    return answers;
+}
+
+
+pytensorY RegularTree::predictTree2dMutlithreaded(const pytensor2& xPred,
+    const size_t treeNum) const {
+
+    std::vector<std::thread> threads;
+    // init "semaphore" with the max value
+    // each thread will decrement the semaphore before finish
+    size_t semThreadsFinish = threadCnt;
+    static const size_t semUnlocked = 0;
+
+    // each thread will predict on it's own batch
+    size_t bias; // bias of the batch
+    size_t batchSize = xPred.shape(0) / threadCnt;
+    // the size of the last batch (it may differ)
+    size_t lastBatchSize = xPred.shape(0) - (threadCnt - 1) * batchSize;
+    // tensor to store and return predictions
+    pytensorY answers = xt::zeros<Lab_t>({xPred.shape(0)});
+    // get pointers for faster access
+    const size_t* curFeatures = features[treeNum];
+    const FVal_t* curThresholds = thresholds[treeNum];
+    // create threads for prediction
+    for (size_t i = 0; i < threadCnt - 1; ++i) {
+        bias = i * batchSize; // compute batch bias
+        // define thread callback
+        // each thread has it's own unique callback
+        // (to avoid data races)
+        auto threadCallback = [&, bias, batchSize]() mutable {
+            // compute the end of the batch
+            const size_t upperLimit = batchSize + bias;
+            size_t curNode = 0; // current node in the decision tree
+            // predict for all batch members
+            for (size_t j = bias; j < upperLimit; ++j) {
+                // decision tree traverse
+                for (size_t h = 0; h < treeDepth; ++h) {
+                    if (xPred(j, curFeatures[h]) < curThresholds[curNode])
+                        curNode = 2 * curNode + 1;
+                    else
+                        curNode = 2 * curNode + 2;
+                }
+                answers(j) = leaves[treeNum][curNode - innerNodes];
+                // remember to set curNode to 0 before the next step
+                curNode = 0;
+            }
+            // thread is finishing, release "semaphore"
+            semThreadsFinish -= 1;
+        };
+        // create a thread
+        threads.push_back(std::thread(threadCallback));
+        threads[i].detach(); // launch the thread
+    }
+    // prepare the last thread (it can have different batchSize)
+    bias = (threadCnt - 1) * batchSize;
+    threads.push_back(std::thread([&, bias, batchSize]() mutable {
+        const size_t upperLimit = lastBatchSize + bias;
+        size_t curNode = 0;
+        for (size_t j = bias; j < upperLimit; ++j) {
+            for (size_t h = 0; h < treeDepth; ++h) {
+                if (xPred(j, curFeatures[h]) < curThresholds[curNode])
+                    curNode = 2 * curNode + 1;
+                else
+                    curNode = 2 * curNode + 2;
+            }
+            answers(j) = leaves[treeNum][curNode - innerNodes];
+            curNode = 0;
+        }
+        semThreadsFinish -= 1;
+    }));
+    threads[threadCnt - 1].detach();
+
+    while (semThreadsFinish > semUnlocked) {
+        // busy wait (until threads finishes predictions)
+        std::this_thread::sleep_for(std::chrono::milliseconds(busyWaitMs));
+    }
+    // now all predictions have been aggregated, can return an answer
+
+    return answers;
 }

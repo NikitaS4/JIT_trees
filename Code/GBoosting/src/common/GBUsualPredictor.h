@@ -17,7 +17,7 @@ public:
         pytensorY& validPreds);
     virtual ~GBUsualPredictor();
 
-    pytensorY predict2d(const pytensor2& x) const override;
+    pytensorY predict2d(const pytensor2& x) override;
     
     void predictTreeTrain(const size_t treeNum) override;
 };
