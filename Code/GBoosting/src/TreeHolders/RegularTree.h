@@ -46,6 +46,11 @@ private:
         const size_t treeNum, pytensorY& residuals, pytensorY& preds,
         pytensorY& validRes, pytensorY& validPreds) const;
 
+    std::function<void()> getCallback(const size_t bias,
+        const size_t batchSize, const size_t treeNum,
+        const pytensor2& xPred, size_t& semThreadsFinish,
+        pytensorY& answers) const;
+
     // constants
     static const int busyWaitMs = 1;
     static constexpr size_t defaultThreadCnt = 3;
