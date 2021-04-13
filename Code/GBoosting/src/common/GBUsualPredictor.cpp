@@ -35,7 +35,7 @@ pytensorY GBUsualPredictor::predict2d(const pytensor2& x) {
 }
 
 
-void GBUsualPredictor::predictTreeTrain(const size_t treeNum) {
+void GBUsualPredictor::predictTreeTrain(const size_t treeNum) {    
     // update train residuals
     /*for (size_t sample = 0; sample < trainLen; ++sample) {
 		Lab_t prediction = treeHolder.predictTree(xt::row(xTrain, sample), 
@@ -43,9 +43,9 @@ void GBUsualPredictor::predictTreeTrain(const size_t treeNum) {
 		residuals(sample) -= prediction;
 		preds(sample) += prediction;
 	}*/
-    pytensorY curPreds = treeHolder.predictTree2d(xTrain, treeNum);
+    /*pytensorY curPreds = treeHolder.predictTree2d(xTrain, treeNum);
     residuals -= curPreds;
-    preds += curPreds;
+    preds += curPreds;*/
 
     // update validation residuals
 	/*for (size_t sample = 0; sample < validLen; ++sample) {
@@ -54,7 +54,9 @@ void GBUsualPredictor::predictTreeTrain(const size_t treeNum) {
 		validRes(sample) -= prediction;
 		validPreds(sample) += prediction;
 	}*/
-    curPreds = treeHolder.predictTree2d(xValid, treeNum);
+    /*curPreds = treeHolder.predictTree2d(xValid, treeNum);
     validRes -= curPreds;
-    validPreds += curPreds;
+    validPreds += curPreds;*/
+    treeHolder.predictTreeFit(xTrain, xValid, treeNum,
+        residuals, preds, validRes, validPreds);
 }

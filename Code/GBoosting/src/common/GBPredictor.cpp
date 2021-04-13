@@ -1,6 +1,5 @@
 #include "GBPredictor.h"
 #include "GBUsualPredictor.h"
-#include "GBMultiPredictor.h"
 #include <stdexcept>
 
 
@@ -39,15 +38,9 @@ GBPredcitor* GBPredcitor::create(const size_t threadCnt,
         pytensorY& validPreds) {
     if (threadCnt == 0)
         throw std::runtime_error("Wrong thread count (0)");
-    //if (threadCnt == 1) {
-        return new GBUsualPredictor(threadCnt,
-            zeroPredictor, treeHolder, xTrain, xValid,
-            residuals, preds, validRes, validPreds);
-    /*} else {
-        return new GBMultiPredictor(threadCnt,
-            zeroPredictor, treeHolder, xTrain, xValid,
-            residuals, preds, validRes, validPreds);
-    }*/
+    return new GBUsualPredictor(threadCnt,
+        zeroPredictor, treeHolder, xTrain, xValid,
+        residuals, preds, validRes, validPreds);
 }
 
 

@@ -3,6 +3,10 @@
 #include <iostream>
 #include <thread>
 #include <vector>
+#include <math.h>
+
+
+// TODO: make predictions on the last batch in the main thread
 
 
 RegularTree::RegularTree(const size_t treeDepth, const size_t featureCnt):
@@ -82,6 +86,25 @@ Lab_t RegularTree::predictTree(const pytensor1& sample,
             curNode = 2 * curNode + 2;
     }
     return leaves[treeNum][curNode - innerNodes];
+}
+
+
+void RegularTree::predictTreeFit(const pytensor2& xTrain, const pytensor2& xValid,
+        const size_t treeNum, pytensorY& residuals, pytensorY& preds,
+        pytensorY& validRes, pytensorY& validPreds) const {
+    if (threadCnt > 1) {
+        predictFitMultithreaded(xTrain, xValid, treeNum,
+            residuals, preds, validRes, validPreds);
+    } else {
+        // predict on train subset
+        pytensorY curPred = predictTree2dSingleThread(xTrain, treeNum);
+        preds += curPred;
+        residuals -= curPred;
+        // predict on test subset
+        curPred = predictTree2dSingleThread(xValid, treeNum);
+        validPreds += curPred;
+        validRes -= curPred;
+    }
 }
 
 
@@ -237,4 +260,167 @@ pytensorY RegularTree::predictTree2dMutlithreaded(const pytensor2& xPred,
     // now all predictions have been aggregated, can return an answer
 
     return answers;
+}
+
+
+void RegularTree::predictFitMultithreaded(const pytensor2& xTrain, const pytensor2& xValid,
+        const size_t treeNum, pytensorY& residuals, pytensorY& preds,
+        pytensorY& validRes, pytensorY& validPreds) const {
+    // part of threads -> train, part -> valid
+    // compute the parts
+    std::vector<std::thread> threads;
+    const size_t trainLen = xTrain.shape(0);
+    const size_t validLen = xValid.shape(0);
+    const size_t commonLen = trainLen + validLen;
+    size_t threadsForValid = (size_t)(floor((threadCnt * (double)(validLen) / (double)(commonLen))));
+    // max(threadsForValid, 1)
+    // at least one thread
+    threadsForValid = (threadsForValid > 1)? (threadsForValid) : (1);
+    size_t threadsForTrain = threadCnt - threadsForValid;
+
+    // semaphore (to wait until threads finish)
+    size_t semThreadsFinish = threadCnt;
+    const size_t semUnlocked = 0;
+
+    // get pointers for faster access
+    const size_t* curFeatures = features[treeNum];
+    const FVal_t* curThresholds = thresholds[treeNum];
+
+    // prepare train threads
+    // each thread will predict on it's own batch
+    size_t bias; // bias of the batch
+    size_t batchSize = trainLen / threadsForTrain;
+    // the size of the last batch (it may differ)
+    size_t lastBatchSize = trainLen - (threadsForTrain - 1) * batchSize;
+    // tensor to store and return predictions
+    pytensorY trainPreds = xt::zeros<Lab_t>({trainLen});
+    for (size_t i = 0; i < threadsForTrain - 1; ++i) {
+        bias = i * batchSize; // compute batch bias
+        // define thread callback
+        // each thread has it's own unique callback
+        // (to avoid data races)
+        auto threadCallback = [&, bias, batchSize]() mutable {
+            // compute the end of the batch
+            const size_t upperLimit = batchSize + bias;
+            size_t curNode = 0; // current node in the decision tree
+            // predict for all batch members
+            for (size_t j = bias; j < upperLimit; ++j) {
+                // decision tree traverse
+                for (size_t h = 0; h < treeDepth; ++h) {
+                    if (xTrain(j, curFeatures[h]) < curThresholds[curNode])
+                        curNode = 2 * curNode + 1;
+                    else
+                        curNode = 2 * curNode + 2;
+                }
+                trainPreds(j) = leaves[treeNum][curNode - innerNodes];
+                // remember to set curNode to 0 before the next step
+                curNode = 0;
+            }
+            // thread is finishing, release "semaphore"
+            semThreadsFinish -= 1;
+        };
+        // create a thread
+        threads.push_back(std::thread(threadCallback));
+        threads[i].detach(); // launch the thread
+    }
+    // predict on the last train batch
+    bias = (threadsForTrain - 1) * batchSize;
+    threads.push_back(std::thread([&, bias, batchSize]() mutable {
+        const size_t upperLimit = lastBatchSize + bias;
+        size_t curNode = 0;
+        for (size_t j = bias; j < upperLimit; ++j) {
+            for (size_t h = 0; h < treeDepth; ++h) {
+                if (xTrain(j, curFeatures[h]) < curThresholds[curNode])
+                    curNode = 2 * curNode + 1;
+                else
+                    curNode = 2 * curNode + 2;
+            }
+            trainPreds(j) = leaves[treeNum][curNode - innerNodes];
+            curNode = 0;
+        }
+        semThreadsFinish -= 1;
+    }));
+    threads[threadsForTrain - 1].detach();
+
+    // prepare validation threads
+    // each thread will predict on it's own batch
+    size_t biasValid; // bias of the batch
+    size_t batchSizeValid = validLen / threadsForValid;
+    // the size of the last batch (it may differ)
+    size_t lastBatchSizeVal = validLen - (threadsForValid - 1) * batchSizeValid;
+    // tensor to store and return predictions
+    pytensorY predsForValid = xt::zeros<Lab_t>({validLen});
+    for (size_t i = 0; i < threadsForValid - 1; ++i) {
+        biasValid = i * batchSizeValid; // compute batch bias
+        // define thread callback
+        // each thread has it's own unique callback
+        // (to avoid data races)
+        auto threadCallback = [&, biasValid, batchSizeValid]() mutable {
+            // compute the end of the batch
+            const size_t upperLimit = batchSizeValid + biasValid;
+            size_t curNode = 0; // current node in the decision tree
+            // predict for all batch members
+            for (size_t j = biasValid; j < upperLimit; ++j) {
+                // decision tree traverse
+                for (size_t h = 0; h < treeDepth; ++h) {
+                    if (xValid(j, curFeatures[h]) < curThresholds[curNode])
+                        curNode = 2 * curNode + 1;
+                    else
+                        curNode = 2 * curNode + 2;
+                }
+                predsForValid(j) = leaves[treeNum][curNode - innerNodes];
+                // remember to set curNode to 0 before the next step
+                curNode = 0;
+            }
+            // thread is finishing, release "semaphore"
+            semThreadsFinish -= 1;
+        };
+        // create a thread
+        threads.push_back(std::thread(threadCallback));
+        threads[i + threadsForTrain].detach(); // launch the thread
+    }
+    // predict on the last train batch
+    biasValid = (threadsForValid - 1) * batchSizeValid;
+    threads.push_back(std::thread([&, biasValid, batchSizeValid]() mutable {
+        const size_t upperLimit = lastBatchSizeVal + biasValid;
+        size_t curNode = 0;
+        for (size_t j = biasValid; j < upperLimit; ++j) {
+            for (size_t h = 0; h < treeDepth; ++h) {
+                if (xValid(j, curFeatures[h]) < curThresholds[curNode])
+                    curNode = 2 * curNode + 1;
+                else
+                    curNode = 2 * curNode + 2;
+            }
+            predsForValid(j) = leaves[treeNum][curNode - innerNodes];
+            curNode = 0;
+        }
+        semThreadsFinish -= 1;
+    }));
+    threads[threadsForTrain + threadsForValid - 1].detach();
+
+    while (semThreadsFinish > semUnlocked) {
+        // busy wait (until threads finishes predictions)
+        std::this_thread::sleep_for(std::chrono::milliseconds(busyWaitMs));
+    }
+    // now all predictions have been aggregated, can update residuals and predictions
+
+    // one thread for train, one for validation
+    // validation will be updated in the main thread
+    semThreadsFinish = 1;
+    // train
+    std::thread trainThread = std::thread([&]() {
+        preds += trainPreds;
+        residuals -= trainPreds;
+        semThreadsFinish -= 1;
+    });
+    trainThread.detach();
+    // validation
+    validPreds += predsForValid;
+    validRes -= predsForValid;
+    
+    while (semThreadsFinish > semUnlocked) {
+        // busy wait (until train updates finish)
+        std::this_thread::sleep_for(std::chrono::milliseconds(busyWaitMs));
+    }
+    // now all updates performed
 }

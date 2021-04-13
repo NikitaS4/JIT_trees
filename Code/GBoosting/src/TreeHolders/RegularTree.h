@@ -15,6 +15,9 @@ public:
     virtual void popTree() final override;
 
     virtual Lab_t predictTree(const pytensor1& sample, const size_t treeNum) const final override;
+    virtual void predictTreeFit(const pytensor2& xTrain, const pytensor2& xValid,
+        const size_t treeNum, pytensorY& residuals, pytensorY& preds,
+        pytensorY& validRes, pytensorY& validPreds) const final override;
     virtual Lab_t predictAllTrees(const pytensor1& sample) const final override;
     virtual Lab_t predictFromTo(const pytensor1& sample, const size_t from, 
         const size_t to) const final override;
@@ -35,8 +38,12 @@ private:
     inline pytensorY predictTree2dMutlithreaded(const pytensor2& xPred,
         const size_t treeNum) const;
 
-    inline pytensorY predictTree2dSingleThread(const pytensor2& xPred,
+    pytensorY predictTree2dSingleThread(const pytensor2& xPred,
         const size_t treeNum) const;
+
+    inline void predictFitMultithreaded(const pytensor2& xTrain, const pytensor2& xValid,
+        const size_t treeNum, pytensorY& residuals, pytensorY& preds,
+        pytensorY& validRes, pytensorY& validPreds) const;
 
     // constants
     static const int busyWaitMs = 1;

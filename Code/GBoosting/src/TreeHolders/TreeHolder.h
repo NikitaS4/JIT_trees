@@ -16,6 +16,9 @@ public:
     size_t getTreeCount() const;
 
     virtual Lab_t predictTree(const pytensor1& sample, const size_t treeNum) const = 0;
+    virtual void predictTreeFit(const pytensor2& xTrain, const pytensor2& xValid,
+        const size_t treeNum, pytensorY& residuals, pytensorY& preds,
+        pytensorY& validRes, pytensorY& validPreds) const = 0;
     virtual Lab_t predictAllTrees(const pytensor1& sample) const = 0;
     virtual Lab_t predictFromTo(const pytensor1& sample, const size_t from,
         const size_t to) const = 0;
