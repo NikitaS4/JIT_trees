@@ -47,8 +47,6 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 	const Lab_t regularizationParam,
 	const Lab_t earlyStoppingDelta,
 	const float batchPart,
-	const bool useJIT,
-	const int JITedCodeType,
 	const unsigned int randomState,
 	const bool shuffledBatches,
 	const bool randomThresholds,
@@ -83,11 +81,8 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 		throw std::runtime_error("regularization param was less zero (must be greater or equal)");
 
 	// init tree holder
-	// firstly, convert JITed code type to SW_t enum
-	SW_t JITedCodeTypeEnum = GradientBoosting::codeTypeToEnum(JITedCodeType);
 	// call factory
-	treeHolder = TreeHolder::createHolder(useJIT, treeDepth, 
-		featureCount, JITedCodeTypeEnum);
+	treeHolder = TreeHolder::createHolder(treeDepth, featureCount);
 
 	// Histogram init (compute and remember thresholds)
 	for (size_t featureSlice = 0; featureSlice < featureCount; ++featureSlice)
@@ -265,14 +260,6 @@ bool GradientBoosting::canStop(const size_t stepNum,
 		}
 		return true;
 	}
-}
-
-
-SW_t GradientBoosting::codeTypeToEnum(const int JITedCodeType) {
-	// Firstly, ensure the type number is in [0, MAX_TYPE]
-	int enumFit = JITedCodeType % (int(SW_t::SW_COUNT) - 1);
-	// Cast int to enum
-	return static_cast<SW_t>(JITedCodeType);
 }
 
 

@@ -2,7 +2,6 @@
 #define TREE_HOLDER_INCLUDED
 
 #include "../common/Structs.h"
-#include "SWTypes.h"
 #include <cstddef>
 #include <functional>
 
@@ -24,9 +23,7 @@ public:
     virtual pytensorY predictTree2d(const pytensor2& xPred, const size_t treeNum) const = 0;
 
     // create needed holder
-    static TreeHolder* createHolder(const bool JITed, 
-        const size_t treeDepth, const size_t featureCnt,
-        const SW_t JITedCodeType);
+    static TreeHolder* createHolder(const size_t treeDepth, const size_t featureCnt);
 protected:
     // fields
     const size_t treeDepth;

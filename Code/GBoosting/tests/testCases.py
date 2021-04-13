@@ -3,7 +3,7 @@ import numpy as np
 
 class ModelOptionsHelper:
     @staticmethod
-    def single_tree(use_JIT=True):
+    def single_tree():
         return {
             "min_bins": 1024,
             "max_bins": 1024,
@@ -13,7 +13,6 @@ class ModelOptionsHelper:
             "learning_rate": 1,
             "reg": 0,
             "es_delta": 0,
-            "use_jit": use_JIT,
             "batch_part": 1,
             "feature_fold_size": 1.0,
             "random_batches": False,
@@ -22,7 +21,7 @@ class ModelOptionsHelper:
         }
     
     @staticmethod
-    def single_split(use_JIT=True):
+    def single_split():
         return {
             "min_bins": 256,
             "max_bins": 256,
@@ -32,7 +31,6 @@ class ModelOptionsHelper:
             "learning_rate": 0.2,
             "reg": 0,
             "es_delta": 0,
-            "use_jit": use_JIT,
             "batch_part": 1,
             "feature_fold_size": 1.0,
             "random_batches": False,
@@ -41,7 +39,7 @@ class ModelOptionsHelper:
         }
     
     @staticmethod
-    def ensemble(use_JIT=True):
+    def ensemble():
         return {
             "min_bins": 16,
             "max_bins": 256,
@@ -51,7 +49,6 @@ class ModelOptionsHelper:
             "learning_rate": 0.2,
             "reg": 2,
             "es_delta": 1e-5,
-            "use_jit": use_JIT,
             "batch_part": 0.7,
             "feature_fold_size": 0.6,
             "random_batches": True,
@@ -60,7 +57,7 @@ class ModelOptionsHelper:
         }
     
     @staticmethod
-    def hard_model(use_JIT=True):
+    def hard_model():
         return {
             "min_bins": 128,
             "max_bins": 1024,
@@ -70,7 +67,6 @@ class ModelOptionsHelper:
             "learning_rate": 0.1,
             "reg": 1,
             "es_delta": 0,
-            "use_jit": use_JIT,
             "batch_part": 1,
             "feature_fold_size": 1.0,
             "random_batches": True,

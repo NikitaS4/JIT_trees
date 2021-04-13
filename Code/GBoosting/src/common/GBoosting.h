@@ -7,7 +7,6 @@
 #include "GBDecisionTree.h"
 #include "History.h"
 #include "../TreeHolders/TreeHolder.h"
-#include "../TreeHolders/SWTypes.h"
 #include "GBPredictor.h"
 #include <vector>
 #include <random>
@@ -33,8 +32,6 @@ public:
 				const Lab_t regularizationParam = defaultReg,
 				const Lab_t earlyStoppingDelta = defaultESDelta,
 				const float batchPart = 1.0f,
-				const bool useJIT = false,
-				const int JITedCodeType = int(SW_t::BASIC_FOR),
 				const unsigned int randomState = defaultRandomState,
 				const bool shuffledBatches = false,
 				const bool randomThresholds = true,
@@ -55,8 +52,6 @@ protected:
 					  const pytensorY& truth);
 	inline bool canStop(const size_t stepNum, 
 						const Lab_t earlyStoppingDelta) const;
-
-	static inline SW_t codeTypeToEnum(const int JITedCodeType);
  
 	static inline size_t randomFromInterval(const size_t left,
 		const size_t right);

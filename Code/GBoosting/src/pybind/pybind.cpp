@@ -45,8 +45,6 @@ PYBIND11_MODULE(JITtrees, m) {
             py::arg("regularization_param")=dp::regParam,
             py::arg("early_stopping_delta")=dp::earlyStoppingDelta,
             py::arg("batch_part")=dp::batchPart,
-            py::arg("JIT")=dp::useJIT,
-            py::arg("JITedCodeType")=dp::JITedCodeType,
             py::arg("random_state")=dp::randomState,
             py::arg("random_batches")=dp::randomBatches,
             py::arg("random_hist_thresholds")=dp::randThresholds,

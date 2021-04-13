@@ -1,5 +1,4 @@
 #include "TreeHolder.h"
-#include "JITedTree.h"
 #include "RegularTree.h"
 
 
@@ -20,11 +19,7 @@ size_t TreeHolder::getTreeCount() const {
 }
 
 
-TreeHolder* TreeHolder::createHolder(const bool JITed, 
-    const size_t treeDepth, const size_t featureCnt,
-    const SW_t JITedCodeType) {
-    if (JITed)
-        return new JITedTree(treeDepth, featureCnt, JITedCodeType);
-    else
+TreeHolder* TreeHolder::createHolder(const size_t treeDepth,
+    const size_t featureCnt) {
         return new RegularTree(treeDepth, featureCnt);
 }
