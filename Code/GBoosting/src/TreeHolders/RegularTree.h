@@ -29,7 +29,6 @@ private:
     size_t threadCnt; // TODO: add setter
 
     // methods
-    //inline Lab_t predictTreeRaw(const FVal_t* sample, const size_t treeNum) const;
     inline void validateFeatures();
     inline void validateTreeNum(const size_t treeNum) const;
 
