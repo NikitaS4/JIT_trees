@@ -72,6 +72,7 @@ Lab_t RegularTree::predictTree(const pytensor1& sample,
     const size_t* curFeatures = features[treeNum];
     const FVal_t* curThresholds = thresholds[treeNum];
 
+    // TODO: use getCallback(...)
     size_t curNode = 0;
     // tree traverse
     for (size_t h = 0; h < treeDepth; ++h) {
@@ -108,6 +109,19 @@ Lab_t RegularTree::predictAllTrees(const pytensor1& sample) const {
     for (size_t i = 0; i < treeCnt; ++i)
         curSum += predictTree(sample, i);
     return curSum;
+}
+
+
+pytensorY RegularTree::predictAllTrees2d(const pytensor2& sample) const {
+    if (threadCnt == 1) {
+        pytensorY answers = xt::zeros<Lab_t>({sample.shape(0)});
+        for (size_t i = 0; i < treeCnt; ++i) {
+            answers += predictTree2dSingleThread(sample, i);
+        }
+        return answers;
+    } else {
+        return allTrees2dMultithreaded(sample);
+    }
 }
 
 
@@ -171,41 +185,8 @@ pytensorY RegularTree::predictTree2dSingleThread(const pytensor2& xPred,
 
 pytensorY RegularTree::predictTree2dMutlithreaded(const pytensor2& xPred,
     const size_t treeNum) const {
-
-    std::vector<std::thread> threads;
-    // init "semaphore" with the max value
-    // each thread will decrement the semaphore before finish
-    size_t semThreadsFinish = threadCnt;
-    static const size_t semUnlocked = 0;
-
-    // each thread will predict on it's own batch
-    size_t bias; // bias of the batch
-    size_t batchSize = xPred.shape(0) / threadCnt;
-    // the size of the last batch (it may differ)
-    size_t lastBatchSize = xPred.shape(0) - (threadCnt - 1) * batchSize;
-    // tensor to store and return predictions
-    pytensorY answers = xt::zeros<Lab_t>({xPred.shape(0)});
-    // create threads for prediction
-    for (size_t i = 0; i < threadCnt - 1; ++i) {
-        bias = i * batchSize; // compute batch bias
-        // each thread has it's own unique callback
-        // (to avoid data races)
-        threads.push_back(std::thread(getCallback(bias, batchSize,
-            treeNum, xPred, semThreadsFinish, answers)));
-        threads[i].detach(); // launch the thread
-    }
-    // the last batch will be processed in this thread (main)
-    bias = (threadCnt - 1) * batchSize;
-    getCallback(bias, lastBatchSize, treeNum, xPred,
-        semThreadsFinish, answers)(); // get & launch
-
-    while (semThreadsFinish > semUnlocked) {
-        // busy wait (until threads finishes predictions)
-        std::this_thread::sleep_for(std::chrono::milliseconds(busyWaitMs));
-    }
-    // now all predictions have been aggregated, can return an answer
-
-    return answers;
+    static const bool allTrees = false;
+    return predict2dProxy(xPred, allTrees, treeNum);
 }
 
 
@@ -297,6 +278,65 @@ void RegularTree::predictFitMultithreaded(const pytensor2& xTrain, const pytenso
 }
 
 
+pytensorY RegularTree::allTrees2dMultithreaded(const pytensor2& xPred) const {
+    static const bool allTrees = true;
+    static const size_t treeNumStub = 0;
+    return predict2dProxy(xPred, allTrees, treeNumStub);
+}
+
+
+pytensorY RegularTree::predict2dProxy(const pytensor2& xPred,
+        const bool allTrees, const size_t treeNum) const {
+    // decide which callback to get
+    std::function<void()> (RegularTree::*callbackGetter)(const size_t bias,
+        const size_t batchSize, const size_t treeNum,
+        const pytensor2& xPred, size_t& semThreadsFinish,
+        pytensorY& answers) const;
+    if (allTrees) {
+        callbackGetter = &RegularTree::getCallbackAll;
+    }
+    else {
+        callbackGetter = &RegularTree::getCallback;
+    }
+
+    // predict
+    std::vector<std::thread> threads;
+    // init "semaphore" with the max value
+    // each thread will decrement the semaphore before finish
+    size_t semThreadsFinish = threadCnt;
+    static const size_t semUnlocked = 0;
+
+    // each thread will predict on it's own batch
+    size_t bias; // bias of the batch
+    size_t batchSize = xPred.shape(0) / threadCnt;
+    // the size of the last batch (it may differ)
+    size_t lastBatchSize = xPred.shape(0) - (threadCnt - 1) * batchSize;
+    // tensor to store and return predictions
+    pytensorY answers = xt::zeros<Lab_t>({xPred.shape(0)});
+    // create threads for prediction
+    for (size_t i = 0; i < threadCnt - 1; ++i) {
+        bias = i * batchSize; // compute batch bias
+        // each thread has it's own unique callback
+        // (to avoid data races)
+        threads.push_back(std::thread((this->*callbackGetter)(bias, batchSize,
+            treeNum, xPred, semThreadsFinish, answers)));
+        threads[i].detach(); // launch the thread
+    }
+    // the last batch will be processed in this thread (main)
+    bias = (threadCnt - 1) * batchSize;
+    (this->*callbackGetter)(bias, lastBatchSize, treeNum, xPred,
+        semThreadsFinish, answers)(); // get & launch
+
+    while (semThreadsFinish > semUnlocked) {
+        // busy wait (until threads finishes predictions)
+        std::this_thread::sleep_for(std::chrono::milliseconds(busyWaitMs));
+    }
+    // now all predictions have been aggregated, can return an answer
+
+    return answers;
+}
+
+
 std::function<void()> RegularTree::getCallback(const size_t bias,
     const size_t batchSize, const size_t treeNum,
     const pytensor2& xPred, size_t& semThreadsFinish,
@@ -328,6 +368,52 @@ std::function<void()> RegularTree::getCallback(const size_t bias,
             answers(j) = curLeaves[curNode - innerNodes];
             // remember to set curNode to 0 before the next step
             curNode = 0;
+        }
+        // thread is finishing, release "semaphore"
+        semThreadsFinish -= 1;
+    };
+}
+
+
+std::function<void()> RegularTree::getCallbackAll(const size_t bias,
+        const size_t batchSize, const size_t treeNum,
+        const pytensor2& xPred, size_t& semThreadsFinish,
+        pytensorY& answers) const {
+    // ignore treeNum
+    // pass by values
+    const size_t treeDepth = this->treeDepth;
+    const size_t innerNodes = this->innerNodes;
+    const std::vector<size_t*>& features = this->features;
+    const std::vector<FVal_t*>& thresholds = this->thresholds;
+    const std::vector<Lab_t*>& leaves = this->leaves;
+    const size_t treeCnt = this->treeCnt;
+    // don't pass 'this' by reference, don't pass 'this' at all
+    // this is needed to avoid data races
+    return [treeDepth, innerNodes, bias, batchSize, treeCnt,
+        &xPred, &semThreadsFinish, &answers, &features,
+        &thresholds, &leaves]() mutable {
+        // compute the end of the batch
+        const size_t upperLimit = batchSize + bias;
+        size_t curNode = 0; // current node in the decision tree
+        for (size_t tr = 0; tr < treeCnt; ++tr) {
+            // predict for all trees
+            // get pointers for faster access
+            const size_t* curFeatures = features[tr];
+            const FVal_t* curThresholds = thresholds[tr];
+            const Lab_t* curLeaves = leaves[tr];
+            // predict for all batch members
+            for (size_t j = bias; j < upperLimit; ++j) {
+                // decision tree traverse
+                for (size_t h = 0; h < treeDepth; ++h) {
+                    if (xPred(j, curFeatures[h]) < curThresholds[curNode])
+                        curNode = 2 * curNode + 1;
+                    else
+                        curNode = 2 * curNode + 2;
+                }
+                answers(j) += curLeaves[curNode - innerNodes];
+                // remember to set curNode to 0 before the next step
+                curNode = 0;
+            }
         }
         // thread is finishing, release "semaphore"
         semThreadsFinish -= 1;

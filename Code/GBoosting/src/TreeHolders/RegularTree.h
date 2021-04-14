@@ -21,6 +21,7 @@ public:
         const size_t treeNum, pytensorY& residuals, pytensorY& preds,
         pytensorY& validRes, pytensorY& validPreds) const final override;
     virtual Lab_t predictAllTrees(const pytensor1& sample) const final override;
+    virtual pytensorY predictAllTrees2d(const pytensor2& sample) const final override;
     virtual Lab_t predictFromTo(const pytensor1& sample, const size_t from, 
         const size_t to) const final override;
 
@@ -36,7 +37,7 @@ private:
     inline void validateFeatures();
     inline void validateTreeNum(const size_t treeNum) const;
 
-    inline pytensorY predictTree2dMutlithreaded(const pytensor2& xPred,
+    pytensorY predictTree2dMutlithreaded(const pytensor2& xPred,
         const size_t treeNum) const;
 
     pytensorY predictTree2dSingleThread(const pytensor2& xPred,
@@ -46,7 +47,17 @@ private:
         const size_t treeNum, pytensorY& residuals, pytensorY& preds,
         pytensorY& validRes, pytensorY& validPreds) const;
 
+    pytensorY allTrees2dMultithreaded(const pytensor2& xPred) const;
+
+    pytensorY predict2dProxy(const pytensor2& xPred,
+        const bool allTrees, const size_t treeNum) const;
+
     std::function<void()> getCallback(const size_t bias,
+        const size_t batchSize, const size_t treeNum,
+        const pytensor2& xPred, size_t& semThreadsFinish,
+        pytensorY& answers) const;
+
+    std::function<void()> getCallbackAll(const size_t bias,
         const size_t batchSize, const size_t treeNum,
         const pytensor2& xPred, size_t& semThreadsFinish,
         pytensorY& answers) const;

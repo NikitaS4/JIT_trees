@@ -23,12 +23,12 @@ GBUsualPredictor::~GBUsualPredictor() {
 
 pytensorY GBUsualPredictor::predict2d(const pytensor2& x) {
     validateFeatureCount(x);
-    size_t sampleCnt = x.shape(0);
-    pytensorY ans = xt::zeros<Lab_t>({sampleCnt});
-    for (size_t sample = 0; sample < sampleCnt; ++sample) {
-        ans(sample) = zeroPredictor + treeHolder.predictAllTrees(xt::row(x, sample));
+    pytensorY answers = treeHolder.predictAllTrees2d(x);
+    // don't forget zero predictor (constant)
+    for (size_t i = 0; i < answers.shape(0); ++i) {
+        answers(i) += zeroPredictor;
     }
-    return ans;
+    return answers;
 }
 
 
