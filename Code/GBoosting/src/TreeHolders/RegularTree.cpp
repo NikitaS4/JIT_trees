@@ -165,19 +165,10 @@ pytensorY RegularTree::predictTree2dSingleThread(const pytensor2& xPred,
     // tensor to store and return predictions
     pytensorY answers = xt::zeros<Lab_t>({sampleCnt});
 
-    size_t curNode = 0;
-    for (size_t i = 0; i < sampleCnt; ++i) {
-        // decision tree traverse
-        for (size_t h = 0; h < treeDepth; ++h) {
-            if (xPred(i, curFeatures[h]) < curThresholds[curNode])
-                curNode = 2 * curNode + 1;
-            else
-                curNode = 2 * curNode + 2;
-        }
-        answers(i) = leaves[treeNum][curNode - innerNodes];
-        // remember to set curNode to 0 before the next step
-        curNode = 0;
-    }
+    // use code defined in getCallback(...)
+    size_t semFict = 1; // don't need to acqiure/release lock
+    getCallback(0, sampleCnt, treeNum, xPred, semFict,
+        answers)(); // get & launch
     return answers;
 }
 
