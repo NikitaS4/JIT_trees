@@ -8,7 +8,8 @@
 
 class RegularTree: public TreeHolder {
 public:
-    RegularTree(const size_t treeDepth, const size_t featureCnt);
+    RegularTree(const size_t treeDepth, const size_t featureCnt,
+        const size_t threadCnt);
     virtual ~RegularTree();
 
     virtual void newTree(const size_t* features, const FVal_t* thresholds,
@@ -30,7 +31,6 @@ private:
     std::vector<size_t*> features;
     std::vector<FVal_t*> thresholds;
     std::vector<Lab_t*> leaves;
-    size_t threadCnt; // TODO: add setter
 
     // methods
     inline void validateFeatures();
@@ -53,7 +53,6 @@ private:
 
     // constants
     static const int busyWaitMs = 1;
-    static constexpr size_t defaultThreadCnt = 3;
 };
 
 #endif // REGULAR_TREE_INCLUDED

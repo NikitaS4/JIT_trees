@@ -15,6 +15,9 @@ from sklearn.model_selection import train_test_split
 from testCases import ModelOptionsHelper, TargetOptionsHelper
 
 
+THREAD_COUNT = 5
+
+
 class TestHelper:
     @staticmethod
     def test_pipeline(target_options, data_options, model_options, out_options, plot_options):
@@ -35,7 +38,7 @@ class TestHelper:
         def fit_wrapper():
             model = JITtrees.Boosting(model_options['min_bins'], 
                 model_options['max_bins'], model_options['patience'],
-                False)
+                False, THREAD_COUNT)
             start_time = time.time() # get start time to count the time of execution
             history = model.fit(x_train, y_train, x_valid, y_valid, model_options['tree_count'],
                 model_options['tree_depth'], model_options['feature_fold_size'], 

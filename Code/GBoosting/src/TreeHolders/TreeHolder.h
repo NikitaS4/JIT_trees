@@ -26,18 +26,21 @@ public:
     virtual pytensorY predictTree2d(const pytensor2& xPred, const size_t treeNum) const = 0;
 
     // create needed holder
-    static TreeHolder* createHolder(const size_t treeDepth, const size_t featureCnt);
+    static TreeHolder* createHolder(const size_t treeDepth,
+        const size_t featureCnt, const size_t threadCnt);
 protected:
     // fields
     const size_t treeDepth;
     const size_t innerNodes;
     const size_t featureCnt;
     const size_t leafCnt;
+    const size_t threadCnt;
     size_t treeCnt;
 
     // constructor
     // inheritors need to call ctor
-    TreeHolder(const size_t treeDepth, const size_t featureCnt);
+    TreeHolder(const size_t treeDepth, const size_t featureCnt,
+        const size_t threadCnt);
 };
 
 #endif // TREE_HOLDER_INCLUDED

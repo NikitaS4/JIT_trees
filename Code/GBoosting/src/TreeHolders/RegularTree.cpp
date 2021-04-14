@@ -6,8 +6,9 @@
 #include <math.h>
 
 
-RegularTree::RegularTree(const size_t treeDepth, const size_t featureCnt):
-    TreeHolder(treeDepth, featureCnt), threadCnt(defaultThreadCnt) {
+RegularTree::RegularTree(const size_t treeDepth,
+    const size_t featureCnt, const size_t threadCnt):
+    TreeHolder(treeDepth, featureCnt, threadCnt) {
     // ctor
 }
 
@@ -66,9 +67,6 @@ void RegularTree::popTree() {
 
 Lab_t RegularTree::predictTree(const pytensor1& sample, 
     const size_t treeNum) const {
-    //const FVal_t* samplePtr = sample.data(); // get data in array-pointer format
-    //return predictTreeRaw(samplePtr, treeNum);
-
     validateTreeNum(treeNum);
     // get pointers for faster access
     const size_t* curFeatures = features[treeNum];
@@ -107,7 +105,6 @@ void RegularTree::predictTreeFit(const pytensor2& xTrain, const pytensor2& xVali
 
 Lab_t RegularTree::predictAllTrees(const pytensor1& sample) const {
     Lab_t curSum = 0;
-    //const FVal_t* samplePtr = sample.data(); // get data in array-pointer format
     for (size_t i = 0; i < treeCnt; ++i)
         curSum += predictTree(sample, i);
     return curSum;
@@ -117,7 +114,6 @@ Lab_t RegularTree::predictAllTrees(const pytensor1& sample) const {
 Lab_t RegularTree::predictFromTo(const pytensor1& sample, const size_t from,
     const size_t to) const {
     Lab_t curSum = 0;
-    //const FVal_t* samplePtr = sample.data(); // get data in array-pointer format
     for (size_t i = from; i < to; ++i)
         curSum += predictTree(sample, i);
     return curSum;

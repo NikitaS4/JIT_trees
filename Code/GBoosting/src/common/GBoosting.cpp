@@ -16,13 +16,16 @@ const unsigned int GradientBoosting::defaultRandomState = 12;
 
 GradientBoosting::GradientBoosting(const size_t binCountMin,
 	const size_t binCountMax, const size_t patience,
-	const bool dontUseEarlyStopping): featureCount(1), 
+	const bool dontUseEarlyStopping,
+	const size_t threadCnt): featureCount(1), 
 	trainLen(0), realTreeCount(0), binCountMin(binCountMin),
-	binCountMax(binCountMax), patience(patience), zeroPredictor(0),
-	dontUseEarlyStopping(dontUseEarlyStopping) {
+	binCountMax(binCountMax), patience(patience), threadCnt(threadCnt),
+	zeroPredictor(0), dontUseEarlyStopping(dontUseEarlyStopping) {
 	// ctor
 	if (binCountMax < binCountMin)
 		throw std::runtime_error("Max bin count was less than min bin count");
+	if (threadCnt == 0)
+		throw std::runtime_error("Thread count was 0 (must be positive)");
 }
 
 GradientBoosting::~GradientBoosting() {
@@ -82,7 +85,8 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 
 	// init tree holder
 	// call factory
-	treeHolder = TreeHolder::createHolder(treeDepth, featureCount);
+	treeHolder = TreeHolder::createHolder(treeDepth, featureCount,
+		threadCnt);
 
 	// Histogram init (compute and remember thresholds)
 	for (size_t featureSlice = 0; featureSlice < featureCount; ++featureSlice)

@@ -17,7 +17,8 @@ public:
 	GradientBoosting(const size_t binCountMin,
 					 const size_t binCountMax,
 					 const size_t patience = defaultPatience,
-					 const bool dontUseEarlyStopping = defaultDontUseES);
+					 const bool dontUseEarlyStopping = defaultDontUseES,
+					 const size_t threadCnt = defaultThreadCnt);
 	virtual ~GradientBoosting();
 	// 1st dim - object number, 2nd dim - feature number
 	// fit return the number of estimators (include constant estim)
@@ -76,6 +77,7 @@ protected:
 	size_t binCountMax;
 	size_t patience;
 	size_t randomFoldLength; // it's needed to form random batches
+	const size_t threadCnt;
 	std::vector<size_t> shuffledIndexes; // it's needed to form random batches
 	std::default_random_engine randGenerator;
 	size_t batchSize;
@@ -96,6 +98,7 @@ protected:
 	static constexpr bool defaultDontUseES = false; // use early stopping by default
 
 	static constexpr float whenRemoveRegularization = 0.8f; // the part of iterations with regularization
+	static constexpr size_t defaultThreadCnt = 1;
 };
 
 #endif // GBOOSTING_H

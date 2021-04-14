@@ -2,9 +2,10 @@
 #include "RegularTree.h"
 
 
-TreeHolder::TreeHolder(const size_t treeDepth, const size_t featureCnt):
+TreeHolder::TreeHolder(const size_t treeDepth,
+    const size_t featureCnt, const size_t threadCnt):
     treeDepth(treeDepth), innerNodes((1 << treeDepth) - 1), featureCnt(featureCnt),
-    leafCnt(size_t(1) << treeDepth), treeCnt(0) {
+    leafCnt(size_t(1) << treeDepth), threadCnt(threadCnt), treeCnt(0) {
     // ctor
 }
 
@@ -20,6 +21,6 @@ size_t TreeHolder::getTreeCount() const {
 
 
 TreeHolder* TreeHolder::createHolder(const size_t treeDepth,
-    const size_t featureCnt) {
-        return new RegularTree(treeDepth, featureCnt);
+    const size_t featureCnt, const size_t threadCnt) {
+        return new RegularTree(treeDepth, featureCnt, threadCnt);
 }

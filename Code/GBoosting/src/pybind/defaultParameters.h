@@ -17,4 +17,5 @@ namespace defaultParams {
     const float featureFoldSize = 1.0f; // use all features
     const bool randThresholds = true;
     const bool removeReg = false;
+    const size_t threadCnt = 1;
 };
