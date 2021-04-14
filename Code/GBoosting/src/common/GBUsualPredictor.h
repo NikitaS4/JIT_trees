@@ -6,8 +6,7 @@
 
 class GBUsualPredictor: public GBPredcitor {
 public:
-    GBUsualPredictor(const size_t threadCnt,
-        const Lab_t zeroPredictor,
+    GBUsualPredictor(const Lab_t zeroPredictor,
         const TreeHolder& treeHolder,
         const pytensor2& xTrain,
         const pytensor2& xValid,

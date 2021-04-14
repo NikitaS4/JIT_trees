@@ -2,20 +2,17 @@
 #include <stdexcept>
 
 
-GBUsualPredictor::GBUsualPredictor(const size_t threadCnt,
-        const Lab_t zeroPredictor,
+GBUsualPredictor::GBUsualPredictor(const Lab_t zeroPredictor,
         const TreeHolder& treeHolder,
         const pytensor2& xTrain,
         const pytensor2& xValid,
         pytensorY& residuals,
         pytensorY& preds,
         pytensorY& validRes,
-        pytensorY& validPreds): GBPredcitor(threadCnt, zeroPredictor,
+        pytensorY& validPreds): GBPredcitor(zeroPredictor,
         treeHolder, xTrain, xValid, residuals, preds,
         validRes, validPreds) {
     // ctor
-    if (threadCnt != 1)
-        throw std::runtime_error("Wrong thread count passed to GBUsualPredictor");
 }
 
 
@@ -35,28 +32,7 @@ pytensorY GBUsualPredictor::predict2d(const pytensor2& x) {
 }
 
 
-void GBUsualPredictor::predictTreeTrain(const size_t treeNum) {    
-    // update train residuals
-    /*for (size_t sample = 0; sample < trainLen; ++sample) {
-		Lab_t prediction = treeHolder.predictTree(xt::row(xTrain, sample), 
-			treeNum);
-		residuals(sample) -= prediction;
-		preds(sample) += prediction;
-	}*/
-    /*pytensorY curPreds = treeHolder.predictTree2d(xTrain, treeNum);
-    residuals -= curPreds;
-    preds += curPreds;*/
-
-    // update validation residuals
-	/*for (size_t sample = 0; sample < validLen; ++sample) {
-		Lab_t prediction = treeHolder.predictTree(xt::row(xValid, sample),
-			treeNum);
-		validRes(sample) -= prediction;
-		validPreds(sample) += prediction;
-	}*/
-    /*curPreds = treeHolder.predictTree2d(xValid, treeNum);
-    validRes -= curPreds;
-    validPreds += curPreds;*/
+void GBUsualPredictor::predictTreeTrain(const size_t treeNum) {
     treeHolder.predictTreeFit(xTrain, xValid, treeNum,
         residuals, preds, validRes, validPreds);
 }

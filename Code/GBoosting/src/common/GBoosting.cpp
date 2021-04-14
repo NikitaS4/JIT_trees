@@ -122,11 +122,8 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 	validLoss = loss(validPreds, yValid);  // update loss
 	
 	// create predictor
-	size_t threadCnt = 1;
-	predictor = GBPredcitor::create(threadCnt,
-		zeroPredictor, *treeHolder, xTrain,
-		xValid, residuals, preds, validRes,
-		validPreds);
+	predictor = GBPredcitor::create(zeroPredictor, *treeHolder,
+		xTrain, xValid, residuals, preds, validRes, validPreds);
 	if (predictor == nullptr)
 		throw std::runtime_error("Can't fit: not enough memory");
 

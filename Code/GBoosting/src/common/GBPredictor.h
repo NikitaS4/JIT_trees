@@ -8,8 +8,7 @@
 
 class GBPredcitor {
 public:
-    static GBPredcitor* create(const size_t threadCnt,
-        const Lab_t zeroPredictor,
+    static GBPredcitor* create(const Lab_t zeroPredictor,
         const TreeHolder& treeHolder,
         const pytensor2& xTrain,
         const pytensor2& xValid,
@@ -25,7 +24,6 @@ public:
     virtual pytensorY predict2d(const pytensor2& x) = 0;
     virtual void predictTreeTrain(const size_t treeNum) = 0;
 protected:
-    const size_t threadCnt;
     const size_t trainLen;
     const size_t validLen;
     const size_t featureCount;
@@ -41,8 +39,7 @@ protected:
     void validateFeatureCount(const pytensor1& x) const;
     void validateFeatureCount(const pytensor2& x) const;
 
-    GBPredcitor(const size_t threadCnt,
-        const Lab_t zeroPredictor,
+    GBPredcitor(const Lab_t zeroPredictor,
         const TreeHolder& treeHolder,
         const pytensor2& xTrain,
         const pytensor2& xValid,

@@ -8,8 +8,7 @@ GBPredcitor::~GBPredcitor() {
 }
 
 
-GBPredcitor::GBPredcitor(const size_t threadCnt,
-        const Lab_t zeroPredictor,
+GBPredcitor::GBPredcitor(const Lab_t zeroPredictor,
         const TreeHolder& treeHolder,
         const pytensor2& xTrain,
         const pytensor2& xValid,
@@ -17,7 +16,7 @@ GBPredcitor::GBPredcitor(const size_t threadCnt,
         pytensorY& preds,
         pytensorY& validRes,
         pytensorY& validPreds):
-        threadCnt(threadCnt), trainLen(xTrain.shape(0)),
+        trainLen(xTrain.shape(0)),
         featureCount(xTrain.shape(1)), validLen(xValid.shape(0)),
         zeroPredictor(zeroPredictor), treeHolder(treeHolder),
         xTrain(xTrain), xValid(xValid),
@@ -27,8 +26,7 @@ GBPredcitor::GBPredcitor(const size_t threadCnt,
 }
 
 
-GBPredcitor* GBPredcitor::create(const size_t threadCnt,
-        const Lab_t zeroPredictor,
+GBPredcitor* GBPredcitor::create(const Lab_t zeroPredictor,
         const TreeHolder& treeHolder,
         const pytensor2& xTrain,
         const pytensor2& xValid,
@@ -36,10 +34,7 @@ GBPredcitor* GBPredcitor::create(const size_t threadCnt,
         pytensorY& preds,
         pytensorY& validRes,
         pytensorY& validPreds) {
-    if (threadCnt == 0)
-        throw std::runtime_error("Wrong thread count (0)");
-    return new GBUsualPredictor(threadCnt,
-        zeroPredictor, treeHolder, xTrain, xValid,
+    return new GBUsualPredictor(zeroPredictor, treeHolder, xTrain, xValid,
         residuals, preds, validRes, validPreds);
 }
 
