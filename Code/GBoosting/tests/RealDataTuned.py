@@ -135,25 +135,29 @@ def tune_Sklearn(x_tr_val, y_tr_val, options_grid):
     return model.best_params_, model
 
 
-def JITtrees_tuned_mae(x_tr_val, y_tr_val, x_test, y_test, best_params):
+def JITtrees_tuned_mae(x_tr_val, y_tr_val, x_test, y_test,
+    best_params, preds_dict):
     ctor_options, fit_options = split_options(best_params)
     model = JITtrees.Boosting(**ctor_options)
     history = model.fit(x_train=x_tr_val, y_train=y_tr_val,
         x_valid=x_test, y_valid=y_test, **fit_options)
     preds = model.predict(x_test)
     mae = mae_score(y_test, preds)
+    preds_dict["JIT_trees"] = preds
     return mae, np.std(np.abs(preds - y_test))
 
 
-def Sklearn_tuned_mae(model, x_test, y_test):
+def Sklearn_tuned_mae(model, x_test, y_test, preds_dict):
     preds = model.predict(x_test)
     mae = mae_score(y_test, preds)
+    preds_dict["sklearn"] = preds
     return mae, np.std(np.abs(preds - y_test))
 
 
-def CatBoost_tuned_mae(model, x_test, y_test):
+def CatBoost_tuned_mae(model, x_test, y_test, preds_dict):
     preds = model.predict(x_test)
     mae = mae_score(y_test, preds)
+    preds_dict["catboost"] = preds
     return mae, np.std(np.abs(preds - y_test))
 
 
@@ -174,6 +178,13 @@ def save_best_params(best_params_dict, folder, res_name):
         json.dump(best_params_dict, file)
 
 
+def save_preds_gt(preds_dict, folder, res_name):
+    os.makedirs(folder, exist_ok=True)  # create dir if it doesn't exist
+    target_path = os.path.join(folder, res_name)
+    preds_df = pd.DataFrame(preds_dict)
+    preds_df.to_csv(target_path)
+
+
 def tune_dataset(cb_grid, sk_grid, jt_grid,
     dataset_loader, folder, dataset_name, random_state=12):
     # get data
@@ -187,25 +198,29 @@ def tune_dataset(cb_grid, sk_grid, jt_grid,
               "MAE": [],
               "std": []}
 
+    # dict with predictions and the ground truth
+    preds_dict = {'ground_truth': y_test}
+
     # fit models
     # CatBoost
     print(f"Tune CatBoost model")
     cb_best_params, model = tune_CatBoost(x_tr_val, y_tr_val, cb_grid, random_state)
-    cb_mae, cb_sd = CatBoost_tuned_mae(model, x_test, y_test)
+    cb_mae, cb_sd = CatBoost_tuned_mae(model, x_test, y_test, preds_dict)
     df_res["MAE"].append(cb_mae)
     df_res["std"].append(cb_sd)
 
     # Sklearn
     print(f"Tune Sklearn model")
     sk_best_params, model = tune_Sklearn(x_tr_val, y_tr_val, sk_grid)
-    sk_mae, sk_sd = Sklearn_tuned_mae(model, x_test, y_test)
+    sk_mae, sk_sd = Sklearn_tuned_mae(model, x_test, y_test, preds_dict)
     df_res["MAE"].append(sk_mae)
     df_res["std"].append(sk_sd)
 
     # JITtrees
     print(f"Tune JITtrees model")
     jt_prot, best_params = tune_JIT_trees(x_tr_val, y_tr_val, jt_grid, random_state)
-    jt_mae, jt_sd = JITtrees_tuned_mae(x_tr_val, y_tr_val, x_test, y_test, best_params)
+    jt_mae, jt_sd = JITtrees_tuned_mae(x_tr_val, y_tr_val, x_test,
+        y_test, best_params, preds_dict)
     df_res["MAE"].append(jt_mae)
     df_res["std"].append(jt_sd)
 
@@ -215,6 +230,9 @@ def tune_dataset(cb_grid, sk_grid, jt_grid,
     save_best_params(best_params, folder, dataset_name + '_best_params.json')
     save_best_params(sk_best_params, folder, dataset_name + '_best_pars_sklearn.json')
     save_best_params(cb_best_params, folder, dataset_name + '_best_pars_catboost.json')
+    # save predictions (to be able to make plots/boxplots/etc.)
+    save_preds_gt(preds_dict, os.path.join(folder, 'preds_df'),
+        dataset_name + '_preds.csv')
 
 
 def tune_boston(folder, random_state=12):
