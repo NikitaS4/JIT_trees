@@ -190,14 +190,14 @@ def tune_dataset(cb_grid, sk_grid, jt_grid,
     # fit models
     # CatBoost
     print(f"Tune CatBoost model")
-    _, model = tune_CatBoost(x_tr_val, y_tr_val, cb_grid, random_state)
+    cb_best_params, model = tune_CatBoost(x_tr_val, y_tr_val, cb_grid, random_state)
     cb_mae, cb_sd = CatBoost_tuned_mae(model, x_test, y_test)
     df_res["MAE"].append(cb_mae)
     df_res["std"].append(cb_sd)
 
     # Sklearn
     print(f"Tune Sklearn model")
-    _, model = tune_Sklearn(x_tr_val, y_tr_val, sk_grid)
+    sk_best_params, model = tune_Sklearn(x_tr_val, y_tr_val, sk_grid)
     sk_mae, sk_sd = Sklearn_tuned_mae(model, x_test, y_test)
     df_res["MAE"].append(sk_mae)
     df_res["std"].append(sk_sd)
@@ -213,6 +213,8 @@ def tune_dataset(cb_grid, sk_grid, jt_grid,
     save_res(folder, dataset_name + '.csv', dataset_name + '_prot.csv', df_res, jt_prot)
     # save the best parameters
     save_best_params(best_params, folder, dataset_name + '_best_params.json')
+    save_best_params(sk_best_params, folder, dataset_name + '_best_pars_sklearn.json')
+    save_best_params(cb_best_params, folder, dataset_name + '_best_pars_catboost.json')
 
 
 def tune_boston(folder, random_state=12):
