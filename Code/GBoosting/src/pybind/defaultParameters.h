@@ -9,8 +9,6 @@ namespace defaultParams {
     const size_t treeDepth = 7;
     const float learningRate = 0.6f;
     const Lab_t earlyStoppingDelta = 1e-7;
-    const bool useJIT = true;
-    const int JITedCodeType = 0; // SW_t::BASIC_FOR
     const float batchPart = 1.0f;
     const unsigned int randomState = 12;
     const bool randomBatches = false;
@@ -19,4 +17,5 @@ namespace defaultParams {
     const float featureFoldSize = 1.0f; // use all features
     const bool randThresholds = true;
     const bool removeReg = false;
+    const size_t threadCnt = 1;
 };

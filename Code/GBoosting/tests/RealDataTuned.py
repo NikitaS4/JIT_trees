@@ -20,13 +20,13 @@ import JITtrees
 def split_options(model_options):
     # splits model options to the ctor and fit options (for JITtrees model)
     ctor_keys = ['min_bins', 'max_bins', 'patience',
-                 'no_early_stopping']
+                 'no_early_stopping', 'thread_cnt']
     fit_keys = ['tree_count', 'tree_depth',
                 'feature_fold_size', 'learning_rate',
                 'early_stopping_delta', 'batch_part',
-                'JIT', 'JITedCodeType', 'random_state',
-                'random_batches', 'regularization_param',
-                'random_hist_thresholds', 'remove_regularization_later']
+                'random_state', 'random_batches',
+                'regularization_param', 'random_hist_thresholds',
+                'remove_regularization_later']
     ctor_options = {}
     fit_options = {}
     for key in model_options.keys():
@@ -265,11 +265,10 @@ def tune_boston(folder, random_state=12):
         'regularization_param': [0, 1, 10],
         'es_delta': [1e-5],
         'batch_part': [1],
-        'JIT': [False],
-        'JITedCodeType': [0],
         'random_batches': [False],
         'random_hist_thresholds': [True],
-        'remove_regularization_later': [True]
+        'remove_regularization_later': [True],
+        'thread_cnt': [1]
     }
 
     tuning_params = {
@@ -314,11 +313,10 @@ def tune_diabetes(folder, random_state=12):
         'regularization_param': [1],
         'es_delta': [1e-5],
         'batch_part': [1],
-        'JIT': [False],
-        'JITedCodeType': [0],
         'random_batches': [True],
         'random_hist_thresholds': [True],
-        'remove_regularization_later': [True]
+        'remove_regularization_later': [True],
+        'thread_cnt': [1]
     }
 
     tuning_params = {
@@ -363,11 +361,10 @@ def tune_regression_100(folder, random_state=12):
         'regularization_param': [0.6, 0.7, 0.8],
         'es_delta': [1e-5],
         'batch_part': [1],
-        'JIT': [False],
-        'JITedCodeType': [0],
         'random_batches': [True],
         'random_hist_thresholds': [True],
-        'remove_regularization_later': [True]
+        'remove_regularization_later': [True],
+        'thread_cnt': [1]
     }
 
     tuning_params = {
@@ -414,11 +411,10 @@ def tune_regression_200(folder, random_state=12):
         'regularization_param': [0.17, 0.18, 0.19],
         'es_delta': [1e-5],
         'batch_part': [1],
-        'JIT': [False],
-        'JITedCodeType': [0],
         'random_batches': [True],
         'random_hist_thresholds': [True],
-        'remove_regularization_later': [True]
+        'remove_regularization_later': [True],
+        'thread_cnt': [1]
     }
     tuning_params = {
         'cb_grid': CatBoost_grid, 
@@ -478,11 +474,10 @@ def tune_supercond(folder, random_state=12):
         'regularization_param': [0, 0.1, 1, 10, 100],
         'es_delta': [1e-6],
         'batch_part': [0.6],
-        'JIT': [False],
-        'JITedCodeType': [0],
         'random_batches': [True],
         'random_hist_thresholds': [True],
-        'remove_regularization_later': [False, True]
+        'remove_regularization_later': [False, True],
+        'thread_cnt': [1]
     }
 
     tuning_params = {

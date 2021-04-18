@@ -30,12 +30,13 @@ PYBIND11_MODULE(JITtrees, m) {
     
     py::class_<GradientBoosting>(m, "Boosting")
         .def(py::init<const size_t, const size_t, const size_t,
-             const bool>(), 
+             const bool, const size_t>(), 
             "Gradient boosting model constructor",
             py::arg("min_bins")=dp::binsMin, 
             py::arg("max_bins")=dp::binsMax,
             py::arg("patience")=dp::patience,
-            py::arg("no_early_stopping")=dp::noEs)
+            py::arg("no_early_stopping")=dp::noEs,
+            py::arg("thread_cnt")=dp::threadCnt)
         .def("fit", &GradientBoosting::fit, "Fit regression model", py::arg("x_train"),
             py::arg("y_train"), py::arg("x_valid"), py::arg("y_valid"),
             py::arg("tree_count")=dp::treeCount, 
@@ -45,8 +46,6 @@ PYBIND11_MODULE(JITtrees, m) {
             py::arg("regularization_param")=dp::regParam,
             py::arg("early_stopping_delta")=dp::earlyStoppingDelta,
             py::arg("batch_part")=dp::batchPart,
-            py::arg("JIT")=dp::useJIT,
-            py::arg("JITedCodeType")=dp::JITedCodeType,
             py::arg("random_state")=dp::randomState,
             py::arg("random_batches")=dp::randomBatches,
             py::arg("random_hist_thresholds")=dp::randThresholds,

@@ -31,6 +31,9 @@ public:
     virtual Lab_t predictFromTo(const pytensor1& sample, const size_t from, 
         const size_t to) const final override;
 
+    virtual pytensorY predictTree2d(const pytensor2& xPred, const size_t treeNum) const final override;
+
+
 private:
     // fields
     const std::string dirName;

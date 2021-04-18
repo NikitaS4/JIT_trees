@@ -2,8 +2,6 @@
 
 Gradient boosting (for regression task) implementation on c++ integrated with Python via [pybind11](https://github.com/pybind/pybind11) and [xtensor](https://github.com/xtensor-stack/xtensor-python).
 
-Regression trees inside gradient boosting model can be precompiled into `*.so` or `*.DLL` files. On Windows to use precompiled trees, [mingw-w64](https://mingw-w64.org/doku.php/download/win-builds) must be installed and MinGw compiler must be visible to PATH. On Linux, GCC compiler is used for precompilation of the trees.
-
 
 # Module creation
 

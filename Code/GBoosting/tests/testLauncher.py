@@ -15,6 +15,9 @@ from sklearn.model_selection import train_test_split
 from testCases import ModelOptionsHelper, TargetOptionsHelper
 
 
+THREAD_COUNT = 5
+
+
 class TestHelper:
     @staticmethod
     def test_pipeline(target_options, data_options, model_options, out_options, plot_options):
@@ -32,29 +35,24 @@ class TestHelper:
             TestHelper.__print_conditions(model_options, data_options, x_train.shape[1])
 
         # fit model
-        def fit_wrapper(JIT_option=model_options['use_jit']):
+        def fit_wrapper():
             model = JITtrees.Boosting(model_options['min_bins'], 
                 model_options['max_bins'], model_options['patience'],
-                False)
+                False, THREAD_COUNT)
             start_time = time.time() # get start time to count the time of execution
             history = model.fit(x_train, y_train, x_valid, y_valid, model_options['tree_count'],
                 model_options['tree_depth'], model_options['feature_fold_size'], 
                 model_options['learning_rate'], model_options['reg'], model_options['es_delta'],
-                model_options['batch_part'], model_options['use_jit'], 
-                out_options['jit_type'], model_options['random_batches'],
+                model_options['batch_part'], model_options['random_batches'],
                 model_options['random_hist_thresholds'], model_options['remove_regularization_later'])
             exec_time = time.time() - start_time
             if out_options['verbose'] >= 1:
-                print("Fit time (" + ("JIT" if JIT_option else "no JIT") + f") = {exec_time} seconds")
+                print(f"Fit time = {exec_time} seconds")
             return model, history
         
         history = None
         model = None
-        if out_options['compare_jit']:
-            fit_wrapper(False)
-            model, history = fit_wrapper(True)
-        else:
-            model, history = fit_wrapper()
+        model, history = fit_wrapper()
 
         if out_options['verbose'] >= 1:
             print(f"Model fit finished")
@@ -123,13 +121,11 @@ class TestHelper:
         print(f"Learning rate: {model_options['learning_rate']}; Tree depth: {model_options['tree_depth']}")
         print("Dataset:")
         print(f"Size: train = {data_options['train_cnt']}; validation = {data_options['valid_cnt']}")
-        print(f"Use JIT: {model_options['use_jit']}")
         print(f"Feature count = {feature_cnt}")
 
     @staticmethod
     def __get_model_name(target_options, model_options):
-        jit_str = "JIT" if model_options['use_jit'] else "noJIT"
-        return target_options['short_name'] + "_" + jit_str + "_b" + str(model_options['max_bins']) + "_lr" + str(model_options['learning_rate']) + "_d" + str(model_options['tree_depth'])
+        return target_options['short_name'] + "_" + "_b" + str(model_options['max_bins']) + "_lr" + str(model_options['learning_rate']) + "_d" + str(model_options['tree_depth'])
 
     @staticmethod
     def __plot_losses(history, filename, dir="images"):
@@ -220,8 +216,6 @@ def check_all_test():
     out_options = {
         "verbose": 1,
         "sklearn": False,
-        "compare_jit": True,
-        "jit_type": 0
     }
 
     plot_options = {
@@ -264,8 +258,6 @@ def check_fast_test():
     out_options = {
         "verbose": 3,
         "sklearn": False,
-        "compare_jit": True,
-        "jit_type": 0
     }
 
     plot_options = {
@@ -314,9 +306,9 @@ def entry_point():
     # Check subset of tests (not all but representative, checks faster):
     # python testLauncher.py --all-fast
     # Check some tests with plots (comment unneeded test cases below):
-    # python testLauncher.py -v 3 -p --error-plot --skplot -s -j
-    # Compare fit speed of regular and JITed models:
-    # python testLauncher.py -v 3 --compare-jit
+    # python testLauncher.py -v 3 -p --error-plot --skplot -s
+    # Check some tests without plots:
+    # python testLauncher.py -v 3
  
     parser.add_argument('--all', action="store_true", default=False, dest="test_all", help="pass all tests")
     parser.add_argument('--all-fast', action="store_true", default=False, dest="test_fast", help="pass most representative tests")
@@ -325,11 +317,6 @@ def entry_point():
     parser.add_argument('--error-plot', action="store_true", default=False, dest="make_error_plots", help="make plots of errors")
     parser.add_argument('--skplot', action="store_true", default=False, dest="plot_sklearn", help="add plot of sklearn model")
     parser.add_argument('-s', action="store_true", default=False, dest="compare_sklearn", help="compare with sklearn model")
-    parser.add_argument('-j', action="store_true", default=False, dest="use_JIT", help="use JIT-compiled trees")
-    parser.add_argument('--compare-jit', action="store_true", default=False, dest="compare_jit", 
-        help="compare reuglar trees and JITed trees (train time)")
-    parser.add_argument('--jit-type', type=int, default=0, dest="jit_type", 
-        help="JIT source type (0 - cyclic traverse, 1 - if-else traverse)")
 
     # parse command line arguments
     parsed_flags = parser.parse_args()
@@ -347,8 +334,6 @@ def entry_point():
     out_options = {
         'verbose': parsed_flags.verbose,
         'sklearn': parsed_flags.compare_sklearn,
-        'compare_jit': parsed_flags.compare_jit,
-        'jit_type': parsed_flags.jit_type
     }
 
     plot_options = {
@@ -362,14 +347,12 @@ def entry_point():
         'valid_cnt': 3000
     }
 
-    use_JIT = parsed_flags.use_JIT
-
     # model options, comment unneeded
     model_options_list = [
-        #ModelOptionsHelper.single_tree(use_JIT),
-        #ModelOptionsHelper.single_split(use_JIT),
-        ModelOptionsHelper.ensemble(use_JIT),
-        #ModelOptionsHelper.hard_model(use_JIT),
+        #ModelOptionsHelper.single_tree(),
+        #ModelOptionsHelper.single_split(),
+        ModelOptionsHelper.ensemble(),
+        #ModelOptionsHelper.hard_model(),
     ]
 
     # target options, comment unneeded

@@ -90,6 +90,11 @@ Lab_t JITedTree::predictAllTrees(const pytensor1& sample) const {
 }
 
 
+pytensorY JITedTree::predictTree2d(const pytensor2& xPred, const size_t treeNum) const {
+    return xt::zeros<Lab_t>({xPred.shape(0)});
+}
+
+
 Lab_t JITedTree::predictFromTo(const pytensor1& sample, const size_t from,
     const size_t to) const {
     Lab_t cumSum = 0;

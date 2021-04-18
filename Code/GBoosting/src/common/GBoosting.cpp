@@ -16,17 +16,25 @@ const unsigned int GradientBoosting::defaultRandomState = 12;
 
 GradientBoosting::GradientBoosting(const size_t binCountMin,
 	const size_t binCountMax, const size_t patience,
-	const bool dontUseEarlyStopping): featureCount(1), 
+	const bool dontUseEarlyStopping,
+	const size_t threadCnt): featureCount(1), 
 	trainLen(0), realTreeCount(0), binCountMin(binCountMin),
-	binCountMax(binCountMax), patience(patience), zeroPredictor(0),
-	dontUseEarlyStopping(dontUseEarlyStopping) {
+	binCountMax(binCountMax), patience(patience), threadCnt(threadCnt),
+	zeroPredictor(0), dontUseEarlyStopping(dontUseEarlyStopping) {
 	// ctor
 	if (binCountMax < binCountMin)
 		throw std::runtime_error("Max bin count was less than min bin count");
+	if (threadCnt == 0)
+		throw std::runtime_error("Thread count was 0 (must be positive)");
 }
 
 GradientBoosting::~GradientBoosting() {
 	// dtor
+	if (predictor) {
+		delete predictor;
+		predictor = nullptr;
+	}
+
 	if (treeHolder) {
 		delete treeHolder;
 		treeHolder = nullptr;
@@ -42,8 +50,6 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 	const Lab_t regularizationParam,
 	const Lab_t earlyStoppingDelta,
 	const float batchPart,
-	const bool useJIT,
-	const int JITedCodeType,
 	const unsigned int randomState,
 	const bool shuffledBatches,
 	const bool randomThresholds,
@@ -78,11 +84,9 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 		throw std::runtime_error("regularization param was less zero (must be greater or equal)");
 
 	// init tree holder
-	// firstly, convert JITed code type to SW_t enum
-	SW_t JITedCodeTypeEnum = GradientBoosting::codeTypeToEnum(JITedCodeType);
 	// call factory
-	treeHolder = TreeHolder::createHolder(useJIT, treeDepth, 
-		featureCount, JITedCodeTypeEnum);
+	treeHolder = TreeHolder::createHolder(treeDepth, featureCount,
+		threadCnt);
 
 	// Histogram init (compute and remember thresholds)
 	for (size_t featureSlice = 0; featureSlice < featureCount; ++featureSlice)
@@ -117,6 +121,12 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 	}
 	validLoss = loss(validPreds, yValid);  // update loss
 	
+	// create predictor
+	predictor = GBPredcitor::create(zeroPredictor, *treeHolder,
+		xTrain, xValid, residuals, preds, validRes, validPreds);
+	if (predictor == nullptr)
+		throw std::runtime_error("Can't fit: not enough memory");
+
 	// remember losses
 	// treeCount + 1 -- to include zero predictor
 	trainLosses = xt::zeros<Lab_t>({treeCount + 1});
@@ -165,23 +175,10 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 		treeFitter.growTree(xTrain, subset, residuals, featureSubset,
 			hists, treeHolder);
 		// update residuals
-		for (size_t sample = 0; sample < trainLen; ++sample) {
-			Lab_t prediction = treeHolder->predictTree(xt::row(xTrain, sample), 
-				treeNum);
-			residuals(sample) -= prediction;
-			preds(sample) += prediction;
-		}
-		// update loss
+		predictor->predictTreeTrain(treeNum);
+		
+		// update losses
 		trainLoss = loss(preds, yTrain);
-
-		// update validation residuals
-		for (size_t sample = 0; sample < validLen; ++sample) {
-			Lab_t prediction = treeHolder->predictTree(xt::row(xValid, sample),
-				treeNum);
-			validRes(sample) -= prediction;
-			validPreds(sample) += prediction;
-		}
-		// update validation loss
 		validLoss = loss(validPreds, yValid);
 		
 		// remember losses
@@ -211,25 +208,16 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 }
 
 Lab_t GradientBoosting::predict(const pytensor1& xTest) const {
-	if (xTest.shape(0) != featureCount)
-		throw std::runtime_error("Wrong feature count in x_test");
-	return zeroPredictor + treeHolder->predictAllTrees(xTest);
+	return predictor->predict1d(xTest);
 }
 
 pytensorY GradientBoosting::predict(const pytensor2& xTest) const {
-	size_t predCount = xTest.shape(0);
-	size_t features = xTest.shape(1);
-	if (features != featureCount)
-		throw std::runtime_error("Wrong feature count in x_test"); 
-	pytensorY preds = xt::zeros<Lab_t>({predCount});
-	for (size_t i = 0; i < predCount; ++i) {		
-		preds(i) = zeroPredictor + treeHolder->predictAllTrees(xt::row(xTest, i));
-	}
-	return preds;
+	return predictor->predict2d(xTest);
 }
 
 
 Lab_t GradientBoosting::predictFromTo(const pytensor1& xTest, 
+	// TODO: use predictor instead
 	const size_t firstEstimator, const size_t lastEstimator) const {
 	Lab_t curPred = 0;
 	size_t from = firstEstimator;
@@ -273,14 +261,6 @@ bool GradientBoosting::canStop(const size_t stepNum,
 		}
 		return true;
 	}
-}
-
-
-SW_t GradientBoosting::codeTypeToEnum(const int JITedCodeType) {
-	// Firstly, ensure the type number is in [0, MAX_TYPE]
-	int enumFit = JITedCodeType % (int(SW_t::SW_COUNT) - 1);
-	// Cast int to enum
-	return static_cast<SW_t>(JITedCodeType);
 }
 
 
