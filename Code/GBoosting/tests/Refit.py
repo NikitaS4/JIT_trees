@@ -27,13 +27,13 @@ def save_res(folder, res_name, df_res):
 def split_options(model_options):
     # splits model options to the ctor and fit options (for JITtrees model)
     ctor_keys = ['min_bins', 'max_bins', 'patience',
-                 'no_early_stopping']
+                 'no_early_stopping', 'thread_cnt']
     fit_keys = ['tree_count', 'tree_depth',
                 'feature_fold_size', 'learning_rate',
                 'early_stopping_delta', 'batch_part',
-                'JIT', 'JITedCodeType', 'random_state',
-                'random_batches', 'regularization_param',
-                'random_hist_thresholds', 'remove_regularization_later']
+                'random_state', 'random_batches',
+                'regularization_param', 'random_hist_thresholds',
+                'remove_regularization_later']
     ctor_options = {}
     fit_options = {}
     for key in model_options.keys():
