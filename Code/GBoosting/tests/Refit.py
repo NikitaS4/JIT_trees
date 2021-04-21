@@ -85,9 +85,11 @@ def refit_cb(params_file, x_train, x_valid, y_train, y_valid,
     params_cb = json_load_utf8(params_file)
     # fit model
     model = CatBoostRegressor(verbose=False, **params_cb)
+    start_time = time.time()
     model.fit(X=x_train, y=y_train,
         eval_set=(x_valid, y_valid))
-    return model
+    fit_time = time.time() - start_time
+    return model, fit_time
 
 
 def refit_sk(params_file, x_train, x_valid, y_train, y_valid,
@@ -96,8 +98,10 @@ def refit_sk(params_file, x_train, x_valid, y_train, y_valid,
     params_sk = json_load_utf8(params_file)
     # fit model
     model = SkBoosting(**params_sk)
+    start_time = time.time()
     model.fit(x_train, y_train)
-    return model
+    fit_time = time.time() - start_time
+    return model, fit_time
 
 
 def refit_jt(params_file, x_train, x_valid, y_train, y_valid,
@@ -107,9 +111,11 @@ def refit_jt(params_file, x_train, x_valid, y_train, y_valid,
     # fit model
     ctor_options, fit_options = split_options(params_jt)
     model = JITtrees.Boosting(**ctor_options)
+    start_time = time.time()
     model.fit(x_train=x_train, y_train=y_train, x_valid=x_valid,
         y_valid=y_valid, **fit_options)
-    return model
+    fit_time = time.time() - start_time
+    return model, fit_time
 
 
 def evaluate_models(models_dict, x_test, y_test):
@@ -137,16 +143,19 @@ def refit_models(params_file_dict, dataset, folder, test_size=0.2,
     
     # fit models
     models = {}
+    time_dict = {}  # fit times
     for model_name, cur_refitter in [('CatBoost', refit_cb),
         ('Sklearn', refit_sk),
         ('JITtrees', refit_jt)]:
-        models[model_name] = cur_refitter(params_file_dict[model_name],
+        models[model_name], fit_time = cur_refitter(params_file_dict[model_name],
             x_train, x_valid, y_train, y_valid, random_state)
+        time_dict[model_name] = fit_time
     
     # compute metrics
     metrics_dict = evaluate_models(models, x_test, y_test)
     # save to file
     save_res(folder, dataset + '_refit.csv', metrics_dict)
+    save_res(folder, dataset + '_refitTime.csv', time_dict)
 
 
 def main():
