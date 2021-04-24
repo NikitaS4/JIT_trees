@@ -122,16 +122,24 @@ def evaluate_models(models_dict, x_test, y_test):
     result_dict = {'Models': [],
                    'MAE': [],
                    'std': []}
+    preds_dict = {'ground_truth': y_test,
+                  'CatBoost': None,
+                  'Sklearn': None,
+                  'JITtrees': None,
+                  'JITtreesBase': None}
     for key in models_dict:
         preds = models_dict[key].predict(x_test)
         result_dict['Models'].append(key)
         result_dict['MAE'].append(mae_score(y_test, preds))
         result_dict['std'].append(np.std(np.abs(preds - y_test)))
-    return result_dict
+        preds_dict[key] = preds
+    if preds_dict['JITtreesBase'] is None:
+        preds_dict['JITtreesBase'].pop('JITtreesBase')
+    return result_dict, preds_dict
 
 
 def refit_models(params_file_dict, dataset, folder, test_size=0.2,
-    val_size=0.2, random_state=12):
+    val_size=0.2, random_state=12, fit_baseline=False):
     # get data
     x_all, y_all = load_dataset(dataset, random_state)
     # split into [train + validation] and test
@@ -144,22 +152,29 @@ def refit_models(params_file_dict, dataset, folder, test_size=0.2,
     # fit models
     models = {}
     time_dict = {}  # fit times
-    for model_name, cur_refitter in [('CatBoost', refit_cb),
+    refitter_iter = [('CatBoost', refit_cb),
         ('Sklearn', refit_sk),
-        ('JITtrees', refit_jt)]:
+        ('JITtrees', refit_jt)]
+    if fit_baseline:
+        refitter_iter.append(('JITtreesBase', refit_jt))
+    for model_name, cur_refitter in refitter_iter:
         models[model_name], fit_time = cur_refitter(params_file_dict[model_name],
             x_train, x_valid, y_train, y_valid, random_state)
-        time_dict[model_name] = fit_time
+        time_dict[model_name] = [fit_time]
     
     # compute metrics
-    metrics_dict = evaluate_models(models, x_test, y_test)
+    metrics_dict, preds_dict = evaluate_models(models, x_test, y_test)
     # save to file
     save_res(folder, dataset + '_refit.csv', metrics_dict)
     save_res(folder, dataset + '_refitTime.csv', time_dict)
+    # save predictions (e. g., to make boxplots)
+    save_res(os.path.join(folder, 'preds_df'),
+        dataset + '_preds_refit.csv', preds_dict)
 
 
 def main():
     try:
+        FIT_BASELINE = False
         refit_datasets = [
             'boston',
             'diabetes',
@@ -175,8 +190,11 @@ def main():
                 'Sklearn': pars_preffix + '_best_pars_sklearn.json',
                 'JITtrees': pars_preffix + '_best_params.json'
             }
+            if FIT_BASELINE:
+                params_file_dict['JITtreesBase'] = pars_preffix + '_best_pars_baseline.json'
             refit_models(params_file_dict, cur_dataset, folder,
-                test_size=0.2, val_size=0.2, random_state=12)
+                test_size=0.2, val_size=0.2, random_state=12,
+                fit_baseline=FIT_BASELINE)
     except Exception as ex:
         print("An exception was raised")
         print(ex)
