@@ -144,6 +144,52 @@ pytensorY RegularTree::predictTree2d(const pytensor2& xPred,
 }
 
 
+std::string RegularTree::serialize(const char delimeter,
+    const Lab_t zeroPredictor) const {
+    // Answer structure:
+	// <TreeCount><d><TreeDepth><d><zeroPredictor><d><Trees>
+	// <Trees> ::= <Tree> | <Tree><d><Trees>
+	// <Tree> ::= <Features><d><Thresholds><d><Leaves>
+	// <Features> ::= <Feature> | <Feature><d><Features>
+	// <Thresholds> ::= <Threshold> | <Threshold><d><Thresholds>
+	// <Leaves> ::= <Leaf> | <Leaf><d><Leaves>
+	// <Feature> ::= <size_t number>
+	// <Threshold> ::= <FVal_t number>
+	// <Leaf> ::= <Lab_t number>
+    // <d> ::= delimeter
+    const size_t treeCount = features.size();
+    std::string ans;
+    // <TreeCount><d>
+    ans += std::to_string(treeCount) + delimeter;
+    // <TreeDepth><d>
+    ans += std::to_string(treeDepth) + delimeter;
+    // <zeroPredictor>
+    ans += std::to_string(zeroPredictor);
+
+    // <d><Trees>
+    for (size_t i = 0; i < treeCount; ++i) {
+        // <d><Tree>
+        // <d><Features>
+        for (size_t j = 0; j < treeDepth; ++j) {
+            // <d><Feature>
+            ans += delimeter + std::to_string(features[i][j]);
+        }
+        // <d><Thresholds>
+        for (size_t j = 0; j < innerNodes; ++j) {
+            // <d><Threshold>
+            ans += delimeter + std::to_string(thresholds[i][j]);
+        }
+        // <d><Leaves>
+        for (size_t j = 0; j < leafCnt; ++j) {
+            // <d><Leaf>
+            ans += delimeter + std::to_string(leaves[i][j]);
+        }
+    }
+
+    return ans;
+}
+
+
 void RegularTree::validateFeatures() {
     for (auto & curFeatureArr: features) {
         for (size_t h = 0; h < treeDepth; ++h) {

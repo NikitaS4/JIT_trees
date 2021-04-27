@@ -4,6 +4,7 @@
 #include "../common/Structs.h"
 #include <cstddef>
 #include <functional>
+#include <string>
 
 
 class TreeHolder {
@@ -25,6 +26,7 @@ public:
         const size_t to) const = 0;
 
     virtual pytensorY predictTree2d(const pytensor2& xPred, const size_t treeNum) const = 0;
+    virtual std::string serialize(const char delimeter, const Lab_t zeroPredictor) const = 0;
 
     // create needed holder
     static TreeHolder* createHolder(const size_t treeDepth,

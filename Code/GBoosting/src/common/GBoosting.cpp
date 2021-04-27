@@ -8,6 +8,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <cmath>
+#include <fstream>
 
 
 // static members initialization
@@ -232,6 +233,47 @@ Lab_t GradientBoosting::predictFromTo(const pytensor1& xTest,
 		++from;
 	}
 	return curPred + treeHolder->predictFromTo(xTest, from - 1, lastEstimator - 1);	
+}
+
+
+void GradientBoosting::saveModel(const std::string& fname) const {
+	// Save file structure:
+	// <Type><d><TreeCount><d><TreeDepth><d><zeroPredictor><d><Trees><e>
+	// <Type> ::= 0 | 1  # 0 for classification, 1 for regression
+	// <Trees> ::= <Tree> | <Tree><d><Trees>
+	// <Tree> ::= <Features><d><Thresholds><d><Leaves>
+	// <Features> ::= <Feature> | <Feature><d><Features>
+	// <Thresholds> ::= <Threshold> | <Threshold><d><Thresholds>
+	// <Leaves> ::= <Leaf> | <Leaf><d><Leaves>
+	// <Feature> ::= <size_t number>
+	// <Threshold> ::= <FVal_t number>
+	// <Leaf> ::= <Lab_t number>
+	// <d> ::= ;  # delimeter
+	// <e> ::= !  # end
+	
+	std::string contents;
+	static const char delimeter = ';';
+	static const char modelEnd = '!';
+	// try open file to write
+	// if file does not exist, an exception will be thrown
+	std::ofstream outfile(fname);
+	// <Type><d>
+	contents += std::to_string(modelType) + delimeter;
+	// <TreeCount><d><TreeDepth><d><zeroPredictor><d><Trees>
+	contents += treeHolder->serialize(delimeter, zeroPredictor);
+	// <e>
+	contents += modelEnd;
+	// now contents are created properly
+	// write the contents with a single operation
+	std::cout << "Contents:\n";
+	std::cout << contents << "\n";
+	outfile << contents;
+	outfile.close();
+}
+
+
+void GradientBoosting::loadModel(const std::string& fname) {
+	// TODO: implement
 }
 
 

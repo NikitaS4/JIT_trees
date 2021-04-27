@@ -10,6 +10,7 @@
 #include "GBPredictor.h"
 #include <vector>
 #include <random>
+#include <string>
 
 
 class GradientBoosting {
@@ -47,6 +48,9 @@ public:
 	Lab_t predictFromTo(const pytensor1& xTest, 
 						const size_t firstEstimator, 
 						const size_t lastEstimator) const;
+
+	void saveModel(const std::string& fname) const;
+	void loadModel(const std::string& fname);
 
 protected:
 	static Lab_t loss(const pytensorY& pred, 
@@ -99,6 +103,7 @@ protected:
 
 	static constexpr float whenRemoveRegularization = 0.8f; // the part of iterations with regularization
 	static constexpr size_t defaultThreadCnt = 1;
+	static constexpr size_t modelType = 1; // regression (0 for classification)
 };
 
 #endif // GBOOSTING_H

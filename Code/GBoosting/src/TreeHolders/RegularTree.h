@@ -26,6 +26,7 @@ public:
         const size_t to) const final override;
 
     virtual pytensorY predictTree2d(const pytensor2& xPred, const size_t treeNum) const final override;
+    virtual std::string serialize(const char delimeter, const Lab_t zeroPredictor) const final override;
 
 private:
     // fields
