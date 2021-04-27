@@ -57,6 +57,18 @@ def load_dataset(dataset, random_state):
         return make_regression(n_samples=1000, n_features=200, 
             n_informative=150, n_targets=1, bias=10.0, noise=3.0, shuffle=True, 
             random_state=random_state)
+    elif dataset == 'winequality':
+        data_dir = os.path.join('datasets', 'winequality')
+        data_csv = 'winequality-white.csv'
+        all_data = pd.read_csv(os.path.join(data_dir, data_csv))
+        # split into target and features
+        label_name = 'quality'
+        labels_df = all_data[label_name]  # target df
+        features_df = all_data.drop(label_name, axis=1)  # features df
+        # convert to numpy arrays
+        y_all = labels_df.to_numpy()
+        x_all = features_df.to_numpy()
+        return x_all, y_all
     elif dataset == 'supercond':
         data_dir = os.path.join('datasets', 'superconduct')
         data_csv = 'train.csv'
@@ -134,7 +146,7 @@ def evaluate_models(models_dict, x_test, y_test):
         result_dict['std'].append(np.std(np.abs(preds - y_test)))
         preds_dict[key] = preds
     if preds_dict['JITtreesBase'] is None:
-        preds_dict['JITtreesBase'].pop('JITtreesBase')
+        preds_dict.pop('JITtreesBase')
     return result_dict, preds_dict
 
 
@@ -180,6 +192,7 @@ def main():
             'diabetes',
             'regr_100',
             'regr_200',
+            'winequality',
             'supercond'
         ]
         folder = 'tuning'

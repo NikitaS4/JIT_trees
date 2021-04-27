@@ -78,7 +78,10 @@ def tune_JIT_trees(x_tr_val, y_tr_val, options_grid, random_state=12):
         
         # evaluate
         preds = model.predict(x_valid)
-        mae = mae_score(y_valid, preds)
+        if np.isnan(preds).any():
+            mae = np.inf
+        else:
+            mae = mae_score(y_valid, preds)
         
         # add to the dictionary (to save in the data frame later)
         for key in keys_list:
@@ -430,6 +433,70 @@ def tune_regression_200(folder, random_state=12):
     tune_dataset(**tuning_params)
 
 
+def tune_winequality(folder, random_state=12):
+    # a bit more complex function to get the data
+    def dataset_loader():
+        data_dir = os.path.join('datasets', 'winequality')
+        data_csv = 'winequality-white.csv'
+        all_data = pd.read_csv(os.path.join(data_dir, data_csv))
+        # split into target and features
+        label_name = 'quality'
+        labels_df = all_data[label_name]  # target df
+        features_df = all_data.drop(label_name, axis=1)  # features df
+        # convert to numpy arrays
+        y_all = labels_df.to_numpy()
+        x_all = features_df.to_numpy()
+        print(f"dataset size: {y_all.shape[0]}")
+        print(f"feature count: {x_all.shape[1]}")
+        return x_all, y_all
+
+    # CatBoost
+    CatBoost_grid = {
+        "iterations": [300, 500],
+        "learning_rate": [0.1, 0.2],
+        "depth": [2, 4, 7, 8],
+        "random_state": [random_state],
+        "feature_border_type": ["GreedyLogSum"]
+    }
+
+    # Sklearn
+    Sklearn_grid = {
+        'learning_rate': [0.1, 0.2],
+        'max_iter': [300, 500],
+        'max_depth': [2, 4, 7, 8]
+    }
+
+    # JITtrees
+    JITtrees_grid = {
+        'min_bins': [8, 16, 32, 64, 128, 256],
+        'max_bins': [256],
+        'no_early_stopping': [False],
+        'patience': [5],
+        'tree_count': [5000],
+        'tree_depth': [2, 3, 4, 8],
+        'feature_fold_size': [1.0],
+        'learning_rate': [0.12, 0.13, 0.14, 0.15, 0.6, 0.8],
+        'regularization_param': [0, 0.12, 0.13, 0.14, 0.15, 0.8, 10],
+        'es_delta': [1e-6],
+        'batch_part': [1.0],
+        'random_batches': [True],
+        'random_hist_thresholds': [True],
+        'remove_regularization_later': [True],
+        'thread_cnt': [1]
+    }
+
+    tuning_params = {
+        'cb_grid': CatBoost_grid, 
+        'sk_grid': Sklearn_grid,
+        'jt_grid': JITtrees_grid,
+        'dataset_loader': dataset_loader,
+        'folder': folder,
+        'dataset_name': 'winequality', 
+        'random_state': 12
+    }
+    tune_dataset(**tuning_params)
+
+
 def tune_supercond(folder, random_state=12):
     # a bit more complex function to get the data
     def dataset_loader():
@@ -499,6 +566,7 @@ def main():
                           tune_diabetes,
                           tune_regression_100,
                           tune_regression_200, 
+                          tune_winequality,
                           tune_supercond
                         ]:
             cur_tuner('tuning', 12)

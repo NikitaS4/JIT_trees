@@ -57,7 +57,7 @@ To fit and test the model on the real data, You can run Jupyter Notebook:
 jupyter notebook
 ```
 
-And open `TestOnRealData.ipynb` notebook in the Jupyter Notebook. Datasets used in the notebook requires *scikit-learn* library to be installed. There's also an extra dataset Superconductivity that can be downloaded from [here](https://archive.ics.uci.edu/ml/datasets/Superconductivty+Data).
+And open `TestOnRealData.ipynb` notebook in the Jupyter Notebook. Datasets used in the notebook requires *scikit-learn* library to be installed. There's also an extra dataset Superconductivity that can be downloaded from [here](https://archive.ics.uci.edu/ml/datasets/Superconductivty+Data). Dataset Wine quality can be downloaded from [Kaggle](https://www.kaggle.com/kashnitsky/mlcourse?select=winequality-white.csv).
 
 
 # Improvements
