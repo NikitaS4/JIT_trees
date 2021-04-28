@@ -31,6 +31,12 @@ public:
     // create needed holder
     static TreeHolder* createHolder(const size_t treeDepth,
         const size_t featureCnt, const size_t threadCnt);
+    // parse holder from file
+    static TreeHolder* parseHolder(const char* repr,
+        const std::vector<size_t> delimPos,
+        const size_t delimStart, const size_t featureCnt,
+        const size_t treeCnt, const size_t treeDepth,
+        const size_t threadCnt);
 protected:
     // fields
     const size_t treeDepth;

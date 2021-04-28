@@ -57,6 +57,8 @@ PYBIND11_MODULE(JITtrees, m) {
         .def("predict_from_to", &GradientBoosting::predictFromTo, "Predict labels for sample on a subset of trees",
             py::arg("x_test"), py::arg("from"), py::arg("to"))
         .def("save_model", static_cast<void (GradientBoosting::*)(const std::string&)const>(&GradientBoosting::saveModel), "Save GB model to the file",
+            py::arg("filename"))
+        .def("load_model", static_cast<void (GradientBoosting::*)(const std::string&)>(&GradientBoosting::loadModel), "Load GB model from the file",
             py::arg("filename"));
     
 }

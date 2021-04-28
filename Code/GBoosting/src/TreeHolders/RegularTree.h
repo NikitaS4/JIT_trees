@@ -27,6 +27,12 @@ public:
 
     virtual pytensorY predictTree2d(const pytensor2& xPred, const size_t treeNum) const final override;
     virtual std::string serialize(const char delimeter, const Lab_t zeroPredictor) const final override;
+    
+    static RegularTree* parse(const char* repr,
+        const std::vector<size_t> delimPos,
+        const size_t delimStart, const size_t featureCnt,
+        const size_t treeCnt, const size_t treeDepth,
+        const size_t threadCnt);
 
 private:
     // fields
