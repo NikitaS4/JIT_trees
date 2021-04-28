@@ -4,6 +4,7 @@ from matplotlib import pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.datasets import load_boston, load_diabetes, make_regression
 from sklearn.metrics import mean_absolute_error as mae_score
+from sklearn.metrics import mean_squared_error as mse_score
 from sklearn.experimental import enable_hist_gradient_boosting
 from sklearn.ensemble import HistGradientBoostingRegressor as SkBoosting
 from catboost import Pool, CatBoostRegressor
@@ -130,63 +131,59 @@ def refit_jt(params_file, x_train, x_valid, y_train, y_valid,
     return model, fit_time
 
 
-def evaluate_models(models_dict, x_test, y_test):
-    result_dict = {'Models': [],
-                   'MAE': [],
-                   'std': []}
-    preds_dict = {'ground_truth': y_test,
-                  'CatBoost': None,
-                  'Sklearn': None,
-                  'JITtrees': None,
-                  'JITtreesBase': None}
+def evaluate_models(models_dict, x_test, y_test, maes, mses):
     for key in models_dict:
         preds = models_dict[key].predict(x_test)
-        result_dict['Models'].append(key)
-        result_dict['MAE'].append(mae_score(y_test, preds))
-        result_dict['std'].append(np.std(np.abs(preds - y_test)))
-        preds_dict[key] = preds
-    if preds_dict['JITtreesBase'] is None:
-        preds_dict.pop('JITtreesBase')
-    return result_dict, preds_dict
+        maes[key].append(mae_score(y_test, preds))
+        mses[key].append(mse_score(y_test, preds))
 
 
 def refit_models(params_file_dict, dataset, folder, test_size=0.2,
-    val_size=0.2, random_state=12, fit_baseline=False):
+    val_size=0.2, random_state=12, fit_baseline=False,
+    iterations=1000):
     # get data
     x_all, y_all = load_dataset(dataset, random_state)
-    # split into [train + validation] and test
-    x_tr_val, x_test, y_tr_val, y_test = train_test_split(x_all, y_all, 
-        test_size=test_size, random_state=random_state)
-    # split into train and validation
-    x_train, x_valid, y_train, y_valid = train_test_split(x_tr_val, y_tr_val,
-        test_size=val_size, random_state=random_state)
-    
-    # fit models
-    models = {}
     time_dict = {}  # fit times
+    maes = {}  # MAE for all models
+    mses = {}  # MSE for all models
     refitter_iter = [('CatBoost', refit_cb),
-        ('Sklearn', refit_sk),
-        ('JITtrees', refit_jt)]
+            ('Sklearn', refit_sk),
+            ('JITtrees', refit_jt)]
     if fit_baseline:
-        refitter_iter.append(('JITtreesBase', refit_jt))
+            refitter_iter.append(('JITtreesBase', refit_jt))
+    # init lists in the dicts
     for model_name, cur_refitter in refitter_iter:
-        models[model_name], fit_time = cur_refitter(params_file_dict[model_name],
-            x_train, x_valid, y_train, y_valid, random_state)
-        time_dict[model_name] = [fit_time]
-    
-    # compute metrics
-    metrics_dict, preds_dict = evaluate_models(models, x_test, y_test)
+        maes[model_name] = []
+        mses[model_name] = []
+        time_dict[model_name] = []
+    # perform experiments many times
+    for cur_it in range(iterations):
+        # split into [train + validation] and test
+        x_tr_val, x_test, y_tr_val, y_test = train_test_split(x_all, y_all, 
+            test_size=test_size, random_state=cur_it)
+        # split into train and validation
+        x_train, x_valid, y_train, y_valid = train_test_split(x_tr_val, y_tr_val,
+            test_size=val_size, random_state=cur_it)
+
+        # fit models
+        models = {}
+        for model_name, cur_refitter in refitter_iter:
+            models[model_name], fit_time = cur_refitter(params_file_dict[model_name],
+                x_train, x_valid, y_train, y_valid, random_state)
+            time_dict[model_name].append(fit_time)
+
+        # compute metrics
+        evaluate_models(models, x_test, y_test, maes, mses)
     # save to file
-    save_res(folder, dataset + '_refit.csv', metrics_dict)
+    save_res(folder, dataset + '_mae_refit.csv', maes)
+    save_res(folder, dataset + '_mse_refit.csv', mses)
     save_res(folder, dataset + '_refitTime.csv', time_dict)
-    # save predictions (e. g., to make boxplots)
-    save_res(os.path.join(folder, 'preds_df'),
-        dataset + '_preds_refit.csv', preds_dict)
 
 
 def main():
     try:
         FIT_BASELINE = False
+        ITERS = 100
         refit_datasets = [
             'boston',
             'diabetes',
@@ -207,7 +204,7 @@ def main():
                 params_file_dict['JITtreesBase'] = pars_preffix + '_best_pars_baseline.json'
             refit_models(params_file_dict, cur_dataset, folder,
                 test_size=0.2, val_size=0.2, random_state=12,
-                fit_baseline=FIT_BASELINE)
+                fit_baseline=FIT_BASELINE, iterations=ITERS)
     except Exception as ex:
         print("An exception was raised")
         print(ex)
