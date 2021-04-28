@@ -10,6 +10,7 @@
 #include "GBPredictor.h"
 #include <vector>
 #include <random>
+#include <string>
 
 
 class GradientBoosting {
@@ -48,6 +49,9 @@ public:
 						const size_t firstEstimator, 
 						const size_t lastEstimator) const;
 
+	void saveModel(const std::string& fname) const;
+	void loadModel(const std::string& fname);
+
 protected:
 	static Lab_t loss(const pytensorY& pred, 
 					  const pytensorY& truth);
@@ -68,6 +72,11 @@ protected:
 		std::vector<size_t>& allocatedFeatureSubset) const;
 
 	inline void initForRandomBatches(const int randomSeed);
+	
+	inline bool valCptContents(const std::vector<size_t>& dPos,
+		const char modelEnd, char const * const contents,
+		const size_t treeCnt, const size_t treeDepth,
+		const size_t dPosMinSize) const;
 
 	// fields
 	size_t featureCount;
@@ -87,7 +96,7 @@ protected:
 	pytensorY validLosses;
 	bool dontUseEarlyStopping; // switch off early stopping
 	TreeHolder* treeHolder = nullptr;
-	GBPredcitor* predictor = nullptr;
+	GBPredictor* predictor = nullptr;
 
 	// constants
 	static const float defaultLR;
@@ -99,6 +108,7 @@ protected:
 
 	static constexpr float whenRemoveRegularization = 0.8f; // the part of iterations with regularization
 	static constexpr size_t defaultThreadCnt = 1;
+	static constexpr size_t modelType = 1; // regression (0 for classification)
 };
 
 #endif // GBOOSTING_H

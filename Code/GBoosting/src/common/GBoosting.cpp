@@ -1,5 +1,6 @@
 #include "GBoosting.h"
 #include "StatisticsHelper.h"
+#include "ParseHelper.h"
 
 #include <utility>
 #include <stdexcept>
@@ -8,6 +9,8 @@
 #include <iostream>
 #include <cstdlib>
 #include <cmath>
+#include <fstream>
+#include <cstdio>
 
 
 // static members initialization
@@ -122,8 +125,8 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 	validLoss = loss(validPreds, yValid);  // update loss
 	
 	// create predictor
-	predictor = GBPredcitor::create(zeroPredictor, *treeHolder,
-		xTrain, xValid, residuals, preds, validRes, validPreds);
+	predictor = GBPredictor::create(zeroPredictor, *treeHolder,
+		&xTrain, &xValid, &residuals, &preds, &validRes, &validPreds);
 	if (predictor == nullptr)
 		throw std::runtime_error("Can't fit: not enough memory");
 
@@ -235,6 +238,130 @@ Lab_t GradientBoosting::predictFromTo(const pytensor1& xTest,
 }
 
 
+void GradientBoosting::saveModel(const std::string& fname) const {
+	// Save file structure:
+	// <Type><d><FeatureCnt><d><TreeCount><d><TreeDepth><d><zeroPredictor><d><Trees><e>
+	// <Type> ::= 0 | 1  # 0 for classification, 1 for regression
+	// <Trees> ::= <Tree> | <Tree><d><Trees>
+	// <Tree> ::= <Features><d><Thresholds><d><Leaves>
+	// <Features> ::= <Feature> | <Feature><d><Features>
+	// <Thresholds> ::= <Threshold> | <Threshold><d><Thresholds>
+	// <Leaves> ::= <Leaf> | <Leaf><d><Leaves>
+	// <Feature> ::= <size_t number>
+	// <Threshold> ::= <FVal_t number>
+	// <Leaf> ::= <Lab_t number>
+	// <d> ::= ;  # delimeter
+	// <e> ::= !  # end
+	
+	std::string contents;
+	static const char delimeter = ';';
+	static const char modelEnd = '!';
+	// try open file to write
+	// if file does not exist, an exception will be thrown
+	std::ofstream outfile(fname);
+	// <Type><d>
+	contents += std::to_string(modelType) + delimeter;
+	// <FeatureCnt><d>
+	contents += std::to_string(featureCount) + delimeter;
+	// <TreeCount><d><TreeDepth><d><zeroPredictor><d><Trees>
+	contents += treeHolder->serialize(delimeter, zeroPredictor);
+	// <e>
+	contents += modelEnd;
+	// now contents are created properly
+	// write the contents to the file with a single operation
+	outfile << contents;
+	outfile.close();
+}
+
+
+void GradientBoosting::loadModel(const std::string& fname) {	
+	// File structure:
+	// <Type><d><FeatureCnt><d><TreeCount><d><TreeDepth><d><zeroPredictor><d><Trees><e>
+	// <Type> ::= 0 | 1  # 0 for classification, 1 for regression
+	// <Trees> ::= <Tree> | <Tree><d><Trees>
+	// <Tree> ::= <Features><d><Thresholds><d><Leaves>
+	// <Features> ::= <Feature> | <Feature><d><Features>
+	// <Thresholds> ::= <Threshold> | <Threshold><d><Thresholds>
+	// <Leaves> ::= <Leaf> | <Leaf><d><Leaves>
+	// <Feature> ::= <size_t number>
+	// <Threshold> ::= <FVal_t number>
+	// <Leaf> ::= <Lab_t number>
+	// <d> ::= ;  # delimeter
+	// <e> ::= !  # end
+	static const char delimeter = ';';
+	static const char modelEnd = '!';
+	FILE* pFile = fopen(fname.c_str(), "r");
+	if (pFile == nullptr) {
+		throw std::runtime_error("Can't open the file");
+	}
+	// get file size
+	size_t fileSize = 0;
+	fseek(pFile, 0, SEEK_END);
+	fileSize = ftell(pFile);
+	// read the file with a single operation
+	fseek(pFile, 0, SEEK_SET);
+	char* contents = (char*)malloc(fileSize * sizeof(char));
+	if (contents == nullptr) {
+		fclose(pFile);
+		throw std::runtime_error("Not enough memory to read the file");
+	}
+	size_t symsRead = fread(contents, sizeof(char), fileSize, pFile);
+	// close the file
+	fclose(pFile);
+	if (symsRead != fileSize) {
+		free(contents);
+		throw std::runtime_error("Error occurred while reading the file");
+	}
+	// parse the contents
+	// step 1: find all delimeter occurrences
+
+    std::vector<size_t> delimPositions;
+    for (size_t i = 0; i < fileSize; ++i) {
+        if (contents[i] == delimeter) {
+            delimPositions.push_back(i);
+        }
+        if (contents[i] == modelEnd) {
+            delimPositions.push_back(i);
+            break;
+        }
+    }
+	static const size_t dPosMinSize = 5; // at least only zero predictor
+	if (delimPositions.size() < dPosMinSize) {
+		free(contents);
+		throw std::runtime_error("Can't load model: invalid file");
+	}
+
+	// step 2: parse initial info for the tree holder
+	// we will take each time the next symbol to the delimeter
+    const char* nextSym = contents + 1;
+    size_t curDelimeterIdx = 0; // skip <Type>
+	featureCount = ParseHelper::parseSizeT(nextSym + delimPositions[curDelimeterIdx++]);
+    realTreeCount = ParseHelper::parseSizeT(nextSym + delimPositions[curDelimeterIdx++]);
+    size_t treeDepth = ParseHelper::parseSizeT(nextSym + delimPositions[curDelimeterIdx++]);	 
+	if (!valCptContents(delimPositions, modelEnd, contents,
+		realTreeCount, treeDepth, dPosMinSize)) {
+		free(contents);
+		throw std::runtime_error("Can't load model: invalid file");
+	}
+    zeroPredictor = (Lab_t)ParseHelper::parseFloat(nextSym + delimPositions[curDelimeterIdx++]);
+
+	treeHolder = TreeHolder::parseHolder(nextSym, delimPositions, curDelimeterIdx,
+		featureCount, realTreeCount, treeDepth, threadCnt);
+	
+	free(contents);
+	// check result
+	if (treeHolder == nullptr)
+		throw std::runtime_error("Not enough memory to load model");
+	predictor = GBPredictor::createReady(zeroPredictor, *treeHolder,
+		featureCount);
+	if (predictor == nullptr) {
+		delete treeHolder;
+		treeHolder = nullptr;
+		throw std::runtime_error("Not enough memory to load model");
+	}
+}
+
+
 Lab_t GradientBoosting::loss(const pytensorY& pred,
 	const pytensorY& truth) {
 	// 0.5 * MSE
@@ -328,4 +455,34 @@ void GradientBoosting::initForRandomBatches(const int randomSeed) {
 	// M == batchSize
 	// so we will take randomly one index from each fold
 	randomFoldLength = size_t(trainLen / batchSize);
+}
+
+
+bool GradientBoosting::valCptContents(const std::vector<size_t>& dPos,
+		const char modelEnd, char const * const contents,
+		const size_t treeCnt, const size_t treeDepth,
+		const size_t dPosMinSize) const {
+	size_t dPosSize = dPos.size();
+	// check minimum size
+	if (dPosMinSize > dPosSize)
+		return false;
+	// check feature count
+	if (featureCount == 0)
+		return false;
+	// check the last delimeter equals model end
+	if (contents[dPos[dPosSize - 1]] != modelEnd)
+		return false;
+	// check true size
+	size_t innerNodes = (size_t(1) << treeDepth) - 1;
+	size_t leafCnt = size_t(1) << treeDepth;
+	size_t rightSize = (treeDepth + innerNodes + leafCnt) * treeCnt + dPosMinSize;
+	if (dPosSize != rightSize)
+		return false;
+	// check substrings between delimeters
+	for (size_t i = 1; i < dPosSize; ++i) {
+		if (dPos[i] - dPos[i - 1] <= 1)
+			return false;
+	}
+	// all checks passed
+	return true;
 }

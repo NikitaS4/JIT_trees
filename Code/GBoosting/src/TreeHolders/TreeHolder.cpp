@@ -24,3 +24,12 @@ TreeHolder* TreeHolder::createHolder(const size_t treeDepth,
     const size_t featureCnt, const size_t threadCnt) {
         return new RegularTree(treeDepth, featureCnt, threadCnt);
 }
+
+
+TreeHolder* TreeHolder::parseHolder(const char* repr, const std::vector<size_t> delimPos,
+        const size_t delimStart, const size_t featureCnt,
+        const size_t treeCnt, const size_t treeDepth,
+        const size_t threadCnt) {
+    return RegularTree::parse(repr, delimPos, delimStart, featureCnt,
+        treeCnt, treeDepth, threadCnt);
+}

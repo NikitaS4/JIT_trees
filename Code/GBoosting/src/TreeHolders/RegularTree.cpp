@@ -1,4 +1,5 @@
 #include "RegularTree.h"
+#include "../common/ParseHelper.h"
 #include <cstring>
 #include <iostream>
 #include <thread>
@@ -141,6 +142,128 @@ pytensorY RegularTree::predictTree2d(const pytensor2& xPred,
         return predictTree2dMutlithreaded(xPred, treeNum);
     else
         return predictTree2dSingleThread(xPred, treeNum);
+}
+
+
+std::string RegularTree::serialize(const char delimeter,
+    const Lab_t zeroPredictor) const {
+    // Answer structure:
+	// <TreeCount><d><TreeDepth><d><zeroPredictor><d><Trees>
+	// <Trees> ::= <Tree> | <Tree><d><Trees>
+	// <Tree> ::= <Features><d><Thresholds><d><Leaves>
+	// <Features> ::= <Feature> | <Feature><d><Features>
+	// <Thresholds> ::= <Threshold> | <Threshold><d><Thresholds>
+	// <Leaves> ::= <Leaf> | <Leaf><d><Leaves>
+	// <Feature> ::= <size_t number>
+	// <Threshold> ::= <FVal_t number>
+	// <Leaf> ::= <Lab_t number>
+    // <d> ::= delimeter
+    std::string ans;
+    // <TreeCount><d>
+    ans += std::to_string(treeCnt) + delimeter;
+    // <TreeDepth><d>
+    ans += std::to_string(treeDepth) + delimeter;
+    // <zeroPredictor>
+    ans += std::to_string(zeroPredictor);
+
+    // <d><Trees>
+    for (size_t i = 0; i < treeCnt; ++i) {
+        // <d><Tree>
+        // <d><Features>
+        for (size_t j = 0; j < treeDepth; ++j) {
+            // <d><Feature>
+            ans += delimeter + std::to_string(features[i][j]);
+        }
+        // <d><Thresholds>
+        for (size_t j = 0; j < innerNodes; ++j) {
+            // <d><Threshold>
+            ans += delimeter + std::to_string(thresholds[i][j]);
+        }
+        // <d><Leaves>
+        for (size_t j = 0; j < leafCnt; ++j) {
+            // <d><Leaf>
+            ans += delimeter + std::to_string(leaves[i][j]);
+        }
+    }
+
+    return ans;
+}
+
+
+RegularTree* RegularTree::parse(const char* repr,
+    const std::vector<size_t> delimPos,
+    const size_t delimStart, const size_t featureCnt,
+    const size_t treeCnt, const size_t treeDepth,
+    const size_t threadCnt) {
+    // File structure:
+	// <Type><d><FeatureCnt><d><TreeCount><d><TreeDepth><d><zeroPredictor><d><Trees><e>
+	// <Type> ::= 0 | 1  # 0 for classification, 1 for regression
+	// <Trees> ::= <Tree> | <Tree><d><Trees>
+	// <Tree> ::= <Features><d><Thresholds><d><Leaves>
+	// <Features> ::= <Feature> | <Feature><d><Features>
+	// <Thresholds> ::= <Threshold> | <Threshold><d><Thresholds>
+	// <Leaves> ::= <Leaf> | <Leaf><d><Leaves>
+	// <Feature> ::= <size_t number>
+	// <Threshold> ::= <FVal_t number>
+	// <Leaf> ::= <Lab_t number>
+	// <d> ::= ;  # delimeter
+	// <e> ::= !  # end
+
+    RegularTree* forest = new RegularTree(treeDepth, featureCnt,
+        threadCnt);
+    if (forest == nullptr)
+        return nullptr; // don't throw from here
+
+    // allocate memory for the trees
+    forest->treeCnt = treeCnt;
+    forest->features = std::vector<size_t*>(treeCnt, nullptr);
+    forest->thresholds = std::vector<FVal_t*>(treeCnt, nullptr);
+    forest->leaves = std::vector<Lab_t*>(treeCnt, nullptr);
+    size_t innerNodes = forest->innerNodes;
+    size_t leafCnt = forest->leafCnt;
+
+    // parse trees
+    size_t curd = delimStart;
+    for (size_t i = 0; i < treeCnt; ++i) {
+        // <Tree> ::= <Features><d><Thresholds><d><Leaves>
+        // parse features
+        size_t* fArr = new size_t[treeDepth];
+        FVal_t* tArr = new FVal_t[innerNodes];
+        Lab_t* lArr = new Lab_t[leafCnt];
+        if (fArr == nullptr || tArr == nullptr || lArr == nullptr) {
+            // free memory and return nullptr
+            for (size_t j = 0; j < i; ++j) {
+                delete [] forest->features[j];
+                delete [] forest->thresholds[j];
+                delete [] forest->leaves[j];
+            }
+            delete forest;
+            // free not nulls among f,t,l-Arrs
+            if (fArr != nullptr)
+                delete [] fArr;
+            if (tArr != nullptr)
+                delete [] tArr;
+            if (lArr != nullptr)
+                delete [] lArr;
+            return nullptr;
+        }
+        for (size_t j = 0; j < treeDepth; ++j) {
+            fArr[j] = ParseHelper::parseSizeT(repr + delimPos[curd++]);
+        }
+        forest->features[i] = fArr;
+        // parse thresholds
+        for (size_t j = 0; j < innerNodes; ++j) {
+            tArr[j] = (FVal_t)ParseHelper::parseFloat(repr + delimPos[curd++]);
+        }
+        forest->thresholds[i] = tArr;
+        // parse leaves
+        for (size_t j = 0; j < leafCnt; ++j) {
+            lArr[j] = (Lab_t)ParseHelper::parseFloat(repr + delimPos[curd++]);
+        }
+        forest->leaves[i] = lArr;
+    }
+
+    return forest;
 }
 
 

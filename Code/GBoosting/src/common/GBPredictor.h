@@ -6,18 +6,22 @@
 #include "../TreeHolders/TreeHolder.h"
 
 
-class GBPredcitor {
+class GBPredictor {
 public:
-    static GBPredcitor* create(const Lab_t zeroPredictor,
+    static GBPredictor* create(const Lab_t zeroPredictor,
         const TreeHolder& treeHolder,
-        const pytensor2& xTrain,
-        const pytensor2& xValid,
-        pytensorY& residuals,
-        pytensorY& preds,
-        pytensorY& validRes,
-        pytensorY& validPreds);
+        const pytensor2* xTrain,
+        const pytensor2* xValid,
+        pytensorY* residuals,
+        pytensorY* preds,
+        pytensorY* validRes,
+        pytensorY* validPreds);
 
-    virtual ~GBPredcitor();
+    static GBPredictor* createReady(const Lab_t zeroPredictor,
+        const TreeHolder& treeHolder,
+        const size_t featureCnt);
+
+    virtual ~GBPredictor();
 
     Lab_t predict1d(const pytensor1& x) const;
 
@@ -29,24 +33,28 @@ protected:
     const size_t featureCount;
     const Lab_t zeroPredictor;
     const TreeHolder& treeHolder;
-    const pytensor2& xTrain;
-    const pytensor2& xValid;
-    pytensorY& residuals;
-    pytensorY& preds;
-    pytensorY& validRes;
-    pytensorY& validPreds;
+    const pytensor2* xTrain;
+    const pytensor2* xValid;
+    pytensorY* residuals;
+    pytensorY* preds;
+    pytensorY* validRes;
+    pytensorY* validPreds;
 
     void validateFeatureCount(const pytensor1& x) const;
     void validateFeatureCount(const pytensor2& x) const;
 
-    GBPredcitor(const Lab_t zeroPredictor,
+    GBPredictor(const Lab_t zeroPredictor,
         const TreeHolder& treeHolder,
-        const pytensor2& xTrain,
-        const pytensor2& xValid,
-        pytensorY& residuals,
-        pytensorY& preds,
-        pytensorY& validRes,
-        pytensorY& validPreds);
+        const pytensor2* xTrain,
+        const pytensor2* xValid,
+        pytensorY* residuals,
+        pytensorY* preds,
+        pytensorY* validRes,
+        pytensorY* validPreds);
+
+    GBPredictor(const Lab_t zeroPredictor,
+        const TreeHolder& treeHolder,
+        const size_t featureCnt);
 };
 
 #endif // GBPREDICTOR_H_INCLUDED
