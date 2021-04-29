@@ -54,6 +54,7 @@ python testLauncher.py -v 3 -p
 To fit and test the model on the real data, You can run Jupyter Notebook:
 
 ```
+cd ../experiments
 jupyter notebook
 ```
 
