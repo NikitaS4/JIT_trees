@@ -13,10 +13,6 @@
 #include <cstdio>
 
 
-// static members initialization
-const float GradientBoosting::defaultLR = 0.4f;
-const unsigned int GradientBoosting::defaultRandomState = 12;
-
 GradientBoosting::GradientBoosting(const size_t binCountMin,
 	const size_t binCountMax, const size_t patience,
 	const bool dontUseEarlyStopping,
