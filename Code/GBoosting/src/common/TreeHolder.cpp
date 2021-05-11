@@ -1,5 +1,5 @@
-#include "RegularTree.h"
-#include "../common/ParseHelper.h"
+#include "TreeHolder.h"
+#include "ParseHelper.h"
 #include <cstring>
 #include <iostream>
 #include <thread>
@@ -7,14 +7,15 @@
 #include <math.h>
 
 
-RegularTree::RegularTree(const size_t treeDepth,
+TreeHolder::TreeHolder(const size_t treeDepth,
     const size_t featureCnt, const size_t threadCnt):
-    TreeHolder(treeDepth, featureCnt, threadCnt) {
+    treeDepth(treeDepth), innerNodes((1 << treeDepth) - 1), featureCnt(featureCnt),
+    leafCnt(size_t(1) << treeDepth), threadCnt(threadCnt), treeCnt(0) {
     // ctor
 }
 
 
-RegularTree::~RegularTree() {
+TreeHolder::~TreeHolder() {
     // dtor
     for (size_t i = 0; i < treeCnt; ++i) {
         delete [] features[i];
@@ -28,7 +29,18 @@ RegularTree::~RegularTree() {
 }
 
 
-void RegularTree::newTree(const size_t* features, const FVal_t* thresholds,
+size_t TreeHolder::getTreeCount() const {
+    return treeCnt;
+}
+
+
+TreeHolder* TreeHolder::createHolder(const size_t treeDepth,
+    const size_t featureCnt, const size_t threadCnt) {
+        return new TreeHolder(treeDepth, featureCnt, threadCnt);
+}
+
+
+void TreeHolder::newTree(const size_t* features, const FVal_t* thresholds,
     const Lab_t* leaves) {
     static const size_t featuresSize = treeDepth * sizeof(*features);
     static const size_t thresholdSize = innerNodes * sizeof(*thresholds);
@@ -45,7 +57,7 @@ void RegularTree::newTree(const size_t* features, const FVal_t* thresholds,
 }
 
 
-void RegularTree::popTree() {
+void TreeHolder::popTree() {
     // decrease tree count
     --treeCnt;
 
@@ -66,7 +78,7 @@ void RegularTree::popTree() {
 }
 
 
-Lab_t RegularTree::predictTree(const pytensor1& sample, 
+Lab_t TreeHolder::predictTree(const pytensor1& sample, 
     const size_t treeNum) const {
     validateTreeNum(treeNum);
     // get pointers for faster access
@@ -86,7 +98,7 @@ Lab_t RegularTree::predictTree(const pytensor1& sample,
 }
 
 
-void RegularTree::predictTreeFit(const pytensor2& xTrain, const pytensor2& xValid,
+void TreeHolder::predictTreeFit(const pytensor2& xTrain, const pytensor2& xValid,
         const size_t treeNum, pytensorY& residuals, pytensorY& preds,
         pytensorY& validRes, pytensorY& validPreds) const {
     if (threadCnt > 1) {
@@ -105,7 +117,7 @@ void RegularTree::predictTreeFit(const pytensor2& xTrain, const pytensor2& xVali
 }
 
 
-Lab_t RegularTree::predictAllTrees(const pytensor1& sample) const {
+Lab_t TreeHolder::predictAllTrees(const pytensor1& sample) const {
     Lab_t curSum = 0;
     for (size_t i = 0; i < treeCnt; ++i)
         curSum += predictTree(sample, i);
@@ -113,7 +125,7 @@ Lab_t RegularTree::predictAllTrees(const pytensor1& sample) const {
 }
 
 
-pytensorY RegularTree::predictAllTrees2d(const pytensor2& sample) const {
+pytensorY TreeHolder::predictAllTrees2d(const pytensor2& sample) const {
     if (threadCnt == 1) {
         pytensorY answers = xt::zeros<Lab_t>({sample.shape(0)});
         for (size_t i = 0; i < treeCnt; ++i) {
@@ -126,7 +138,7 @@ pytensorY RegularTree::predictAllTrees2d(const pytensor2& sample) const {
 }
 
 
-Lab_t RegularTree::predictFromTo(const pytensor1& sample, const size_t from,
+Lab_t TreeHolder::predictFromTo(const pytensor1& sample, const size_t from,
     const size_t to) const {
     Lab_t curSum = 0;
     for (size_t i = from; i < to; ++i)
@@ -135,7 +147,7 @@ Lab_t RegularTree::predictFromTo(const pytensor1& sample, const size_t from,
 }
 
 
-pytensorY RegularTree::predictTree2d(const pytensor2& xPred,
+pytensorY TreeHolder::predictTree2d(const pytensor2& xPred,
     const size_t treeNum) const {
     validateTreeNum(treeNum);
     if (threadCnt > 1)
@@ -145,7 +157,7 @@ pytensorY RegularTree::predictTree2d(const pytensor2& xPred,
 }
 
 
-std::string RegularTree::serialize(const char delimeter,
+std::string TreeHolder::serialize(const char delimeter,
     const Lab_t zeroPredictor) const {
     // Answer structure:
 	// <TreeCount><d><TreeDepth><d><zeroPredictor><d><Trees>
@@ -190,7 +202,7 @@ std::string RegularTree::serialize(const char delimeter,
 }
 
 
-RegularTree* RegularTree::parse(const char* repr,
+TreeHolder* TreeHolder::parse(const char* repr,
     const std::vector<size_t> delimPos,
     const size_t delimStart, const size_t featureCnt,
     const size_t treeCnt, const size_t treeDepth,
@@ -209,7 +221,7 @@ RegularTree* RegularTree::parse(const char* repr,
 	// <d> ::= ;  # delimeter
 	// <e> ::= !  # end
 
-    RegularTree* forest = new RegularTree(treeDepth, featureCnt,
+    TreeHolder* forest = new TreeHolder(treeDepth, featureCnt,
         threadCnt);
     if (forest == nullptr)
         return nullptr; // don't throw from here
@@ -267,7 +279,7 @@ RegularTree* RegularTree::parse(const char* repr,
 }
 
 
-void RegularTree::validateFeatures() {
+void TreeHolder::validateFeatures() {
     for (auto & curFeatureArr: features) {
         for (size_t h = 0; h < treeDepth; ++h) {
             if (curFeatureArr[h] >= featureCnt)
@@ -278,7 +290,7 @@ void RegularTree::validateFeatures() {
 }
 
 
-void RegularTree::validateTreeNum(const size_t treeNum) const {
+void TreeHolder::validateTreeNum(const size_t treeNum) const {
     if (treeNum >= features.size())
         throw std::runtime_error("wrong treeNum");
     if (treeNum >= thresholds.size())
@@ -288,7 +300,7 @@ void RegularTree::validateTreeNum(const size_t treeNum) const {
 }
 
 
-pytensorY RegularTree::predictTree2dSingleThread(const pytensor2& xPred,
+pytensorY TreeHolder::predictTree2dSingleThread(const pytensor2& xPred,
     const size_t treeNum) const {
     // get pointers for faster access
     const size_t* curFeatures = features[treeNum];
@@ -306,14 +318,14 @@ pytensorY RegularTree::predictTree2dSingleThread(const pytensor2& xPred,
 }
 
 
-pytensorY RegularTree::predictTree2dMutlithreaded(const pytensor2& xPred,
+pytensorY TreeHolder::predictTree2dMutlithreaded(const pytensor2& xPred,
     const size_t treeNum) const {
     static const bool allTrees = false;
     return predict2dProxy(xPred, allTrees, treeNum);
 }
 
 
-void RegularTree::predictFitMultithreaded(const pytensor2& xTrain, const pytensor2& xValid,
+void TreeHolder::predictFitMultithreaded(const pytensor2& xTrain, const pytensor2& xValid,
         const size_t treeNum, pytensorY& residuals, pytensorY& preds,
         pytensorY& validRes, pytensorY& validPreds) const {
     // part of threads -> train, part -> valid
@@ -401,25 +413,25 @@ void RegularTree::predictFitMultithreaded(const pytensor2& xTrain, const pytenso
 }
 
 
-pytensorY RegularTree::allTrees2dMultithreaded(const pytensor2& xPred) const {
+pytensorY TreeHolder::allTrees2dMultithreaded(const pytensor2& xPred) const {
     static const bool allTrees = true;
     static const size_t treeNumStub = 0;
     return predict2dProxy(xPred, allTrees, treeNumStub);
 }
 
 
-pytensorY RegularTree::predict2dProxy(const pytensor2& xPred,
+pytensorY TreeHolder::predict2dProxy(const pytensor2& xPred,
         const bool allTrees, const size_t treeNum) const {
     // decide which callback to get
-    std::function<void()> (RegularTree::*callbackGetter)(const size_t bias,
+    std::function<void()> (TreeHolder::*callbackGetter)(const size_t bias,
         const size_t batchSize, const size_t treeNum,
         const pytensor2& xPred, size_t& semThreadsFinish,
         pytensorY& answers) const;
     if (allTrees) {
-        callbackGetter = &RegularTree::getCallbackAll;
+        callbackGetter = &TreeHolder::getCallbackAll;
     }
     else {
-        callbackGetter = &RegularTree::getCallback;
+        callbackGetter = &TreeHolder::getCallback;
     }
 
     // predict
@@ -460,7 +472,7 @@ pytensorY RegularTree::predict2dProxy(const pytensor2& xPred,
 }
 
 
-std::function<void()> RegularTree::getCallback(const size_t bias,
+std::function<void()> TreeHolder::getCallback(const size_t bias,
     const size_t batchSize, const size_t treeNum,
     const pytensor2& xPred, size_t& semThreadsFinish,
     pytensorY& answers) const {
@@ -498,7 +510,7 @@ std::function<void()> RegularTree::getCallback(const size_t bias,
 }
 
 
-std::function<void()> RegularTree::getCallbackAll(const size_t bias,
+std::function<void()> TreeHolder::getCallbackAll(const size_t bias,
         const size_t batchSize, const size_t treeNum,
         const pytensor2& xPred, size_t& semThreadsFinish,
         pytensorY& answers) const {

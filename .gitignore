@@ -67,3 +67,6 @@ datasets/
 # Tuning results
 tuning/
 
+# Checkpoints
+checkpoints/
+

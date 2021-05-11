@@ -6,7 +6,7 @@
 #include "GBHist.h"
 #include "GBDecisionTree.h"
 #include "History.h"
-#include "../TreeHolders/TreeHolder.h"
+#include "TreeHolder.h"
 #include "GBPredictor.h"
 #include <vector>
 #include <random>
@@ -17,9 +17,9 @@ class GradientBoosting {
 public:
 	GradientBoosting(const size_t binCountMin,
 					 const size_t binCountMax,
-					 const size_t patience = defaultPatience,
-					 const bool dontUseEarlyStopping = defaultDontUseES,
-					 const size_t threadCnt = defaultThreadCnt);
+					 const size_t patience,
+					 const bool dontUseEarlyStopping,
+					 const size_t threadCnt);
 	virtual ~GradientBoosting();
 	// 1st dim - object number, 2nd dim - feature number
 	// fit return the number of estimators (include constant estim)
@@ -30,14 +30,14 @@ public:
 				const size_t treeCount,
 				const size_t treeDepth,
 				const float featureSubsetPart,
-				const float learningRate = defaultLR,
-				const Lab_t regularizationParam = defaultReg,
-				const Lab_t earlyStoppingDelta = defaultESDelta,
-				const float batchPart = 1.0f,
-				const unsigned int randomState = defaultRandomState,
-				const bool shuffledBatches = false,
-				const bool randomThresholds = true,
-				const bool removeRegularizationLater = false);
+				const float learningRate,
+				const Lab_t regularizationParam,
+				const Lab_t earlyStoppingDelta,
+				const float batchPart,
+				const unsigned int randomState,
+				const bool shuffledBatches,
+				const bool randomThresholds,
+				const bool removeRegularizationLater);
 	Lab_t predict(const pytensor1& xTest) const;
 	pytensorY predict(const pytensor2& xTest) const;
 
@@ -50,7 +50,8 @@ public:
 						const size_t lastEstimator) const;
 
 	void saveModel(const std::string& fname) const;
-	void loadModel(const std::string& fname);
+	GradientBoosting(const std::string& fname,
+		const size_t threadCnt);
 
 protected:
 	static Lab_t loss(const pytensorY& pred, 
@@ -99,15 +100,7 @@ protected:
 	GBPredictor* predictor = nullptr;
 
 	// constants
-	static const float defaultLR;
-	static const size_t defaultPatience = 3;
-	static constexpr Lab_t defaultESDelta = 0; // for early stopping
-	static constexpr Lab_t defaultReg = 0; // no reg
-	static const unsigned int defaultRandomState;
-	static constexpr bool defaultDontUseES = false; // use early stopping by default
-
-	static constexpr float whenRemoveRegularization = 0.8f; // the part of iterations with regularization
-	static constexpr size_t defaultThreadCnt = 1;
+	static constexpr float whenRemoveRegularization = 0.8f; // the part of iterations with regularization	
 	static constexpr size_t modelType = 1; // regression (0 for classification)
 };
 

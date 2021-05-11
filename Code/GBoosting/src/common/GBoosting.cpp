@@ -13,10 +13,6 @@
 #include <cstdio>
 
 
-// static members initialization
-const float GradientBoosting::defaultLR = 0.4f;
-const unsigned int GradientBoosting::defaultRandomState = 12;
-
 GradientBoosting::GradientBoosting(const size_t binCountMin,
 	const size_t binCountMax, const size_t patience,
 	const bool dontUseEarlyStopping,
@@ -274,7 +270,8 @@ void GradientBoosting::saveModel(const std::string& fname) const {
 }
 
 
-void GradientBoosting::loadModel(const std::string& fname) {	
+GradientBoosting::GradientBoosting(const std::string& fname,
+	const size_t threadCnt): threadCnt(threadCnt) {	
 	// File structure:
 	// <Type><d><FeatureCnt><d><TreeCount><d><TreeDepth><d><zeroPredictor><d><Trees><e>
 	// <Type> ::= 0 | 1  # 0 for classification, 1 for regression
@@ -345,7 +342,7 @@ void GradientBoosting::loadModel(const std::string& fname) {
 	}
     zeroPredictor = (Lab_t)ParseHelper::parseFloat(nextSym + delimPositions[curDelimeterIdx++]);
 
-	treeHolder = TreeHolder::parseHolder(nextSym, delimPositions, curDelimeterIdx,
+	treeHolder = TreeHolder::parse(nextSym, delimPositions, curDelimeterIdx,
 		featureCount, realTreeCount, treeDepth, threadCnt);
 	
 	free(contents);

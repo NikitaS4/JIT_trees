@@ -1,41 +1,54 @@
-#ifndef REGULAR_TREE_INCLUDED
-#define REGULAR_TREE_INCLUDED
+#ifndef TREE_HOLDER_INCLUDED
+#define TREE_HOLDER_INCLUDED
 
-#include "TreeHolder.h"
-#include <vector>
+#include "../common/Structs.h"
+#include <cstddef>
 #include <functional>
+#include <string>
+#include <vector>
 
 
-class RegularTree: public TreeHolder {
+class TreeHolder {
 public:
-    RegularTree(const size_t treeDepth, const size_t featureCnt,
+    TreeHolder(const size_t treeDepth, const size_t featureCnt,
         const size_t threadCnt);
-    virtual ~RegularTree();
+    virtual ~TreeHolder();
 
-    virtual void newTree(const size_t* features, const FVal_t* thresholds,
-        const Lab_t* leaves) final override;
-    virtual void popTree() final override;
+    void newTree(const size_t* features, const FVal_t* thresholds,
+        const Lab_t* leaves);
+    void popTree();
+    size_t getTreeCount() const;
 
-    virtual Lab_t predictTree(const pytensor1& sample, const size_t treeNum) const final override;
-    virtual void predictTreeFit(const pytensor2& xTrain, const pytensor2& xValid,
+    Lab_t predictTree(const pytensor1& sample, const size_t treeNum) const;
+    void predictTreeFit(const pytensor2& xTrain, const pytensor2& xValid,
         const size_t treeNum, pytensorY& residuals, pytensorY& preds,
-        pytensorY& validRes, pytensorY& validPreds) const final override;
-    virtual Lab_t predictAllTrees(const pytensor1& sample) const final override;
-    virtual pytensorY predictAllTrees2d(const pytensor2& sample) const final override;
-    virtual Lab_t predictFromTo(const pytensor1& sample, const size_t from, 
-        const size_t to) const final override;
+        pytensorY& validRes, pytensorY& validPreds) const;
+    Lab_t predictAllTrees(const pytensor1& sample) const;
+    pytensorY predictAllTrees2d(const pytensor2& sample) const;
+    Lab_t predictFromTo(const pytensor1& sample, const size_t from,
+        const size_t to) const;
 
-    virtual pytensorY predictTree2d(const pytensor2& xPred, const size_t treeNum) const final override;
-    virtual std::string serialize(const char delimeter, const Lab_t zeroPredictor) const final override;
-    
-    static RegularTree* parse(const char* repr,
+    pytensorY predictTree2d(const pytensor2& xPred, const size_t treeNum) const;
+    std::string serialize(const char delimeter, const Lab_t zeroPredictor) const;
+
+    // create needed holder
+    static TreeHolder* createHolder(const size_t treeDepth,
+        const size_t featureCnt, const size_t threadCnt);
+    // parse holder from file
+    static TreeHolder* parse(const char* repr,
         const std::vector<size_t> delimPos,
         const size_t delimStart, const size_t featureCnt,
         const size_t treeCnt, const size_t treeDepth,
         const size_t threadCnt);
-
 private:
     // fields
+    const size_t treeDepth;
+    const size_t innerNodes;
+    const size_t featureCnt;
+    const size_t leafCnt;
+    const size_t threadCnt;
+    size_t treeCnt;
+
     std::vector<size_t*> features;
     std::vector<FVal_t*> thresholds;
     std::vector<Lab_t*> leaves;
@@ -73,4 +86,4 @@ private:
     static const int busyWaitMs = 1;
 };
 
-#endif // REGULAR_TREE_INCLUDED
+#endif // TREE_HOLDER_INCLUDED

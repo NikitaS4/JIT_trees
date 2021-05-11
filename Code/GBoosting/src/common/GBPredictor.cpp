@@ -1,5 +1,4 @@
 #include "GBPredictor.h"
-#include "GBUsualPredictor.h"
 #include <stdexcept>
 
 
@@ -38,7 +37,7 @@ GBPredictor::GBPredictor(const Lab_t zeroPredictor, const TreeHolder& treeHolder
 
 GBPredictor* GBPredictor::createReady(const Lab_t zeroPredictor,
     const TreeHolder& treeHolder, const size_t featureCnt) {
-    return new GBUsualPredictor(zeroPredictor, treeHolder,
+    return new GBPredictor(zeroPredictor, treeHolder,
         featureCnt);
 }
 
@@ -51,7 +50,7 @@ GBPredictor* GBPredictor::create(const Lab_t zeroPredictor,
         pytensorY* preds,
         pytensorY* validRes,
         pytensorY* validPreds) {
-    return new GBUsualPredictor(zeroPredictor, treeHolder, xTrain, xValid,
+    return new GBPredictor(zeroPredictor, treeHolder, xTrain, xValid,
         residuals, preds, validRes, validPreds);
 }
 
@@ -59,6 +58,27 @@ GBPredictor* GBPredictor::create(const Lab_t zeroPredictor,
 Lab_t GBPredictor::predict1d(const pytensor1& x) const {
     validateFeatureCount(x);
 	return zeroPredictor + treeHolder.predictAllTrees(x);
+}
+
+
+pytensorY GBPredictor::predict2d(const pytensor2& x) {
+    validateFeatureCount(x);
+    pytensorY answers = treeHolder.predictAllTrees2d(x);
+    // don't forget zero predictor (constant)
+    for (size_t i = 0; i < answers.shape(0); ++i) {
+        answers(i) += zeroPredictor;
+    }
+    return answers;
+}
+
+
+void GBPredictor::predictTreeTrain(const size_t treeNum) {
+    if (xTrain == nullptr) {
+        // it's the case we loaded model and don't need train
+        throw std::runtime_error("Can't fit loaded model");
+    }
+    treeHolder.predictTreeFit(*xTrain, *xValid, treeNum,
+        *residuals, *preds, *validRes, *validPreds);
 }
 
 

@@ -31,9 +31,8 @@ def main():
     mae = mae_score(y_test, preds)
     print(f"MAE: {mae}")
     model.save_model(cpt_file)
-    loaded = JITtrees.Boosting(no_early_stopping=True,
+    loaded = JITtrees.Boosting(filename=cpt_file,
         thread_cnt=1)
-    loaded.load_model(cpt_file)
     loaded.save_model(cpt_file2)
     preds = loaded.predict(x_test)
     mae_new = mae_score(y_test, preds)
