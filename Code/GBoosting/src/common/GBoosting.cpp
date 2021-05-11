@@ -341,7 +341,7 @@ void GradientBoosting::loadModel(const std::string& fname) {
 	}
     zeroPredictor = (Lab_t)ParseHelper::parseFloat(nextSym + delimPositions[curDelimeterIdx++]);
 
-	treeHolder = TreeHolder::parseHolder(nextSym, delimPositions, curDelimeterIdx,
+	treeHolder = TreeHolder::parse(nextSym, delimPositions, curDelimeterIdx,
 		featureCount, realTreeCount, treeDepth, threadCnt);
 	
 	free(contents);

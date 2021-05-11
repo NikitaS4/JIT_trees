@@ -26,7 +26,7 @@ public:
     Lab_t predict1d(const pytensor1& x) const;
 
     pytensorY predict2d(const pytensor2& x);
-    void predictTreeTrain(const size_t treeNum) = 0;
+    void predictTreeTrain(const size_t treeNum);
 private:
     const size_t trainLen;
     const size_t validLen;
