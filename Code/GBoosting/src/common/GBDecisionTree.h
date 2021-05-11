@@ -4,7 +4,7 @@
 #include "PybindHeader.h"
 #include "Structs.h"
 #include "GBHist.h"
-#include "../TreeHolders/TreeHolder.h"
+#include "TreeHolder.h"
 #include <vector>
 
 

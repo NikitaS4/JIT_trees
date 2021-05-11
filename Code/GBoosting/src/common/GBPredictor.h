@@ -3,7 +3,7 @@
 
 #include "PybindHeader.h"
 #include "Structs.h"
-#include "../TreeHolders/TreeHolder.h"
+#include "TreeHolder.h"
 
 
 class GBPredictor {

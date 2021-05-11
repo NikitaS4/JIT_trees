@@ -6,7 +6,7 @@
 #include "GBHist.h"
 #include "GBDecisionTree.h"
 #include "History.h"
-#include "../TreeHolders/TreeHolder.h"
+#include "TreeHolder.h"
 #include "GBPredictor.h"
 #include <vector>
 #include <random>

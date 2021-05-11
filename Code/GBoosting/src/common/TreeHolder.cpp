@@ -1,5 +1,5 @@
 #include "TreeHolder.h"
-#include "../common/ParseHelper.h"
+#include "ParseHelper.h"
 #include <cstring>
 #include <iostream>
 #include <thread>
