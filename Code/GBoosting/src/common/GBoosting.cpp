@@ -270,7 +270,8 @@ void GradientBoosting::saveModel(const std::string& fname) const {
 }
 
 
-void GradientBoosting::loadModel(const std::string& fname) {	
+GradientBoosting::GradientBoosting(const std::string& fname,
+	const size_t threadCnt): threadCnt(threadCnt) {	
 	// File structure:
 	// <Type><d><FeatureCnt><d><TreeCount><d><TreeDepth><d><zeroPredictor><d><Trees><e>
 	// <Type> ::= 0 | 1  # 0 for classification, 1 for regression

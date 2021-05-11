@@ -37,6 +37,10 @@ PYBIND11_MODULE(JITtrees, m) {
             py::arg("patience")=dp::patience,
             py::arg("no_early_stopping")=dp::noEs,
             py::arg("thread_cnt")=dp::threadCnt)
+        .def(py::init<const std::string&, const size_t>(),
+            "Load GB model from the file",
+            py::arg("filename"),
+            py::arg("thread_cnt")=dp::threadCnt)
         .def("fit", &GradientBoosting::fit, "Fit regression model", py::arg("x_train"),
             py::arg("y_train"), py::arg("x_valid"), py::arg("y_valid"),
             py::arg("tree_count")=dp::treeCount, 
@@ -57,8 +61,5 @@ PYBIND11_MODULE(JITtrees, m) {
         .def("predict_from_to", &GradientBoosting::predictFromTo, "Predict labels for sample on a subset of trees",
             py::arg("x_test"), py::arg("from"), py::arg("to"))
         .def("save_model", static_cast<void (GradientBoosting::*)(const std::string&)const>(&GradientBoosting::saveModel), "Save GB model to the file",
-            py::arg("filename"))
-        .def("load_model", static_cast<void (GradientBoosting::*)(const std::string&)>(&GradientBoosting::loadModel), "Load GB model from the file",
             py::arg("filename"));
-    
 }

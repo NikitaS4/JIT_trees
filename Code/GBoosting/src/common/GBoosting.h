@@ -50,7 +50,8 @@ public:
 						const size_t lastEstimator) const;
 
 	void saveModel(const std::string& fname) const;
-	void loadModel(const std::string& fname);
+	GradientBoosting(const std::string& fname,
+		const size_t threadCnt);
 
 protected:
 	static Lab_t loss(const pytensorY& pred, 
