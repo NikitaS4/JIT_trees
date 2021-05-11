@@ -82,6 +82,18 @@ def load_dataset(dataset, random_state):
         y_all = labels_df.to_numpy()
         x_all = features_df.to_numpy()
         return x_all, y_all
+    elif dataset == 'stairs':
+        data_dir = 'datasets'
+        data_csv = 'stairs.csv'
+        all_data = pd.read_csv(os.path.join(data_dir, data_csv))
+        # split into target and features
+        label_name = 'y'
+        labels_df = all_data[label_name]  # target df
+        features_df = all_data.drop(label_name, axis=1)  # featrues df
+        # convert to numpy arrays
+        y_all = labels_df.to_numpy()
+        x_all = features_df.to_numpy()
+        return x_all, y_all
     else:
         raise ValueError('wrong dataset name')
 
@@ -190,7 +202,8 @@ def main():
             'regr_100',
             'regr_200',
             'winequality',
-            'supercond'
+            'supercond',
+            'stairs'
         ]
         folder = 'tuning'
         for cur_dataset in refit_datasets:
