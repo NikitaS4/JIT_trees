@@ -25,9 +25,9 @@ public:
 
     Lab_t predict1d(const pytensor1& x) const;
 
-    virtual pytensorY predict2d(const pytensor2& x) = 0;
-    virtual void predictTreeTrain(const size_t treeNum) = 0;
-protected:
+    pytensorY predict2d(const pytensor2& x);
+    void predictTreeTrain(const size_t treeNum) = 0;
+private:
     const size_t trainLen;
     const size_t validLen;
     const size_t featureCount;
