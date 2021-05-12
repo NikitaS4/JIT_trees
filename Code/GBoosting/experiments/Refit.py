@@ -180,12 +180,14 @@ def refit_models(params_file_dict, dataset, folder, test_size=0.2,
         # fit models
         models = {}
         for model_name, cur_refitter in refitter_iter:
+            print(f"Fit model {model_name}")
             models[model_name], fit_time = cur_refitter(params_file_dict[model_name],
                 x_train, x_valid, y_train, y_valid, random_state)
             time_dict[model_name].append(fit_time)
 
         # compute metrics
         evaluate_models(models, x_test, y_test, maes, mses)
+        print(f"Iteration {cur_it + 1} / {iterations} for {dataset} done")
     # save to file
     save_res(folder, dataset + '_mae_refit.csv', maes)
     save_res(folder, dataset + '_mse_refit.csv', mses)
