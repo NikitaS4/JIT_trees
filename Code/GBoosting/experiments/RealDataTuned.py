@@ -249,7 +249,7 @@ def tune_dataset(cb_grid, sk_grid, jt_grid,
 def tune_boston(folder, random_state=12):
     # CatBoost
     CatBoost_grid = {
-        "iterations": [250],
+        "iterations": [250, 500],
         "learning_rate": [0.1, 0.2],
         "depth": [2, 4, 6],
         "random_state": [random_state],
@@ -259,27 +259,27 @@ def tune_boston(folder, random_state=12):
     # Sklearn
     Sklearn_grid = {
         'learning_rate': [0.1, 0.2],
-        'max_iter': [200, 300],
+        'max_iter': [250, 500],
         'max_depth': [2, 4, 6]
     }
 
     # JITtrees
     JITtrees_grid = {
-        'min_bins': [8, 16, 64],
+        'min_bins': [8, 16, 32, 64],
         'max_bins': [256],
         'no_early_stopping': [False],
         'patience': [4],
-        'tree_count': [300],
-        'tree_depth': [2, 4, 6],
-        'feature_fold_size': [0.8, 1.0],
+        'tree_count': [300, 500, 1000, 2000],
+        'tree_depth': [2, 4, 6, 8],
+        'feature_fold_size': [1.0],
         'learning_rate': [0.1, 0.2, 0.4],
-        'regularization_param': [0, 1, 10],
+        'regularization_param': [0, 0.1, 1],
         'es_delta': [1e-5],
         'batch_part': [1],
         'random_batches': [False],
         'random_hist_thresholds': [True],
         'remove_regularization_later': [True],
-        'spoil_split_scores': [False],
+        'spoil_split_scores': [False, True],
         'thread_cnt': [1]
     }
 
@@ -298,7 +298,7 @@ def tune_boston(folder, random_state=12):
 def tune_diabetes(folder, random_state=12):
     # CatBoost
     CatBoost_grid = {
-        "iterations": [250],
+        "iterations": [250, 500],
         "learning_rate": [0.1, 0.2],
         "depth": [2, 4, 6],
         "random_state": [random_state],
@@ -308,27 +308,27 @@ def tune_diabetes(folder, random_state=12):
     # Sklearn
     Sklearn_grid = {
         'learning_rate': [0.1, 0.2],
-        'max_iter': [200, 300],
+        'max_iter': [250, 500],
         'max_depth': [2, 4, 6]
     }
 
     # JITtrees
     JITtrees_grid = {
-        'min_bins': [16, 32],
+        'min_bins': [8, 16, 32, 64, 128, 256],
         'max_bins': [256],
         'no_early_stopping': [False],
         'patience': [4],
-        'tree_count': [330],
-        'tree_depth': [4, 5],
-        'feature_fold_size': [0.8, 1.0],
+        'tree_count': [200, 330, 1000, 2000],
+        'tree_depth': [3, 4, 5, 8],
+        'feature_fold_size': [1.0],
         'learning_rate': [0.15],
-        'regularization_param': [1],
+        'regularization_param': [0.05, 0.1, 0.15],
         'es_delta': [1e-5],
         'batch_part': [1],
-        'random_batches': [True],
+        'random_batches': [False],
         'random_hist_thresholds': [True],
         'remove_regularization_later': [True],
-        'spoil_split_scores': [False],
+        'spoil_split_scores': [False, True],
         'thread_cnt': [1]
     }
 
@@ -347,7 +347,7 @@ def tune_diabetes(folder, random_state=12):
 def tune_regression_100(folder, random_state=12):
     # CatBoost
     CatBoost_grid = {
-        "iterations": [250],
+        "iterations": [250, 500],
         "learning_rate": [0.1, 0.2],
         "depth": [2, 4, 6],
         "random_state": [random_state],
@@ -357,27 +357,27 @@ def tune_regression_100(folder, random_state=12):
     # Sklearn
     Sklearn_grid = {
         'learning_rate': [0.1, 0.2],
-        'max_iter': [200, 300],
+        'max_iter': [250, 500],
         'max_depth': [2, 4, 6]
     }
 
     # JITtrees
     JITtrees_grid = {
-        'min_bins': [64, 128],
+        'min_bins': [8, 16, 32, 64],
         'max_bins': [256],
         'no_early_stopping': [False],
         'patience': [4],
-        'tree_count': [500],
-        'tree_depth': [3, 4, 5],
-        'feature_fold_size': [0.8, 1.0],
-        'learning_rate': [0.4],
+        'tree_count': [200, 300, 500, 1000, 2000],
+        'tree_depth': [3, 4, 5, 8],
+        'feature_fold_size': [1.0],
+        'learning_rate': [0.1, 0.2, 0.4, 0.6],
         'regularization_param': [0.6, 0.7, 0.8],
         'es_delta': [1e-5],
         'batch_part': [1],
-        'random_batches': [True],
+        'random_batches': [False],
         'random_hist_thresholds': [True],
         'remove_regularization_later': [True],
-        'spoil_split_scores': [False],
+        'spoil_split_scores': [False, True],
         'thread_cnt': [1]
     }
 
@@ -398,7 +398,7 @@ def tune_regression_100(folder, random_state=12):
 def tune_regression_200(folder, random_state=12):
     # CatBoost
     CatBoost_grid = {
-        "iterations": [250],
+        "iterations": [250, 500],
         "learning_rate": [0.1, 0.2],
         "depth": [2, 4, 6],
         "random_state": [random_state],
@@ -408,27 +408,27 @@ def tune_regression_200(folder, random_state=12):
     # Sklearn
     Sklearn_grid = {
         'learning_rate': [0.1, 0.2],
-        'max_iter': [200, 300],
+        'max_iter': [250, 500],
         'max_depth': [2, 4, 6]
     }
 
     # JITtrees
     JITtrees_grid = {
-        'min_bins': [8, 10, 16],
+        'min_bins': [8, 16, 32, 64],
         'max_bins': [256],
         'no_early_stopping': [False],
         'patience': [4],
-        'tree_count': [1000],
-        'tree_depth': [3, 4, 5],
+        'tree_count': [300, 1000, 2000],
+        'tree_depth': [4, 5, 8],
         'feature_fold_size': [1.0],
-        'learning_rate': [0.06],
+        'learning_rate': [0.06, 0.1],
         'regularization_param': [0.17, 0.18, 0.19],
         'es_delta': [1e-5],
         'batch_part': [1],
-        'random_batches': [True],
+        'random_batches': [False],
         'random_hist_thresholds': [True],
         'remove_regularization_later': [True],
-        'spoil_split_scores': [False],
+        'spoil_split_scores': [False, True],
         'thread_cnt': [1]
     }
     tuning_params = {
@@ -464,7 +464,7 @@ def tune_winequality(folder, random_state=12):
 
     # CatBoost
     CatBoost_grid = {
-        "iterations": [300, 500],
+        "iterations": [250, 500],
         "learning_rate": [0.1, 0.2],
         "depth": [2, 4, 7, 8],
         "random_state": [random_state],
@@ -474,27 +474,27 @@ def tune_winequality(folder, random_state=12):
     # Sklearn
     Sklearn_grid = {
         'learning_rate': [0.1, 0.2],
-        'max_iter': [300, 500],
+        'max_iter': [250, 500],
         'max_depth': [2, 4, 7, 8]
     }
 
     # JITtrees
     JITtrees_grid = {
-        'min_bins': [8, 16, 32, 64, 128, 256],
+        'min_bins': [8, 16, 32, 64],
         'max_bins': [256],
         'no_early_stopping': [False],
         'patience': [5],
-        'tree_count': [5000],
-        'tree_depth': [2, 3, 4, 8],
+        'tree_count': [200, 500, 1000, 2000],
+        'tree_depth': [3, 4, 5, 8],
         'feature_fold_size': [1.0],
-        'learning_rate': [0.12, 0.13, 0.14, 0.15, 0.6, 0.8],
-        'regularization_param': [0, 0.12, 0.13, 0.14, 0.15, 0.8, 10],
+        'learning_rate': [0.12, 0.15, 0.18, 0.6],
+        'regularization_param': [0.1, 0.12, 0.15],
         'es_delta': [1e-6],
         'batch_part': [1.0],
-        'random_batches': [True],
+        'random_batches': [False],
         'random_hist_thresholds': [True],
         'remove_regularization_later': [True],
-        'spoil_split_scores': [False],
+        'spoil_split_scores': [False, True],
         'thread_cnt': [1]
     }
 
@@ -527,7 +527,7 @@ def tune_supercond(folder, random_state=12):
 
     # CatBoost
     CatBoost_grid = {
-        "iterations": [300, 500],
+        "iterations": [250, 500],
         "learning_rate": [0.1, 0.2],
         "depth": [2, 4, 7, 8],
         "random_state": [random_state],
@@ -537,7 +537,7 @@ def tune_supercond(folder, random_state=12):
     # Sklearn
     Sklearn_grid = {
         'learning_rate': [0.1, 0.2],
-        'max_iter': [300, 500],
+        'max_iter': [250, 500],
         'max_depth': [2, 4, 7, 8]
     }
 
@@ -547,17 +547,17 @@ def tune_supercond(folder, random_state=12):
         'max_bins': [256],
         'no_early_stopping': [False],
         'patience': [4],
-        'tree_count': [500, 600],
-        'tree_depth': [2, 4, 7, 8],
+        'tree_count': [500, 1000, 2000],
+        'tree_depth': [3, 4, 7, 8],
         'feature_fold_size': [1.0],
         'learning_rate': [0.1, 0.15, 0.2],
-        'regularization_param': [0, 0.1, 1, 10, 100],
+        'regularization_param': [0, 0.1, 1],
         'es_delta': [1e-6],
         'batch_part': [0.6],
         'random_batches': [True],
         'random_hist_thresholds': [True],
-        'remove_regularization_later': [False, True],
-        'spoil_split_scores': [False],
+        'remove_regularization_later': [True],
+        'spoil_split_scores': [False, True],
         'thread_cnt': [1]
     }
 
