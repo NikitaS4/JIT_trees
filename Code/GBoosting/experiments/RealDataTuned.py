@@ -79,10 +79,13 @@ def tune_JIT_trees(x_tr_val, y_tr_val, options_grid, random_state=12):
         
         # evaluate
         preds = model.predict(x_valid)
-        if np.isnan(preds).any():
+        if np.isnan(preds).any() or (preds == np.inf).any():
             mae = np.inf
         else:
-            mae = mae_score(y_valid, preds)
+            try:
+                mae = mae_score(y_valid, preds)
+            except Exception as m:
+                mae = np.inf
         
         # add to the dictionary (to save in the data frame later)
         for key in keys_list:
@@ -146,6 +149,8 @@ def JITtrees_tuned_mae(x_tr_val, y_tr_val, x_test, y_test,
     history = model.fit(x_train=x_tr_val, y_train=y_tr_val,
         x_valid=x_test, y_valid=y_test, **fit_options)
     preds = model.predict(x_test)
+    if (preds == np.inf).any():  # filter outliers
+        return None, None
     mae = mae_score(y_test, preds)
     preds_dict["JIT_trees"] = preds
     return mae, np.std(np.abs(preds - y_test))
@@ -225,8 +230,10 @@ def tune_dataset(cb_grid, sk_grid, jt_grid,
     jt_prot, best_params = tune_JIT_trees(x_tr_val, y_tr_val, jt_grid, random_state)
     jt_mae, jt_sd = JITtrees_tuned_mae(x_tr_val, y_tr_val, x_test,
         y_test, best_params, preds_dict)
-    df_res["MAE"].append(jt_mae)
-    df_res["std"].append(jt_sd)
+    if jt_mae is not None:
+        df_res["MAE"].append(jt_mae)
+    if jt_sd is not None:
+        df_res["std"].append(jt_sd)
 
     # save results
     save_res(folder, dataset_name + '.csv', dataset_name + '_prot.csv', df_res, jt_prot)

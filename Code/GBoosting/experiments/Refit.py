@@ -147,8 +147,12 @@ def refit_jt(params_file, x_train, x_valid, y_train, y_valid,
 def evaluate_models(models_dict, x_test, y_test, maes, mses):
     for key in models_dict:
         preds = models_dict[key].predict(x_test)
-        maes[key].append(mae_score(y_test, preds))
-        mses[key].append(mse_score(y_test, preds))
+        if (preds == np.inf).any():
+            maes[key].append(None)
+            mses[key].append(None)
+        else:
+            maes[key].append(mae_score(y_test, preds))
+            mses[key].append(mse_score(y_test, preds))
 
 
 def refit_models(params_file_dict, dataset, folder, test_size=0.2,
