@@ -26,7 +26,8 @@ def split_options(model_options):
                 'early_stopping_delta', 'batch_part',
                 'random_state', 'random_batches',
                 'regularization_param', 'random_hist_thresholds',
-                'remove_regularization_later']
+                'remove_regularization_later',
+                'spoil_split_scores']
     ctor_options = {}
     fit_options = {}
     for key in model_options.keys():
@@ -271,6 +272,7 @@ def tune_boston(folder, random_state=12):
         'random_batches': [False],
         'random_hist_thresholds': [True],
         'remove_regularization_later': [True],
+        'spoil_split_scores': [False],
         'thread_cnt': [1]
     }
 
@@ -319,6 +321,7 @@ def tune_diabetes(folder, random_state=12):
         'random_batches': [True],
         'random_hist_thresholds': [True],
         'remove_regularization_later': [True],
+        'spoil_split_scores': [False],
         'thread_cnt': [1]
     }
 
@@ -367,6 +370,7 @@ def tune_regression_100(folder, random_state=12):
         'random_batches': [True],
         'random_hist_thresholds': [True],
         'remove_regularization_later': [True],
+        'spoil_split_scores': [False],
         'thread_cnt': [1]
     }
 
@@ -417,6 +421,7 @@ def tune_regression_200(folder, random_state=12):
         'random_batches': [True],
         'random_hist_thresholds': [True],
         'remove_regularization_later': [True],
+        'spoil_split_scores': [False],
         'thread_cnt': [1]
     }
     tuning_params = {
@@ -482,6 +487,7 @@ def tune_winequality(folder, random_state=12):
         'random_batches': [True],
         'random_hist_thresholds': [True],
         'remove_regularization_later': [True],
+        'spoil_split_scores': [False],
         'thread_cnt': [1]
     }
 
@@ -544,6 +550,7 @@ def tune_supercond(folder, random_state=12):
         'random_batches': [True],
         'random_hist_thresholds': [True],
         'remove_regularization_later': [False, True],
+        'spoil_split_scores': [False],
         'thread_cnt': [1]
     }
 
@@ -592,20 +599,21 @@ def tune_stairs(folder, random_state=12):
 
     # JITtrees
     JITtrees_grid = {
-        'min_bins': [8, 16, 32, 64, 128, 256],
+        'min_bins': [256],
         'max_bins': [256],
         'no_early_stopping': [False],
         'patience': [4],
-        'tree_count': [200, 300, 500],
-        'tree_depth': [3, 4, 6, 8],
+        'tree_count': [1000, 2000],
+        'tree_depth': [4, 5, 8],
         'feature_fold_size': [1.0],
-        'learning_rate': [0.1, 0.15, 0.2],
-        'regularization_param': [0.05, 0.1, 0.15, 0.2],
+        'learning_rate': [0.1, 0.12],
+        'regularization_param': [0, 0.12, 0.13, 0.14, 0.145],
         'es_delta': [1e-6],
         'batch_part': [1.0],
         'random_batches': [False],
         'random_hist_thresholds': [True],
-        'remove_regularization_later': [True, False],
+        'remove_regularization_later': [True],
+        'spoil_split_scores': [False],
         'thread_cnt': [1]
     }
 

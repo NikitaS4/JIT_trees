@@ -34,7 +34,8 @@ def split_options(model_options):
                 'early_stopping_delta', 'batch_part',
                 'random_state', 'random_batches',
                 'regularization_param', 'random_hist_thresholds',
-                'remove_regularization_later']
+                'remove_regularization_later',
+                'spoil_split_scores']
     ctor_options = {}
     fit_options = {}
     for key in model_options.keys():
