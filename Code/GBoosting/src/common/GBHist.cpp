@@ -112,7 +112,15 @@ Lab_t GBHist::findBestSplit(const pytensor1& xData,
 		// leftSize (rightSize) is the sum of the hessians
 		// leftValue (rightValue) is the sum of the gradients
 		Lab_t leftAvg = leftValue / (leftSize + regularizationParam);
-		Lab_t rightAvg = rightValue / (rightSize + regularizationParam);
+		Lab_t rightAvg = 0;
+		if (rightSize != 0) {
+			rightAvg = rightValue / (rightSize + regularizationParam);
+		} // else rightAvg = 0 (on init)
+		// avoid NaNs
+		if (isnan(leftAvg))
+			leftAvg = 0;
+		if (isnan(rightAvg))
+			rightAvg = 0;
 		// now leftAvg (rightAvg) is the leaf weight corresponding to the current node
 
 		// step 2: calculate RSS
@@ -183,10 +191,10 @@ Lab_t GBHist::square(const Lab_t arg) {
 
 size_t GBHist::whichBin(const FVal_t& sample) const {
 	size_t bin = 0;
-	do {
+	while (sample >= thresholds[bin] && bin < binCount - 1) {
 		++bin;
-	} while (bin < binCount && sample > thresholds[bin]);
-	return bin - 1;
+	}
+	return bin;
 }
 
 

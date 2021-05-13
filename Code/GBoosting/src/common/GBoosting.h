@@ -35,9 +35,10 @@ public:
 				const Lab_t earlyStoppingDelta,
 				const float batchPart,
 				const unsigned int randomState,
-				const bool shuffledBatches,
+				const bool randomBatches,
 				const bool randomThresholds,
-				const bool removeRegularizationLater);
+				const bool removeRegularizationLater,
+				const bool spoilScores);
 	Lab_t predict(const pytensor1& xTest) const;
 	pytensorY predict(const pytensor2& xTest) const;
 

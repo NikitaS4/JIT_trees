@@ -18,4 +18,5 @@ namespace defaultParams {
     const bool randThresholds = true;
     const bool removeReg = false;
     const size_t threadCnt = 1;
+    const bool spoilScores = true;
 };

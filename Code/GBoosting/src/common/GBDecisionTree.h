@@ -12,7 +12,8 @@
 class GBDecisionTree {
 public:
 	GBDecisionTree(const size_t treesInEnsemble,
-		const Lab_t regularizationParam);
+		const Lab_t regularizationParam,
+		const bool spoilScores);
 
 	~GBDecisionTree();
 
@@ -44,6 +45,7 @@ private:
 	size_t* features = nullptr;
 	FVal_t* thresholds = nullptr;
 	Lab_t* leaves = nullptr;
+	bool spoilScores;
 
 	// methods
 	inline FVal_t getSpoiledScore(const FVal_t splitScore) const;
