@@ -34,7 +34,8 @@ def split_options(model_options):
                 'early_stopping_delta', 'batch_part',
                 'random_state', 'random_batches',
                 'regularization_param', 'random_hist_thresholds',
-                'remove_regularization_later']
+                'remove_regularization_later',
+                'spoil_split_scores']
     ctor_options = {}
     fit_options = {}
     for key in model_options.keys():
@@ -76,6 +77,18 @@ def load_dataset(dataset, random_state):
         all_data = pd.read_csv(os.path.join(data_dir, data_csv))
         # split into target and features
         label_name = 'critical_temp'
+        labels_df = all_data[label_name]  # target df
+        features_df = all_data.drop(label_name, axis=1)  # featrues df
+        # convert to numpy arrays
+        y_all = labels_df.to_numpy()
+        x_all = features_df.to_numpy()
+        return x_all, y_all
+    elif dataset == 'stairs':
+        data_dir = 'datasets'
+        data_csv = 'stairs.csv'
+        all_data = pd.read_csv(os.path.join(data_dir, data_csv))
+        # split into target and features
+        label_name = 'y'
         labels_df = all_data[label_name]  # target df
         features_df = all_data.drop(label_name, axis=1)  # featrues df
         # convert to numpy arrays
@@ -168,12 +181,14 @@ def refit_models(params_file_dict, dataset, folder, test_size=0.2,
         # fit models
         models = {}
         for model_name, cur_refitter in refitter_iter:
+            print(f"Fit model {model_name}")
             models[model_name], fit_time = cur_refitter(params_file_dict[model_name],
                 x_train, x_valid, y_train, y_valid, random_state)
             time_dict[model_name].append(fit_time)
 
         # compute metrics
         evaluate_models(models, x_test, y_test, maes, mses)
+        print(f"Iteration {cur_it + 1} / {iterations} for {dataset} done")
     # save to file
     save_res(folder, dataset + '_mae_refit.csv', maes)
     save_res(folder, dataset + '_mse_refit.csv', mses)
@@ -190,7 +205,8 @@ def main():
             'regr_100',
             'regr_200',
             'winequality',
-            'supercond'
+            'supercond',
+            'stairs'
         ]
         folder = 'tuning'
         for cur_dataset in refit_datasets:

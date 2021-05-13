@@ -32,10 +32,12 @@ void GBDecisionTree::initStaticMembers(const float learnRate,
 
 
 GBDecisionTree::GBDecisionTree(const size_t treesInEnsemble,
-	const Lab_t regularizationParam): 
+	const Lab_t regularizationParam,
+	const bool spoilScores): 
 	randWeight(1.0f),
 	weightDelta(2.0f / float(treesInEnsemble)),
-	regParam(regularizationParam) {
+	regParam(regularizationParam),
+	spoilScores(spoilScores) {
 		// init memory for the buffers
 		features = features = new size_t[treeDepth];
 		thresholds = new FVal_t[innerNodes];
@@ -109,7 +111,8 @@ void GBDecisionTree::growTree(const pytensor2& xTrain,
 			// this will make the chosen tree split to be
 			// not as optimal as it could be
 			// this diminishes overfitiing of the ensemble
-			curScore = getSpoiledScore(curScore);
+			if (spoilScores)
+				curScore = getSpoiledScore(curScore);
 			if (!firstSplitFound || curScore < bestScore) {
 				bestScore = curScore;
 				cpyThresholds(); // bestThreshold = curThreshold

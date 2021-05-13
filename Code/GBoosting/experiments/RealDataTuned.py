@@ -26,7 +26,8 @@ def split_options(model_options):
                 'early_stopping_delta', 'batch_part',
                 'random_state', 'random_batches',
                 'regularization_param', 'random_hist_thresholds',
-                'remove_regularization_later']
+                'remove_regularization_later',
+                'spoil_split_scores']
     ctor_options = {}
     fit_options = {}
     for key in model_options.keys():
@@ -271,6 +272,7 @@ def tune_boston(folder, random_state=12):
         'random_batches': [False],
         'random_hist_thresholds': [True],
         'remove_regularization_later': [True],
+        'spoil_split_scores': [False],
         'thread_cnt': [1]
     }
 
@@ -319,6 +321,7 @@ def tune_diabetes(folder, random_state=12):
         'random_batches': [True],
         'random_hist_thresholds': [True],
         'remove_regularization_later': [True],
+        'spoil_split_scores': [False],
         'thread_cnt': [1]
     }
 
@@ -367,6 +370,7 @@ def tune_regression_100(folder, random_state=12):
         'random_batches': [True],
         'random_hist_thresholds': [True],
         'remove_regularization_later': [True],
+        'spoil_split_scores': [False],
         'thread_cnt': [1]
     }
 
@@ -417,6 +421,7 @@ def tune_regression_200(folder, random_state=12):
         'random_batches': [True],
         'random_hist_thresholds': [True],
         'remove_regularization_later': [True],
+        'spoil_split_scores': [False],
         'thread_cnt': [1]
     }
     tuning_params = {
@@ -482,6 +487,7 @@ def tune_winequality(folder, random_state=12):
         'random_batches': [True],
         'random_hist_thresholds': [True],
         'remove_regularization_later': [True],
+        'spoil_split_scores': [False],
         'thread_cnt': [1]
     }
 
@@ -544,6 +550,7 @@ def tune_supercond(folder, random_state=12):
         'random_batches': [True],
         'random_hist_thresholds': [True],
         'remove_regularization_later': [False, True],
+        'spoil_split_scores': [False],
         'thread_cnt': [1]
     }
 
@@ -559,6 +566,69 @@ def tune_supercond(folder, random_state=12):
     tune_dataset(**tuning_params)
 
 
+def tune_stairs(folder, random_state=12):
+    # a bit more complex function to get the data
+    def dataset_loader():
+        data_dir = 'datasets'
+        data_csv = 'stairs.csv'
+        all_data = pd.read_csv(os.path.join(data_dir, data_csv))
+        # split into target and features
+        label_name = 'y'
+        labels_df = all_data[label_name]  # target df
+        features_df = all_data.drop(label_name, axis=1)  # featrues df
+        # convert to numpy arrays
+        y_all = labels_df.to_numpy()
+        x_all = features_df.to_numpy()
+        return x_all, y_all
+
+    # CatBoost
+    CatBoost_grid = {
+        "iterations": [300, 500],
+        "learning_rate": [0.1, 0.2],
+        "depth": [2, 4, 7, 8],
+        "random_state": [random_state],
+        "feature_border_type": ["GreedyLogSum"]
+    }
+
+    # Sklearn
+    Sklearn_grid = {
+        'learning_rate': [0.1, 0.2],
+        'max_iter': [300, 500],
+        'max_depth': [2, 4, 7, 8]
+    }
+
+    # JITtrees
+    JITtrees_grid = {
+        'min_bins': [256],
+        'max_bins': [256],
+        'no_early_stopping': [False],
+        'patience': [4],
+        'tree_count': [1000, 2000],
+        'tree_depth': [4, 5, 8],
+        'feature_fold_size': [1.0],
+        'learning_rate': [0.1, 0.12],
+        'regularization_param': [0, 0.12, 0.13, 0.14, 0.145],
+        'es_delta': [1e-6],
+        'batch_part': [1.0],
+        'random_batches': [False],
+        'random_hist_thresholds': [True],
+        'remove_regularization_later': [True],
+        'spoil_split_scores': [False],
+        'thread_cnt': [1]
+    }
+
+    tuning_params = {
+        'cb_grid': CatBoost_grid, 
+        'sk_grid': Sklearn_grid,
+        'jt_grid': JITtrees_grid,
+        'dataset_loader': dataset_loader,
+        'folder': folder,
+        'dataset_name': 'stairs', 
+        'random_state': 12
+    }
+    tune_dataset(**tuning_params)
+
+
 def main():
     try:
         for cur_tuner in [
@@ -567,7 +637,8 @@ def main():
                           tune_regression_100,
                           tune_regression_200, 
                           tune_winequality,
-                          tune_supercond
+                          tune_supercond,
+                          tune_stairs
                         ]:
             cur_tuner('tuning', 12)
     except Exception as ex:

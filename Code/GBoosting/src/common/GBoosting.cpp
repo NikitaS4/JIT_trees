@@ -50,9 +50,10 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 	const Lab_t earlyStoppingDelta,
 	const float batchPart,
 	const unsigned int randomState,
-	const bool shuffledBatches,
+	const bool randomBatches,
 	const bool randomThresholds,
-	const bool removeRegularizationLater) {
+	const bool removeRegularizationLater,
+	const bool spoilScores) {
 	// Set random seed
 	std::srand(randomState);
 	// Prepare data	
@@ -143,7 +144,8 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 		featureSubset[i] = i;
 	
 	GBDecisionTree::initStaticMembers(learningRate, trainLen, treeDepth);
-	GBDecisionTree treeFitter(treeCount, regularizationParam);
+	GBDecisionTree treeFitter(treeCount, regularizationParam,
+		spoilScores);
 	bool stop = false;
 
 	initForRandomBatches(randomState);
@@ -161,7 +163,7 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 		}
 		
 		// take the next batch (updates subset)
-		if (shuffledBatches)
+		if (randomBatches)
 			// get the next fold
 			nextBatch(subset);
 		else
