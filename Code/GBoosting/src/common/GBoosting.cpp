@@ -143,9 +143,8 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 	for (size_t i = 0; i < featureSubsetSize; ++i)
 		featureSubset[i] = i;
 	
-	GBDecisionTree::initStaticMembers(learningRate, trainLen, treeDepth);
 	GBDecisionTree treeFitter(treeCount, regularizationParam,
-		spoilScores);
+		spoilScores, learningRate, trainLen, treeDepth);
 	bool stop = false;
 
 	initForRandomBatches(randomState);

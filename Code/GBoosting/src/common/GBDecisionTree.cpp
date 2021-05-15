@@ -6,40 +6,28 @@
 #include <cmath>
 
 
-// static initializations
-bool GBDecisionTree::depthAssigned = false;
-size_t GBDecisionTree::featureCount = 0;
-size_t GBDecisionTree::treeDepth = 0;
-size_t GBDecisionTree::innerNodes = 0;
-size_t GBDecisionTree::leafCnt = 0;
-float GBDecisionTree::learningRate = 1;
-std::vector<std::vector<size_t>> GBDecisionTree::subset;
 const float GBDecisionTree::scoreInRandNoiseMult = 0.3f;
-
-
-void GBDecisionTree::initStaticMembers(const float learnRate,
-	const size_t trainLen, const size_t depth) {
-	if (depth == 0)
-		throw std::runtime_error("Wrong tree depth");
-	treeDepth = depth;
-	innerNodes = (1 << treeDepth) - 1;
-	leafCnt = size_t(1) << treeDepth;
-	subset = std::vector<std::vector<size_t>>(innerNodes + leafCnt,
-		std::vector<size_t>());
-	depthAssigned = true;
-	learningRate = learnRate;
-}
 
 
 GBDecisionTree::GBDecisionTree(const size_t treesInEnsemble,
 	const Lab_t regularizationParam,
-	const bool spoilScores): 
+	const bool spoilScores,
+	const float learningRate,
+	const size_t trainLen, const size_t depth): 
 	randWeight(1.0f),
 	weightDelta(2.0f / float(treesInEnsemble)),
 	regParam(regularizationParam),
-	spoilScores(spoilScores) {
+	spoilScores(spoilScores),
+	treeDepth(depth), innerNodes((1 << treeDepth) - 1),
+	leafCnt(size_t(1) << treeDepth),
+	learningRate(learningRate),
+	subset(std::vector<std::vector<size_t>>(innerNodes + leafCnt,
+		std::vector<size_t>())) {
+		// checks
+		if (depth == 0)
+			throw std::runtime_error("Wrong tree depth");
 		// init memory for the buffers
-		features = features = new size_t[treeDepth];
+		features = new size_t[treeDepth];
 		thresholds = new FVal_t[innerNodes];
 		leaves = new Lab_t[leafCnt];
 		// allocate memory for the thresholds array
@@ -71,8 +59,6 @@ void GBDecisionTree::growTree(const pytensor2& xTrain,
 	const std::vector<size_t>& featureSubset,
 	std::vector<GBHist>& hists,
 	TreeHolder* treeHolder) {
-	if (!depthAssigned)
-		throw std::runtime_error("Tree depth was not assigned");
 	for (size_t i = 0; i < innerNodes; ++i)
 		thresholds[i] = 0;
 	for (size_t i = 0; i < leafCnt; ++i)
