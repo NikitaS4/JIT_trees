@@ -8,7 +8,7 @@
 
 class GBPredictor {
 public:
-    static GBPredictor* create(const Lab_t zeroPredictor,
+    GBPredictor(const Lab_t zeroPredictor,
         const TreeHolder& treeHolder,
         const pytensor2* xTrain,
         const pytensor2* xValid,
@@ -17,7 +17,7 @@ public:
         pytensorY* validRes,
         pytensorY* validPreds);
 
-    static GBPredictor* createReady(const Lab_t zeroPredictor,
+    GBPredictor(const Lab_t zeroPredictor,
         const TreeHolder& treeHolder,
         const size_t featureCnt);
 
@@ -42,19 +42,6 @@ private:
 
     void validateFeatureCount(const pytensor1& x) const;
     void validateFeatureCount(const pytensor2& x) const;
-
-    GBPredictor(const Lab_t zeroPredictor,
-        const TreeHolder& treeHolder,
-        const pytensor2* xTrain,
-        const pytensor2* xValid,
-        pytensorY* residuals,
-        pytensorY* preds,
-        pytensorY* validRes,
-        pytensorY* validPreds);
-
-    GBPredictor(const Lab_t zeroPredictor,
-        const TreeHolder& treeHolder,
-        const size_t featureCnt);
 };
 
 #endif // GBPREDICTOR_H_INCLUDED

@@ -6,6 +6,7 @@
 #include "GBHist.h"
 #include "TreeHolder.h"
 #include <vector>
+#include <memory>
 
 
 // the class is helper (no instances needed)
@@ -25,7 +26,7 @@ public:
 		const pytensorY& yTrain,
 		const std::vector<size_t>& featureSubset,
 		std::vector<GBHist>& hists,
-		TreeHolder* treeHolder);
+		std::shared_ptr<TreeHolder>& treeHolder);
 
 	void removeRegularization();
 

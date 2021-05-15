@@ -29,15 +29,6 @@ GradientBoosting::GradientBoosting(const size_t binCountMin,
 
 GradientBoosting::~GradientBoosting() {
 	// dtor
-	if (predictor) {
-		delete predictor;
-		predictor = nullptr;
-	}
-
-	if (treeHolder) {
-		delete treeHolder;
-		treeHolder = nullptr;
-	}
 }
 
 History GradientBoosting::fit(const pytensor2& xTrain,
@@ -85,7 +76,7 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 
 	// init tree holder
 	// call factory
-	treeHolder = TreeHolder::createHolder(treeDepth, featureCount,
+	treeHolder = std::make_shared<TreeHolder>(treeDepth, featureCount,
 		threadCnt);
 
 	// Histogram init (compute and remember thresholds)
@@ -122,8 +113,8 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 	validLoss = loss(validPreds, yValid);  // update loss
 	
 	// create predictor
-	predictor = GBPredictor::create(zeroPredictor, *treeHolder,
-		&xTrain, &xValid, &residuals, &preds, &validRes, &validPreds);
+	predictor = std::make_shared<GBPredictor>(GBPredictor(zeroPredictor, *treeHolder,
+		&xTrain, &xValid, &residuals, &preds, &validRes, &validPreds));
 	if (predictor == nullptr)
 		throw std::runtime_error("Can't fit: not enough memory");
 
@@ -343,17 +334,16 @@ GradientBoosting::GradientBoosting(const std::string& fname,
 	}
     zeroPredictor = (Lab_t)ParseHelper::parseFloat(nextSym + delimPositions[curDelimeterIdx++]);
 
-	treeHolder = TreeHolder::parse(nextSym, delimPositions, curDelimeterIdx,
-		featureCount, realTreeCount, treeDepth, threadCnt);
+	treeHolder = std::shared_ptr<TreeHolder>(TreeHolder::parse(nextSym, delimPositions, curDelimeterIdx,
+		featureCount, realTreeCount, treeDepth, threadCnt));
 	
 	free(contents);
 	// check result
 	if (treeHolder == nullptr)
 		throw std::runtime_error("Not enough memory to load model");
-	predictor = GBPredictor::createReady(zeroPredictor, *treeHolder,
+	predictor = std::make_shared<GBPredictor>(zeroPredictor, *treeHolder,
 		featureCount);
 	if (predictor == nullptr) {
-		delete treeHolder;
 		treeHolder = nullptr;
 		throw std::runtime_error("Not enough memory to load model");
 	}

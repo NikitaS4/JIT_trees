@@ -46,7 +46,7 @@ void GBDecisionTree::growTree(const pytensor2& xTrain,
 	const pytensorY& yTrain,
 	const std::vector<size_t>& featureSubset,
 	std::vector<GBHist>& hists,
-	TreeHolder* treeHolder) {
+	std::shared_ptr<TreeHolder>& treeHolder) {
 	for (size_t i = 0; i < innerNodes; ++i)
 		thresholds[i] = 0;
 	for (size_t i = 0; i < leafCnt; ++i)

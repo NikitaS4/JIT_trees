@@ -11,6 +11,7 @@
 #include <vector>
 #include <random>
 #include <string>
+#include <memory>
 
 
 class GradientBoosting {
@@ -97,8 +98,8 @@ protected:
 	pytensorY trainLosses;
 	pytensorY validLosses;
 	bool dontUseEarlyStopping; // switch off early stopping
-	TreeHolder* treeHolder = nullptr;
-	GBPredictor* predictor = nullptr;
+	std::shared_ptr<TreeHolder> treeHolder = nullptr;
+	std::shared_ptr<GBPredictor> predictor = nullptr;
 
 	// constants
 	static constexpr float whenRemoveRegularization = 0.8f; // the part of iterations with regularization	

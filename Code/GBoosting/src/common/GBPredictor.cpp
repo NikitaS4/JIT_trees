@@ -35,26 +35,6 @@ GBPredictor::GBPredictor(const Lab_t zeroPredictor, const TreeHolder& treeHolder
 }
 
 
-GBPredictor* GBPredictor::createReady(const Lab_t zeroPredictor,
-    const TreeHolder& treeHolder, const size_t featureCnt) {
-    return new GBPredictor(zeroPredictor, treeHolder,
-        featureCnt);
-}
-
-
-GBPredictor* GBPredictor::create(const Lab_t zeroPredictor,
-        const TreeHolder& treeHolder,
-        const pytensor2* xTrain,
-        const pytensor2* xValid,
-        pytensorY* residuals,
-        pytensorY* preds,
-        pytensorY* validRes,
-        pytensorY* validPreds) {
-    return new GBPredictor(zeroPredictor, treeHolder, xTrain, xValid,
-        residuals, preds, validRes, validPreds);
-}
-
-
 Lab_t GBPredictor::predict1d(const pytensor1& x) const {
     validateFeatureCount(x);
 	return zeroPredictor + treeHolder.predictAllTrees(x);

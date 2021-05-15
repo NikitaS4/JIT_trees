@@ -25,12 +25,6 @@ size_t TreeHolder::getTreeCount() const {
 }
 
 
-TreeHolder* TreeHolder::createHolder(const size_t treeDepth,
-    const size_t featureCnt, const size_t threadCnt) {
-        return new TreeHolder(treeDepth, featureCnt, threadCnt);
-}
-
-
 void TreeHolder::newTree(const std::vector<size_t>& features,
     const std::vector<FVal_t>& thresholds,
     const std::vector<Lab_t>& leaves) {

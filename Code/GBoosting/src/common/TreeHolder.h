@@ -32,9 +32,6 @@ public:
     pytensorY predictTree2d(const pytensor2& xPred, const size_t treeNum) const;
     std::string serialize(const char delimeter, const Lab_t zeroPredictor) const;
 
-    // create needed holder
-    static TreeHolder* createHolder(const size_t treeDepth,
-        const size_t featureCnt, const size_t threadCnt);
     // parse holder from file
     static TreeHolder* parse(const char* repr,
         const std::vector<size_t> delimPos,
