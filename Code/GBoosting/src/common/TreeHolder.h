@@ -14,8 +14,9 @@ public:
         const size_t threadCnt);
     virtual ~TreeHolder();
 
-    void newTree(const size_t* features, const FVal_t* thresholds,
-        const Lab_t* leaves);
+    void newTree(const std::vector<size_t>& features,
+        const std::vector<FVal_t>& thresholds,
+        const std::vector<Lab_t>& leaves);
     void popTree();
     size_t getTreeCount() const;
 
@@ -49,9 +50,9 @@ private:
     const size_t threadCnt;
     size_t treeCnt;
 
-    std::vector<size_t*> features;
-    std::vector<FVal_t*> thresholds;
-    std::vector<Lab_t*> leaves;
+    std::vector<std::vector<size_t>> features;
+    std::vector<std::vector<FVal_t>> thresholds;
+    std::vector<std::vector<Lab_t>> leaves;
 
     // methods
     inline void validateFeatures();

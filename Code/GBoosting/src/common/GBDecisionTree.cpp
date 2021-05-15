@@ -27,9 +27,9 @@ GBDecisionTree::GBDecisionTree(const size_t treesInEnsemble,
 		if (depth == 0)
 			throw std::runtime_error("Wrong tree depth");
 		// init memory for the buffers
-		features = new size_t[treeDepth];
-		thresholds = new FVal_t[innerNodes];
-		leaves = new Lab_t[leafCnt];
+		features = std::vector<size_t>(treeDepth, 0);
+		thresholds = std::vector<FVal_t>(innerNodes, 0);
+		leaves = std::vector<Lab_t>(leafCnt, 0);
 		// allocate memory for the thresholds array
 		curThreshold = std::vector<FVal_t>(leafCnt, 0);
 		bestThreshold = std::vector<FVal_t>(leafCnt, 0);
@@ -38,18 +38,6 @@ GBDecisionTree::GBDecisionTree(const size_t treesInEnsemble,
 
 GBDecisionTree::~GBDecisionTree() {
 	// free memory
-	if (features) {
-		delete[] features;
-		features = nullptr;
-	}
-	if (thresholds) {
-		delete[] thresholds;
-		thresholds = nullptr;
-	}
-	if (leaves) {
-		delete[] leaves;
-		leaves = nullptr;
-	}
 }
 
 

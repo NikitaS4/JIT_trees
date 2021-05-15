@@ -18,10 +18,6 @@ public:
 		const size_t trainLen, const size_t depth);
 
 	~GBDecisionTree();
-
-	static void initStaticMembers(const float learnRate, 
-		const size_t trainLen,
-		const size_t depth);
 	
 	// growTree == FIT
 	void growTree(const pytensor2& xTrain,
@@ -44,9 +40,9 @@ private:
 	Lab_t regParam; // regularization parameter
 	std::vector<FVal_t> curThreshold;
 	std::vector<FVal_t> bestThreshold;
-	size_t* features = nullptr;
-	FVal_t* thresholds = nullptr;
-	Lab_t* leaves = nullptr;
+	std::vector<size_t> features;
+	std::vector<FVal_t> thresholds;
+	std::vector<Lab_t> leaves;
 	bool spoilScores;
 	size_t featureCount;
 	size_t treeDepth;

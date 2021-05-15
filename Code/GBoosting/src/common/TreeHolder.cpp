@@ -17,15 +17,6 @@ TreeHolder::TreeHolder(const size_t treeDepth,
 
 TreeHolder::~TreeHolder() {
     // dtor
-    for (size_t i = 0; i < treeCnt; ++i) {
-        delete [] features[i];
-        delete [] thresholds[i];
-        delete [] leaves[i];
-
-        features[i] = nullptr;
-        thresholds[i] = nullptr;
-        leaves[i] = nullptr;
-    }
 }
 
 
@@ -40,17 +31,14 @@ TreeHolder* TreeHolder::createHolder(const size_t treeDepth,
 }
 
 
-void TreeHolder::newTree(const size_t* features, const FVal_t* thresholds,
-    const Lab_t* leaves) {
-    static const size_t featuresSize = treeDepth * sizeof(*features);
-    static const size_t thresholdSize = innerNodes * sizeof(*thresholds);
-    static const size_t leavesSize = leafCnt * sizeof(*leaves);
+void TreeHolder::newTree(const std::vector<size_t>& features,
+    const std::vector<FVal_t>& thresholds,
+    const std::vector<Lab_t>& leaves) {
     ++treeCnt;
     // copy arrays
-    this->features.push_back((size_t*)(std::memcpy(new size_t[treeDepth], features, featuresSize)));
-    this->thresholds.push_back((FVal_t*)(std::memcpy(new FVal_t[innerNodes], thresholds, thresholdSize)));
-    this->leaves.push_back((Lab_t*)(std::memcpy(new Lab_t[leafCnt], leaves, leavesSize)));
-
+    this->features.push_back(features);
+    this->thresholds.push_back(thresholds);
+    this->leaves.push_back(leaves);
     // this will fix errors
     // TODO: find out the reason for the wrong values
     validateFeatures();
@@ -60,16 +48,6 @@ void TreeHolder::newTree(const size_t* features, const FVal_t* thresholds,
 void TreeHolder::popTree() {
     // decrease tree count
     --treeCnt;
-
-    // free memory
-    delete [] features[treeCnt];
-    delete [] thresholds[treeCnt];
-    delete [] leaves[treeCnt];
-
-    // assign nulls to pointers
-    features[treeCnt] = nullptr;
-    thresholds[treeCnt] = nullptr;
-    leaves[treeCnt] = nullptr;
 
     // pop vectors
     features.pop_back();
@@ -81,9 +59,9 @@ void TreeHolder::popTree() {
 Lab_t TreeHolder::predictTree(const pytensor1& sample, 
     const size_t treeNum) const {
     validateTreeNum(treeNum);
-    // get pointers for faster access
-    const size_t* curFeatures = features[treeNum];
-    const FVal_t* curThresholds = thresholds[treeNum];
+    // get refs for faster access
+    const std::vector<size_t>& curFeatures = features[treeNum];
+    const std::vector<FVal_t>& curThresholds = thresholds[treeNum];
 
     // TODO: use getCallback(...)
     size_t curNode = 0;
@@ -228,9 +206,9 @@ TreeHolder* TreeHolder::parse(const char* repr,
 
     // allocate memory for the trees
     forest->treeCnt = treeCnt;
-    forest->features = std::vector<size_t*>(treeCnt, nullptr);
-    forest->thresholds = std::vector<FVal_t*>(treeCnt, nullptr);
-    forest->leaves = std::vector<Lab_t*>(treeCnt, nullptr);
+    forest->features = std::vector<std::vector<size_t>>(treeCnt, std::vector<size_t>());
+    forest->thresholds = std::vector<std::vector<FVal_t>>(treeCnt, std::vector<FVal_t>());
+    forest->leaves = std::vector<std::vector<Lab_t>>(treeCnt, std::vector<Lab_t>());
     size_t innerNodes = forest->innerNodes;
     size_t leafCnt = forest->leafCnt;
 
@@ -239,26 +217,10 @@ TreeHolder* TreeHolder::parse(const char* repr,
     for (size_t i = 0; i < treeCnt; ++i) {
         // <Tree> ::= <Features><d><Thresholds><d><Leaves>
         // parse features
-        size_t* fArr = new size_t[treeDepth];
-        FVal_t* tArr = new FVal_t[innerNodes];
-        Lab_t* lArr = new Lab_t[leafCnt];
-        if (fArr == nullptr || tArr == nullptr || lArr == nullptr) {
-            // free memory and return nullptr
-            for (size_t j = 0; j < i; ++j) {
-                delete [] forest->features[j];
-                delete [] forest->thresholds[j];
-                delete [] forest->leaves[j];
-            }
-            delete forest;
-            // free not nulls among f,t,l-Arrs
-            if (fArr != nullptr)
-                delete [] fArr;
-            if (tArr != nullptr)
-                delete [] tArr;
-            if (lArr != nullptr)
-                delete [] lArr;
-            return nullptr;
-        }
+        // TODO: allocate once, before the cycle
+        std::vector<size_t> fArr(treeDepth, 0);
+        std::vector<FVal_t> tArr(innerNodes, 0);
+        std::vector<Lab_t> lArr(leafCnt, 0);
         for (size_t j = 0; j < treeDepth; ++j) {
             fArr[j] = ParseHelper::parseSizeT(repr + delimPos[curd++]);
         }
@@ -302,9 +264,9 @@ void TreeHolder::validateTreeNum(const size_t treeNum) const {
 
 pytensorY TreeHolder::predictTree2dSingleThread(const pytensor2& xPred,
     const size_t treeNum) const {
-    // get pointers for faster access
-    const size_t* curFeatures = features[treeNum];
-    const FVal_t* curThresholds = thresholds[treeNum];
+    // get refs for faster access
+    const std::vector<size_t>& curFeatures = features[treeNum];
+    const std::vector<FVal_t>& curThresholds = thresholds[treeNum];
     const size_t sampleCnt = xPred.shape(0);
 
     // tensor to store and return predictions
@@ -476,10 +438,10 @@ std::function<void()> TreeHolder::getCallback(const size_t bias,
     const size_t batchSize, const size_t treeNum,
     const pytensor2& xPred, size_t& semThreadsFinish,
     pytensorY& answers) const {
-    // get pointers for faster access
-    const size_t* curFeatures = features[treeNum];
-    const FVal_t* curThresholds = thresholds[treeNum];
-    const Lab_t* curLeaves = leaves[treeNum];
+    // get refs for faster access
+    const std::vector<size_t>& curFeatures = features[treeNum];
+    const std::vector<FVal_t>& curThresholds = thresholds[treeNum];
+    const std::vector<Lab_t>& curLeaves = leaves[treeNum];
     // pass by values
     const size_t treeDepth = this->treeDepth;
     const size_t innerNodes = this->innerNodes;
@@ -518,9 +480,9 @@ std::function<void()> TreeHolder::getCallbackAll(const size_t bias,
     // pass by values
     const size_t treeDepth = this->treeDepth;
     const size_t innerNodes = this->innerNodes;
-    const std::vector<size_t*>& features = this->features;
-    const std::vector<FVal_t*>& thresholds = this->thresholds;
-    const std::vector<Lab_t*>& leaves = this->leaves;
+    const std::vector<std::vector<size_t>>& features = this->features;
+    const std::vector<std::vector<FVal_t>>& thresholds = this->thresholds;
+    const std::vector<std::vector<Lab_t>>& leaves = this->leaves;
     const size_t treeCnt = this->treeCnt;
     // don't pass 'this' by reference, don't pass 'this' at all
     // this is needed to avoid data races
@@ -532,10 +494,10 @@ std::function<void()> TreeHolder::getCallbackAll(const size_t bias,
         size_t curNode = 0; // current node in the decision tree
         for (size_t tr = 0; tr < treeCnt; ++tr) {
             // predict for all trees
-            // get pointers for faster access
-            const size_t* curFeatures = features[tr];
-            const FVal_t* curThresholds = thresholds[tr];
-            const Lab_t* curLeaves = leaves[tr];
+            // get refs for faster access
+            const std::vector<size_t>& curFeatures = features[tr];
+            const std::vector<FVal_t>& curThresholds = thresholds[tr];
+            const std::vector<Lab_t>& curLeaves = leaves[tr];
             // predict for all batch members
             for (size_t j = bias; j < upperLimit; ++j) {
                 // decision tree traverse
