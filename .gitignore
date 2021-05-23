@@ -30,9 +30,43 @@
 *.exe
 *.out
 *.app
+JITtrees
 
 # Local project files
 .vs
 Debug
+Release
+input
+images
 *.sln
 *.vcxproj*
+*.vscode
+
+# Build files
+build
+dist
+*.py[cod]
+*.egg-info/
+
+# Python
+__pycache__
+.ipynb_checkpoints/
+
+# OS X
+.DS_Store
+
+# CMake files
+cmake/
+
+# CatBoost metafiles
+catboost_info/
+
+# Extra datasets
+datasets/
+
+# Tuning results
+tuning/
+
+# Checkpoints
+checkpoints/
+
