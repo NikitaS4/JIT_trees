@@ -1,4 +1,4 @@
-# JIT_trees
+# regbm
 
 Gradient boosting (for regression task) implementation on c++ integrated with Python via [pybind11](https://github.com/pybind/pybind11) and [xtensor](https://github.com/xtensor-stack/xtensor-python).
 
