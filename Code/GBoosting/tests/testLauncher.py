@@ -2,7 +2,7 @@
 import argparse
 import os, sys
 sys.path.append(os.path.abspath('..'))
-import JITtrees
+import regbm
 import time
 import numpy as np
 from matplotlib import pyplot as plt
@@ -36,7 +36,7 @@ class TestHelper:
 
         # fit model
         def fit_wrapper():
-            model = JITtrees.Boosting(model_options['min_bins'], 
+            model = regbm.Boosting(model_options['min_bins'], 
                 model_options['max_bins'], model_options['patience'],
                 False, THREAD_COUNT)
             start_time = time.time() # get start time to count the time of execution
@@ -71,7 +71,7 @@ class TestHelper:
         if out_options['verbose'] >= 2:
             print("Evaluation:")
             model_mae = mae(y_valid, preds)
-            print(f"JITtrees model MAE: {model_mae}")
+            print(f"regbm model MAE: {model_mae}")
 
         if out_options['sklearn'] and out_options['verbose'] >= 2:
             sk_preds = sk_model.predict(x_valid)    
@@ -301,7 +301,7 @@ def entry_point():
     parser = argparse.ArgumentParser(description="testLauncher", add_help=True)
 
     # Briefly how to launch with CLI:
-    # Check all tests in JIT mode (check if model creates correctly): 
+    # Check all tests (check if model creates correctly): 
     # python testLauncher.py --all
     # Check subset of tests (not all but representative, checks faster):
     # python testLauncher.py --all-fast

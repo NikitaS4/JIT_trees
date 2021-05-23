@@ -15,7 +15,7 @@ import json
 
 # as the module is created in the upper directory
 sys.path.append('..')  
-import JITtrees
+import regbm
 
 
 def save_res(folder, res_name, df_res):
@@ -26,7 +26,7 @@ def save_res(folder, res_name, df_res):
 
 
 def split_options(model_options):
-    # splits model options to the ctor and fit options (for JITtrees model)
+    # splits model options to the ctor and fit options (for regbm model)
     ctor_keys = ['min_bins', 'max_bins', 'patience',
                  'no_early_stopping', 'thread_cnt']
     fit_keys = ['tree_count', 'tree_depth',
@@ -140,7 +140,7 @@ def refit_jt(params_file, x_train, x_valid, y_train, y_valid,
     params_jt = json_load_utf8(params_file)
     # fit model
     ctor_options, fit_options = split_options(params_jt)
-    model = JITtrees.Boosting(**ctor_options)
+    model = regbm.Boosting(**ctor_options)
     start_time = time.time()
     model.fit(x_train=x_train, y_train=y_train, x_valid=x_valid,
         y_valid=y_valid, **fit_options)
@@ -169,9 +169,9 @@ def refit_models(params_file_dict, dataset, folder, test_size=0.2,
     mses = {}  # MSE for all models
     refitter_iter = [('CatBoost', refit_cb),
             ('Sklearn', refit_sk),
-            ('JITtrees', refit_jt)]
+            ('regbm', refit_jt)]
     if fit_baseline:
-            refitter_iter.append(('JITtreesBase', refit_jt))
+            refitter_iter.append(('regbmBase', refit_jt))
     # init lists in the dicts
     for model_name, cur_refitter in refitter_iter:
         maes[model_name] = []
@@ -223,10 +223,10 @@ def main():
             params_file_dict = {
                 'CatBoost': pars_preffix + '_best_pars_catboost.json',
                 'Sklearn': pars_preffix + '_best_pars_sklearn.json',
-                'JITtrees': pars_preffix + '_best_params.json'
+                'regbm': pars_preffix + '_best_params.json'
             }
             if FIT_BASELINE:
-                params_file_dict['JITtreesBase'] = pars_preffix + '_best_params_base.json'
+                params_file_dict['regbmBase'] = pars_preffix + '_best_params_base.json'
             refit_models(params_file_dict, cur_dataset, folder,
                 test_size=0.2, val_size=0.2, random_state=12,
                 fit_baseline=FIT_BASELINE, iterations=ITERS)

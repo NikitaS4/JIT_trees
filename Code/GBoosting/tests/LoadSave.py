@@ -6,7 +6,7 @@ import os, sys
 
 # as the module is created in the upper directory
 sys.path.append('..')  
-import JITtrees
+import regbm
 
 
 def main():
@@ -21,7 +21,7 @@ def main():
     x_tr, x_test, y_tr, y_test = train_test_split(x_all, y_all,
         test_size=0.2, random_state=rand_state)
     # fit
-    model = JITtrees.Boosting(min_bins=256, max_bins=256,
+    model = regbm.Boosting(min_bins=256, max_bins=256,
         no_early_stopping=True, thread_cnt=1)
     model.fit(x_train=x_tr, y_train=y_tr, x_valid=x_test,
         y_valid=y_test, tree_count=2, tree_depth=2,
@@ -31,7 +31,7 @@ def main():
     mae = mae_score(y_test, preds)
     print(f"MAE: {mae}")
     model.save_model(cpt_file)
-    loaded = JITtrees.Boosting(filename=cpt_file,
+    loaded = regbm.Boosting(filename=cpt_file,
         thread_cnt=1)
     loaded.save_model(cpt_file2)
     preds = loaded.predict(x_test)

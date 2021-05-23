@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.4...3.18)
-project(JITtrees)
+project(regbm)
 
 
 # add definitions for xtensor
@@ -35,8 +35,8 @@ include_directories(D:/anaconda3/Library/include)
 # get all *.cpp files recursively
 file(GLOB_RECURSE SRC_FILES ${PROJECT_SOURCE_DIR}/*.cpp ${PROJECT_SOURCE_DIR}/*.h)
 # like add_executable but for pybind11 module
-pybind11_add_module(JITtrees ${SRC_FILES})
+pybind11_add_module(regbm ${SRC_FILES})
 
 # EXAMPLE_VERSION_INFO is defined by setup.py and passed into the C++ code as a
 # define (VERSION_INFO) here.
-target_compile_definitions(JITtrees PRIVATE VERSION_INFO=${EXAMPLE_VERSION_INFO})
+target_compile_definitions(regbm PRIVATE VERSION_INFO=${EXAMPLE_VERSION_INFO})

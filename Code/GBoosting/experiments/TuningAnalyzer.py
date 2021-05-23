@@ -10,7 +10,7 @@ def make_boxplot(jt_errs, jt_no_improv, sk_errs, cb_errs,
     dataset_name, folder):
     target_file = os.path.join(folder, dataset_name) + '_boxplot.png'
     all_errs = [jt_errs, jt_no_improv, sk_errs, cb_errs] if not(jt_no_improv is None) else [jt_errs, sk_errs, cb_errs]
-    xlabels = ['JIT improved', 'JIT base', 'Sklearn', 'CatBoost'] if not(jt_no_improv is None) else ['JIT trees', 'Sklearn', 'CatBoost']
+    xlabels = ['regbm improved', 'regbm base', 'Sklearn', 'CatBoost'] if not(jt_no_improv is None) else ['regbm', 'Sklearn', 'CatBoost']
     fig, ax = plt.subplots(1, 1)
     plt.boxplot(all_errs)
     plt.title(f'MAE for {dataset_name}')
@@ -28,15 +28,15 @@ def inspect_experiment(csv_file, folder, dataset_name, add_baseline):
     # compute absolute errors
     cb_errs = all_maes[:, cb_col]  # CatBoost
     sk_errs = all_maes[:, sk_col]  # Scikit-learn
-    jt_errs = all_maes[:, jt_col]  # JIT_trees (with improvements)
-    jt_no_improv = all_maes[:, jt_base] if add_baseline else None # JIT trees
+    jt_errs = all_maes[:, jt_col]  # regbm (with improvements)
+    jt_no_improv = all_maes[:, jt_base] if add_baseline else None # regbm
     # create boxplots
     make_boxplot(jt_errs, jt_no_improv, sk_errs, cb_errs,
         dataset_name, folder)
     print(f"Dataset {dataset_name}")
     for m_name, errs in (('CatBoost', cb_errs),
-        ('Sklearn', sk_errs), ('JITtrees', jt_errs),
-        ('JITtrees (no improves)', jt_no_improv)):
+        ('Sklearn', sk_errs), ('regbm', jt_errs),
+        ('regbm (no improves)', jt_no_improv)):
         if errs is None:
             continue
         print(f"{m_name} : {np.mean(errs)} +- {np.std(errs)}")

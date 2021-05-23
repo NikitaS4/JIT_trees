@@ -105,14 +105,14 @@ class CMakeBuild(build_ext):
 
 
 setup(
-    name='JITtrees',
+    name='regbm',
     version=__version__,
     author='Schastlivtsev Nikita',
     author_email='schastlivtsevn@gmail.com',
     #url='https://github.com/NikitaS4/JIT_trees',
     description='Gradient boosting implementation',
     long_description='',
-    ext_modules=[CMakeExtension('JITtrees')],
+    ext_modules=[CMakeExtension('regbm')],
     install_requires=['pybind11>=2.0.1', 'numpy'],
     cmdclass={'build_ext': CMakeBuild},
     zip_safe=False,

@@ -14,11 +14,11 @@ import json
 
 # as the module is created in the upper directory
 sys.path.append('..')  
-import JITtrees
+import regbm
 
 
 def split_options(model_options):
-    # splits model options to the ctor and fit options (for JITtrees model)
+    # splits model options to the ctor and fit options (for regbm model)
     ctor_keys = ['min_bins', 'max_bins', 'patience',
                  'no_early_stopping', 'thread_cnt']
     fit_keys = ['tree_count', 'tree_depth',
@@ -43,7 +43,7 @@ def get_fit_steps(options_grid):
     return int(np.prod(np.array([len(param_list) for param_list in options_grid.values()])))
 
 
-def tune_JIT_trees(x_tr_val, y_tr_val, options_grid, random_state=12):
+def tune_regbm(x_tr_val, y_tr_val, options_grid, random_state=12):
     keys_list = list(options_grid.keys())
     options_count = len(keys_list)
     cur_idx_each_option = [0] * options_count
@@ -71,7 +71,7 @@ def tune_JIT_trees(x_tr_val, y_tr_val, options_grid, random_state=12):
         
         # fit
         ctor_options, fit_options = split_options(model_options)
-        model = JITtrees.Boosting(**ctor_options)
+        model = regbm.Boosting(**ctor_options)
         start_time = time.time()
         history = model.fit(x_train=x_train, y_train=y_train, 
             x_valid=x_valid, y_valid=y_valid, **fit_options)
@@ -142,17 +142,17 @@ def tune_Sklearn(x_tr_val, y_tr_val, options_grid):
     return model.best_params_, model
 
 
-def JITtrees_tuned_mae(x_tr_val, y_tr_val, x_test, y_test,
+def regbm_tuned_mae(x_tr_val, y_tr_val, x_test, y_test,
     best_params, preds_dict):
     ctor_options, fit_options = split_options(best_params)
-    model = JITtrees.Boosting(**ctor_options)
+    model = regbm.Boosting(**ctor_options)
     history = model.fit(x_train=x_tr_val, y_train=y_tr_val,
         x_valid=x_test, y_valid=y_test, **fit_options)
     preds = model.predict(x_test)
     if (preds == np.inf).any():  # filter outliers
         return None, None
     mae = mae_score(y_test, preds)
-    preds_dict["JIT_trees"] = preds
+    preds_dict["regbm"] = preds
     return mae, np.std(np.abs(preds - y_test))
 
 
@@ -203,7 +203,7 @@ def tune_dataset(cb_grid, sk_grid, jt_grid,
         test_size=0.2, random_state=random_state)
     
     # dict to form the data frame later
-    df_res = {"Models": ["CatBoost", "Sklearn", "JITtrees"],
+    df_res = {"Models": ["CatBoost", "Sklearn", "regbm"],
               "MAE": [],
               "std": []}
 
@@ -225,10 +225,10 @@ def tune_dataset(cb_grid, sk_grid, jt_grid,
     df_res["MAE"].append(sk_mae)
     df_res["std"].append(sk_sd)
 
-    # JITtrees
-    print(f"Tune JITtrees model")
-    jt_prot, best_params = tune_JIT_trees(x_tr_val, y_tr_val, jt_grid, random_state)
-    jt_mae, jt_sd = JITtrees_tuned_mae(x_tr_val, y_tr_val, x_test,
+    # regbm
+    print(f"Tune regbm model")
+    jt_prot, best_params = tune_regbm(x_tr_val, y_tr_val, jt_grid, random_state)
+    jt_mae, jt_sd = regbm_tuned_mae(x_tr_val, y_tr_val, x_test,
         y_test, best_params, preds_dict)
     if jt_mae is not None:
         df_res["MAE"].append(jt_mae)
@@ -263,8 +263,8 @@ def tune_boston(folder, random_state=12):
         'max_depth': [2, 4, 6]
     }
 
-    # JITtrees
-    JITtrees_grid = {
+    # regbm
+    regbm_grid = {
         'min_bins': [8, 16, 32, 64],
         'max_bins': [256],
         'no_early_stopping': [False],
@@ -286,7 +286,7 @@ def tune_boston(folder, random_state=12):
     tuning_params = {
         'cb_grid': CatBoost_grid, 
         'sk_grid': Sklearn_grid,
-        'jt_grid': JITtrees_grid,
+        'jt_grid': regbm_grid,
         'dataset_loader': lambda: load_boston(return_X_y=True),
         'folder': folder,
         'dataset_name': 'boston', 
@@ -312,8 +312,8 @@ def tune_diabetes(folder, random_state=12):
         'max_depth': [2, 4, 6]
     }
 
-    # JITtrees
-    JITtrees_grid = {
+    # regbm
+    regbm_grid = {
         'min_bins': [8, 16, 32, 64, 128, 256],
         'max_bins': [256],
         'no_early_stopping': [False],
@@ -335,7 +335,7 @@ def tune_diabetes(folder, random_state=12):
     tuning_params = {
         'cb_grid': CatBoost_grid, 
         'sk_grid': Sklearn_grid,
-        'jt_grid': JITtrees_grid,
+        'jt_grid': regbm_grid,
         'dataset_loader': lambda: load_diabetes(return_X_y=True),
         'folder': folder,
         'dataset_name': 'diabetes', 
@@ -361,8 +361,8 @@ def tune_regression_100(folder, random_state=12):
         'max_depth': [2, 4, 6]
     }
 
-    # JITtrees
-    JITtrees_grid = {
+    # regbm
+    regbm_grid = {
         'min_bins': [8, 16, 32, 64],
         'max_bins': [256],
         'no_early_stopping': [False],
@@ -384,7 +384,7 @@ def tune_regression_100(folder, random_state=12):
     tuning_params = {
         'cb_grid': CatBoost_grid, 
         'sk_grid': Sklearn_grid,
-        'jt_grid': JITtrees_grid,
+        'jt_grid': regbm_grid,
         'dataset_loader': lambda: make_regression(n_samples=1000, n_features=100, 
             n_informative=80, n_targets=1, bias=10.0, noise=3.0, shuffle=True, 
             random_state=random_state),
@@ -412,8 +412,8 @@ def tune_regression_200(folder, random_state=12):
         'max_depth': [2, 4, 6]
     }
 
-    # JITtrees
-    JITtrees_grid = {
+    # regbm
+    regbm_grid = {
         'min_bins': [8, 16, 32, 64],
         'max_bins': [256],
         'no_early_stopping': [False],
@@ -434,7 +434,7 @@ def tune_regression_200(folder, random_state=12):
     tuning_params = {
         'cb_grid': CatBoost_grid, 
         'sk_grid': Sklearn_grid,
-        'jt_grid': JITtrees_grid,
+        'jt_grid': regbm_grid,
         'dataset_loader': lambda: make_regression(n_samples=1000, n_features=200, 
             n_informative=150, n_targets=1, bias=10.0, noise=3.0, shuffle=True, 
             random_state=random_state),
@@ -478,8 +478,8 @@ def tune_winequality(folder, random_state=12):
         'max_depth': [2, 4, 7, 8]
     }
 
-    # JITtrees
-    JITtrees_grid = {
+    # regbm
+    regbm_grid = {
         'min_bins': [8, 16, 32, 64],
         'max_bins': [256],
         'no_early_stopping': [False],
@@ -501,7 +501,7 @@ def tune_winequality(folder, random_state=12):
     tuning_params = {
         'cb_grid': CatBoost_grid, 
         'sk_grid': Sklearn_grid,
-        'jt_grid': JITtrees_grid,
+        'jt_grid': regbm_grid,
         'dataset_loader': dataset_loader,
         'folder': folder,
         'dataset_name': 'winequality', 
@@ -541,8 +541,8 @@ def tune_supercond(folder, random_state=12):
         'max_depth': [2, 4, 7, 8]
     }
 
-    # JITtrees
-    JITtrees_grid = {
+    # regbm
+    regbm_grid = {
         'min_bins': [128, 256],
         'max_bins': [256],
         'no_early_stopping': [False],
@@ -564,7 +564,7 @@ def tune_supercond(folder, random_state=12):
     tuning_params = {
         'cb_grid': CatBoost_grid, 
         'sk_grid': Sklearn_grid,
-        'jt_grid': JITtrees_grid,
+        'jt_grid': regbm_grid,
         'dataset_loader': dataset_loader,
         'folder': folder,
         'dataset_name': 'supercond', 
@@ -604,8 +604,8 @@ def tune_stairs(folder, random_state=12):
         'max_depth': [2, 4, 7, 8]
     }
 
-    # JITtrees
-    JITtrees_grid = {
+    # regbm
+    regbm_grid = {
         'min_bins': [256],
         'max_bins': [256],
         'no_early_stopping': [False],
@@ -627,7 +627,7 @@ def tune_stairs(folder, random_state=12):
     tuning_params = {
         'cb_grid': CatBoost_grid, 
         'sk_grid': Sklearn_grid,
-        'jt_grid': JITtrees_grid,
+        'jt_grid': regbm_grid,
         'dataset_loader': dataset_loader,
         'folder': folder,
         'dataset_name': 'stairs', 
@@ -653,8 +653,8 @@ def tune_regression_1(folder, random_state=12):
         'max_depth': [2, 4, 6]
     }
 
-    # JITtrees
-    JITtrees_grid = {
+    # regbm
+    regbm_grid = {
         'min_bins': [16, 64, 256],
         'max_bins': [256],
         'no_early_stopping': [False],
@@ -676,7 +676,7 @@ def tune_regression_1(folder, random_state=12):
     tuning_params = {
         'cb_grid': CatBoost_grid, 
         'sk_grid': Sklearn_grid,
-        'jt_grid': JITtrees_grid,
+        'jt_grid': regbm_grid,
         'dataset_loader': lambda: make_regression(n_samples=5000, n_features=1, 
             n_informative=1, n_targets=1, bias=0.0, noise=0.2, shuffle=True, 
             random_state=random_state),

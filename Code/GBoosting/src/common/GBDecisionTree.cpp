@@ -137,7 +137,7 @@ void GBDecisionTree::growTree(const pytensor2& xTrain,
 			leaves[leaf] = learningRate * curSum / (regParam + curCnt);  // mean leaf residual
 	}
 	validateTree();
-	// remember or compile tree (in case of JIT compilation enabled)
+	// remember tree
 	treeHolder->newTree(features, thresholds, leaves);
 
 	// update randWeight (for the next tree)

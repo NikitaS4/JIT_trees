@@ -15,7 +15,7 @@ namespace py = pybind11;
 namespace dp = defaultParams;
 
 
-PYBIND11_MODULE(JITtrees, m) {
+PYBIND11_MODULE(regbm, m) {
     xt::import_numpy();
     
     m.doc() = "Gradient boosting implementation";
