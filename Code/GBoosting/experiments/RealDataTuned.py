@@ -636,6 +636,57 @@ def tune_stairs(folder, random_state=12):
     tune_dataset(**tuning_params)
 
 
+def tune_regression_1(folder, random_state=12):
+    # CatBoost
+    CatBoost_grid = {
+        "iterations": [250, 500],
+        "learning_rate": [0.1, 0.2],
+        "depth": [2, 4, 6],
+        "random_state": [random_state],
+        "feature_border_type": ["GreedyLogSum"]
+    }
+
+    # Sklearn
+    Sklearn_grid = {
+        'learning_rate': [0.1, 0.2],
+        'max_iter': [250, 500],
+        'max_depth': [2, 4, 6]
+    }
+
+    # JITtrees
+    JITtrees_grid = {
+        'min_bins': [16, 64, 256],
+        'max_bins': [256],
+        'no_early_stopping': [False],
+        'patience': [4],
+        'tree_count': [500, 1000, 2000],
+        'tree_depth': [3, 4, 5, 8],
+        'feature_fold_size': [1.0],
+        'learning_rate': [0.08, 0.1, 0.12],
+        'regularization_param': [0.1, 0.12, 0.15],
+        'es_delta': [1e-5],
+        'batch_part': [1],
+        'random_batches': [False],
+        'random_hist_thresholds': [True],
+        'remove_regularization_later': [True],
+        'spoil_split_scores': [False, True],
+        'thread_cnt': [1]
+    }
+
+    tuning_params = {
+        'cb_grid': CatBoost_grid, 
+        'sk_grid': Sklearn_grid,
+        'jt_grid': JITtrees_grid,
+        'dataset_loader': lambda: make_regression(n_samples=5000, n_features=1, 
+            n_informative=1, n_targets=1, bias=0.0, noise=0.2, shuffle=True, 
+            random_state=random_state),
+        'folder': folder,
+        'dataset_name': 'regr_1', 
+        'random_state': 12
+    }
+    tune_dataset(**tuning_params)
+
+
 def main():
     try:
         for cur_tuner in [
@@ -645,7 +696,8 @@ def main():
                           tune_regression_200, 
                           tune_winequality,
                           tune_supercond,
-                          tune_stairs
+                          tune_stairs,
+                          tune_regression_1
                         ]:
             cur_tuner('tuning', 12)
     except Exception as ex:

@@ -59,6 +59,10 @@ def load_dataset(dataset, random_state):
         return make_regression(n_samples=1000, n_features=200, 
             n_informative=150, n_targets=1, bias=10.0, noise=3.0, shuffle=True, 
             random_state=random_state)
+    elif dataset == 'regr_1':
+        return make_regression(n_samples=5000, n_features=1, 
+            n_informative=1, n_targets=1, bias=0.0, noise=0.2, shuffle=True, 
+            random_state=random_state)
     elif dataset == 'winequality':
         data_dir = os.path.join('datasets', 'winequality')
         data_csv = 'winequality-white.csv'
@@ -210,7 +214,8 @@ def main():
             'regr_200',
             'winequality',
             'supercond',
-            'stairs'
+            'stairs',
+            'regr_1'
         ]
         folder = 'tuning'
         for cur_dataset in refit_datasets:
@@ -221,7 +226,7 @@ def main():
                 'JITtrees': pars_preffix + '_best_params.json'
             }
             if FIT_BASELINE:
-                params_file_dict['JITtreesBase'] = pars_preffix + '_best_pars_baseline.json'
+                params_file_dict['JITtreesBase'] = pars_preffix + '_best_params_base.json'
             refit_models(params_file_dict, cur_dataset, folder,
                 test_size=0.2, val_size=0.2, random_state=12,
                 fit_baseline=FIT_BASELINE, iterations=ITERS)
@@ -236,6 +241,8 @@ def main():
             del ex_info
     finally:
         print("Finish")
+        # Windows
+        #os.system("shutdown /s /t 1")
 
 
 if __name__ == "__main__":
