@@ -32,7 +32,7 @@ def split_options(model_options):
     fit_keys = ['tree_count', 'tree_depth',
                 'feature_fold_size', 'learning_rate',
                 'early_stopping_delta', 'batch_part',
-                'random_state', 'random_batches',
+                'random_state', 'batch_strategy',
                 'regularization_param', 'random_hist_thresholds',
                 'remove_regularization_later',
                 'spoil_split_scores']
@@ -241,8 +241,6 @@ def main():
             del ex_info
     finally:
         print("Finish")
-        # Windows
-        #os.system("shutdown /s /t 1")
 
 
 if __name__ == "__main__":

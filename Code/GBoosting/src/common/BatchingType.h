@@ -1,0 +1,10 @@
+#ifndef BATCHING_TYPE_H_INCLUDED
+#define BATCHING_TYPE_H_INCLUDED
+
+enum class Batching_e {
+    ONE_BY_ONE = 0,
+    RANDOM_SHUFFLE = 1,
+    HIGHEST_ERRORS = 2  
+};
+
+#endif // BATCHING_TYPE_H_INCLUDED

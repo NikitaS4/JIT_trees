@@ -11,7 +11,7 @@ namespace defaultParams {
     const Lab_t earlyStoppingDelta = 1e-7;
     const float batchPart = 1.0f;
     const unsigned int randomState = 12;
-    const bool randomBatches = false;
+    const int batchStrategy = 2; // use samples with the biggest errors
     const Lab_t regParam = 0; // no regularization
     const bool noEs = false; // use early stopping by default
     const float featureFoldSize = 1.0f; // use all features

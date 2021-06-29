@@ -15,7 +15,7 @@ class ModelOptionsHelper:
             "es_delta": 0,
             "batch_part": 1,
             "feature_fold_size": 1.0,
-            "random_batches": False,
+            "batch_strategy": 0,
             "random_hist_thresholds": False,
             "remove_regularization_later": False
         }
@@ -33,7 +33,7 @@ class ModelOptionsHelper:
             "es_delta": 0,
             "batch_part": 1,
             "feature_fold_size": 1.0,
-            "random_batches": False,
+            "batch_strategy": 0,
             "random_hist_thresholds": False,
             "remove_regularization_later": False
         }
@@ -49,9 +49,9 @@ class ModelOptionsHelper:
             "learning_rate": 0.2,
             "reg": 2,
             "es_delta": 1e-5,
-            "batch_part": 0.7,
+            "batch_part": 0.6,
             "feature_fold_size": 0.6,
-            "random_batches": True,
+            "batch_strategy": 2,
             "random_hist_thresholds": True,
             "remove_regularization_later": True
         }
@@ -69,7 +69,7 @@ class ModelOptionsHelper:
             "es_delta": 0,
             "batch_part": 1,
             "feature_fold_size": 1.0,
-            "random_batches": True,
+            "batch_strategy": 0,
             "random_hist_thresholds": True,
             "remove_regularization_later": False
         }

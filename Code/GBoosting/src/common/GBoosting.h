@@ -8,6 +8,7 @@
 #include "History.h"
 #include "TreeHolder.h"
 #include "GBPredictor.h"
+#include "BatchingType.h"
 #include <vector>
 #include <random>
 #include <string>
@@ -36,7 +37,7 @@ public:
 				const Lab_t earlyStoppingDelta,
 				const float batchPart,
 				const unsigned int randomState,
-				const bool randomBatches,
+				const int batchStrategy,
 				const bool randomThresholds,
 				const bool removeRegularizationLater,
 				const bool spoilScores);
@@ -66,9 +67,16 @@ protected:
 
 	static inline std::vector<size_t> getOrderedIndexes(const size_t length);
 
-	inline void nextBatch(std::vector<size_t>& allocatedSubset) const;
+	inline void nextBatch(const Batching_e batchStrategy,
+		std::vector<size_t>& allocatedSubset,
+		std::vector<size_t>& fromOneToN);
+
+	inline void nextBatchSimple(std::vector<size_t>& allocatedSubset) const;
 
 	inline void nextBatchRandom(std::vector<size_t>& allocatedSubset);
+
+	void nextBatchBiggestErrors(std::vector<size_t>& allocatedSubset,
+		std::vector<size_t>& fromOneToN);
 
 	inline void nextFeatureSubset(const size_t featureSubsetSize,
 		const size_t featureCount,

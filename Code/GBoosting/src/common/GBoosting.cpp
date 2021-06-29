@@ -41,7 +41,7 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 	const Lab_t earlyStoppingDelta,
 	const float batchPart,
 	const unsigned int randomState,
-	const bool randomBatches,
+	const int batchStrategy,
 	const bool randomThresholds,
 	const bool removeRegularizationLater,
 	const bool spoilScores) {
@@ -73,6 +73,10 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 		throw std::runtime_error("feature fold size was wrong (not in the (0; 1] interval)");
 	if (regularizationParam < 0)
 		throw std::runtime_error("regularization param was less zero (must be greater or equal)");
+	if (batchStrategy < int(Batching_e::ONE_BY_ONE) || batchStrategy > int(Batching_e::HIGHEST_ERRORS))
+		throw std::runtime_error("wrong batch_strategy");
+	// convert batchStrategy to enum
+	Batching_e batchStrategyEnummed = Batching_e(batchStrategy);
 
 	// init tree holder
 	// call factory
@@ -143,6 +147,7 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 	// calculate when remove regularization
 	const size_t regularizationKillIter = (size_t)round(float(treeCount) * whenRemoveRegularization);
 
+	std::vector<size_t> fromOneToN = getOrderedIndexes(trainLen); // needed to sample batches
 	for (size_t treeNum = 0; treeNum < treeCount && !stop; ++treeNum) {
 		if (removeRegularizationLater && regularizationKillIter == treeNum) {
 			// this is the epoch when regularization will be removed
@@ -153,12 +158,8 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 		}
 		
 		// take the next batch (updates subset)
-		if (randomBatches)
-			// get the next fold
-			nextBatch(subset);
-		else
-			// get random indexes
-			nextBatchRandom(subset);
+		nextBatch(batchStrategyEnummed, subset, fromOneToN);
+
 		// take the next feature subset (updates feature subset)
 		nextFeatureSubset(featureSubsetSize, featureCount,
 			featureSubset);
@@ -379,7 +380,26 @@ bool GradientBoosting::canStop(const size_t stepNum,
 }
 
 
-void GradientBoosting::nextBatch(std::vector<size_t>& allocatedSubset) const {
+void GradientBoosting::nextBatch(const Batching_e batchStrategy,
+		std::vector<size_t>& allocatedSubset,
+		std::vector<size_t>& fromOneToN) {
+	switch (batchStrategy) {
+		case Batching_e::ONE_BY_ONE:
+			nextBatchSimple(allocatedSubset);
+			break;
+		case Batching_e::RANDOM_SHUFFLE:
+			nextBatchRandom(allocatedSubset);
+			break;
+		case Batching_e::HIGHEST_ERRORS:
+			nextBatchBiggestErrors(allocatedSubset, fromOneToN);
+			break;
+		default:
+			throw std::runtime_error("Wrong batching strategy");
+			break;
+	}
+}
+
+void GradientBoosting::nextBatchSimple(std::vector<size_t>& allocatedSubset) const {
 	// take the next fold
 	for (auto & curIdx: allocatedSubset) {
 		curIdx = (curIdx + batchSize) % trainLen;
@@ -403,6 +423,26 @@ void GradientBoosting::nextBatchRandom(std::vector<size_t>& allocatedSubset) {
 		chosenIdx = randomFromInterval(0, randomFoldLength);
 		// get chosenIdx from the current fold from the shuffledIndexes
 		allocatedSubset[fold] = shuffledIndexes[fold * randomFoldLength + chosenIdx];
+	}
+}
+
+
+void GradientBoosting::nextBatchBiggestErrors(std::vector<size_t>& allocatedSubset,
+	std::vector<size_t>& fromOneToN) {
+	// sort samples by errors and get top N for the batch
+	// prepare fromOneToN
+	for (size_t i = 0; i < fromOneToN.size(); ++i) {
+		fromOneToN[i] = i;
+	}
+	auto compareLess = [&](const int a, const int b)->bool {
+		// std::sort require less comparator
+		// but we want to sort in descent order to get top N
+		return trainLosses(a) > trainLosses(b);
+	};
+	std::sort(fromOneToN.begin(), fromOneToN.end(), compareLess);
+	// get top elements
+	for (size_t i = 0; i < allocatedSubset.size(); ++i) {
+		allocatedSubset[i] = fromOneToN[i];
 	}
 }
 

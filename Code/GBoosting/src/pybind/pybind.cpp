@@ -51,7 +51,7 @@ PYBIND11_MODULE(regbm, m) {
             py::arg("early_stopping_delta")=dp::earlyStoppingDelta,
             py::arg("batch_part")=dp::batchPart,
             py::arg("random_state")=dp::randomState,
-            py::arg("random_batches")=dp::randomBatches,
+            py::arg("batch_strategy")=dp::batchStrategy,
             py::arg("random_hist_thresholds")=dp::randThresholds,
             py::arg("remove_regularization_later")=dp::removeReg,
             py::arg("spoil_split_scores")=dp::spoilScores)
