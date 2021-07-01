@@ -314,20 +314,20 @@ def tune_diabetes(folder, random_state=12):
 
     # regbm
     regbm_grid = {
-        'min_bins': [8, 16, 32, 64, 128, 256],
+        'min_bins': [16, 32, 64],
         'max_bins': [256],
         'no_early_stopping': [False],
-        'patience': [4],
-        'tree_count': [200, 330, 1000, 2000],
-        'tree_depth': [3, 4, 5, 8],
+        'patience': [5],
+        'tree_count': [500, 1000, 2000],
+        'tree_depth': [4, 5, 7],
         'feature_fold_size': [1.0],
         'learning_rate': [0.15],
         'regularization_param': [0.05, 0.1, 0.15],
         'es_delta': [1e-5],
-        'batch_part': [1],
-        'batch_strategy': [0],
+        'batch_part': [0.6, 0.8],
+        'batch_strategy': [2],
         'random_hist_thresholds': [True],
-        'remove_regularization_later': [True],
+        'remove_regularization_later': [False],
         'spoil_split_scores': [False, True],
         'thread_cnt': [1]
     }
@@ -480,20 +480,20 @@ def tune_winequality(folder, random_state=12):
 
     # regbm
     regbm_grid = {
-        'min_bins': [8, 16, 32, 64],
+        'min_bins': [16, 32, 64],
         'max_bins': [256],
         'no_early_stopping': [False],
         'patience': [5],
-        'tree_count': [200, 500, 1000, 2000],
-        'tree_depth': [3, 4, 5, 8],
+        'tree_count': [500, 1000, 2000],
+        'tree_depth': [3, 5, 7, 8],
         'feature_fold_size': [1.0],
-        'learning_rate': [0.12, 0.15, 0.18, 0.6],
+        'learning_rate': [0.12, 0.15, 0.18],
         'regularization_param': [0.1, 0.12, 0.15],
         'es_delta': [1e-6],
-        'batch_part': [1.0],
-        'batch_strategy': [0],
+        'batch_part': [0.6, 0.8],
+        'batch_strategy': [2],
         'random_hist_thresholds': [True],
-        'remove_regularization_later': [True],
+        'remove_regularization_later': [False],
         'spoil_split_scores': [False, True],
         'thread_cnt': [1]
     }
@@ -606,7 +606,7 @@ def tune_stairs(folder, random_state=12):
 
     # regbm
     regbm_grid = {
-        'min_bins': [256],
+        'min_bins': [16, 32, 256],
         'max_bins': [256],
         'no_early_stopping': [False],
         'patience': [4],
@@ -616,10 +616,10 @@ def tune_stairs(folder, random_state=12):
         'learning_rate': [0.1, 0.12],
         'regularization_param': [0, 0.12, 0.13, 0.14, 0.145],
         'es_delta': [1e-6],
-        'batch_part': [1.0],
-        'batch_strategy': [0],
+        'batch_part': [0.6, 0.8],
+        'batch_strategy': [2],
         'random_hist_thresholds': [True],
-        'remove_regularization_later': [True],
+        'remove_regularization_later': [False],
         'spoil_split_scores': [False],
         'thread_cnt': [1]
     }
@@ -660,15 +660,15 @@ def tune_regression_1(folder, random_state=12):
         'no_early_stopping': [False],
         'patience': [4],
         'tree_count': [500, 1000, 2000],
-        'tree_depth': [3, 4, 5, 8],
+        'tree_depth': [4, 6, 8],
         'feature_fold_size': [1.0],
         'learning_rate': [0.08, 0.1, 0.12],
         'regularization_param': [0.1, 0.12, 0.15],
         'es_delta': [1e-5],
-        'batch_part': [1],
-        'batch_strategy': [0],
+        'batch_part': [0.6, 0.8],
+        'batch_strategy': [2],
         'random_hist_thresholds': [True],
-        'remove_regularization_later': [True],
+        'remove_regularization_later': [False],
         'spoil_split_scores': [False, True],
         'thread_cnt': [1]
     }
@@ -690,12 +690,12 @@ def tune_regression_1(folder, random_state=12):
 def main():
     try:
         for cur_tuner in [
-                          tune_boston, 
+                          tune_boston,
                           tune_diabetes,
-                          tune_regression_100,
-                          tune_regression_200, 
+                          #tune_regression_100,
+                          #tune_regression_200,
                           tune_winequality,
-                          tune_supercond,
+                          #tune_supercond,
                           tune_stairs,
                           tune_regression_1
                         ]:
