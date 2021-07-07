@@ -69,14 +69,15 @@ protected:
 
 	inline void nextBatch(const Batching_e batchStrategy,
 		std::vector<size_t>& allocatedSubset,
-		std::vector<size_t>& fromOneToN);
+		std::vector<size_t>& fromOneToN,
+		const pytensorY& residuals);
 
 	inline void nextBatchSimple(std::vector<size_t>& allocatedSubset) const;
 
 	inline void nextBatchRandom(std::vector<size_t>& allocatedSubset);
 
 	void nextBatchBiggestErrors(std::vector<size_t>& allocatedSubset,
-		std::vector<size_t>& fromOneToN);
+		std::vector<size_t>& fromOneToN, const pytensorY& residuals);
 
 	inline void nextFeatureSubset(const size_t featureSubsetSize,
 		const size_t featureCount,

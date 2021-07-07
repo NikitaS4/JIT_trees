@@ -692,10 +692,10 @@ def main():
         for cur_tuner in [
                           tune_boston,
                           tune_diabetes,
-                          #tune_regression_100,
-                          #tune_regression_200,
+                          tune_regression_100,
+                          tune_regression_200,
                           tune_winequality,
-                          #tune_supercond,
+                          tune_supercond,
                           tune_stairs,
                           tune_regression_1
                         ]:

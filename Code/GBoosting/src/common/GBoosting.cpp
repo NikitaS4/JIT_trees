@@ -147,7 +147,7 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 	// calculate when remove regularization
 	const size_t regularizationKillIter = (size_t)round(float(treeCount) * whenRemoveRegularization);
 
-	std::vector<size_t> fromOneToN = getOrderedIndexes(trainLen); // needed to sample batches
+	std::vector<size_t> fromOneToN(trainLen, 0); // needed to sample batches
 	for (size_t treeNum = 0; treeNum < treeCount && !stop; ++treeNum) {
 		if (removeRegularizationLater && regularizationKillIter == treeNum) {
 			// this is the epoch when regularization will be removed
@@ -158,7 +158,7 @@ History GradientBoosting::fit(const pytensor2& xTrain,
 		}
 		
 		// take the next batch (updates subset)
-		nextBatch(batchStrategyEnummed, subset, fromOneToN);
+		nextBatch(batchStrategyEnummed, subset, fromOneToN, residuals);
 
 		// take the next feature subset (updates feature subset)
 		nextFeatureSubset(featureSubsetSize, featureCount,
@@ -382,7 +382,8 @@ bool GradientBoosting::canStop(const size_t stepNum,
 
 void GradientBoosting::nextBatch(const Batching_e batchStrategy,
 		std::vector<size_t>& allocatedSubset,
-		std::vector<size_t>& fromOneToN) {
+		std::vector<size_t>& fromOneToN,
+		const pytensorY& residuals) {
 	switch (batchStrategy) {
 		case Batching_e::ONE_BY_ONE:
 			nextBatchSimple(allocatedSubset);
@@ -391,7 +392,7 @@ void GradientBoosting::nextBatch(const Batching_e batchStrategy,
 			nextBatchRandom(allocatedSubset);
 			break;
 		case Batching_e::HIGHEST_ERRORS:
-			nextBatchBiggestErrors(allocatedSubset, fromOneToN);
+			nextBatchBiggestErrors(allocatedSubset, fromOneToN, residuals);
 			break;
 		default:
 			throw std::runtime_error("Wrong batching strategy");
@@ -428,16 +429,16 @@ void GradientBoosting::nextBatchRandom(std::vector<size_t>& allocatedSubset) {
 
 
 void GradientBoosting::nextBatchBiggestErrors(std::vector<size_t>& allocatedSubset,
-	std::vector<size_t>& fromOneToN) {
+	std::vector<size_t>& fromOneToN, const pytensorY& residuals) {
 	// sort samples by errors and get top N for the batch
 	// prepare fromOneToN
 	for (size_t i = 0; i < fromOneToN.size(); ++i) {
 		fromOneToN[i] = i;
 	}
-	auto compareLess = [&](const int a, const int b)->bool {
+	decltype(auto) compareLess = [&](const size_t a, const size_t b)->bool {
 		// std::sort require less comparator
 		// but we want to sort in descent order to get top N
-		return trainLosses(a) > trainLosses(b);
+		return residuals(a) > residuals(b);
 	};
 	std::sort(fromOneToN.begin(), fromOneToN.end(), compareLess);
 	// get top elements
